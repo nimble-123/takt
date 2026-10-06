@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS · Lint, Tests, App-Build
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode wählen
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Werkzeuge anzeigen
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Lint (swift-format)
+        if: hashFiles('**/*.swift') != ''
+        run: |
+          dirs=""
+          for d in App Packages; do [ -d "$d" ] && dirs="$dirs $d"; done
+          swift format lint --strict --recursive $dirs
+
+      - name: SwiftPM-Cache
+        if: hashFiles('Packages/TaktKit/Package.swift') != ''
+        uses: actions/cache@v4
+        with:
+          path: Packages/TaktKit/.build
+          key: spm-macos-${{ hashFiles('Packages/TaktKit/Package.resolved', 'Packages/TaktKit/Package.swift') }}
+          restore-keys: spm-macos-
+
+      - name: Package-Tests
+        if: hashFiles('Packages/TaktKit/Package.swift') != ''
+        run: swift test --package-path Packages/TaktKit --parallel
+
+      - name: XcodeGen installieren
+        if: hashFiles('project.yml') != ''
+        run: brew install xcodegen
+
+      - name: App bauen
+        if: hashFiles('project.yml') != ''
+        run: |
+          xcodegen generate
+          xcodebuild \
+            -project Takt.xcodeproj \
+            -scheme Takt \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  linux:
+    name: Linux · Core- und Store-Tests
+    # Hält TaktCore und TaktStore frei von Apple-only-Frameworks (siehe CLAUDE.md).
+    # Package.swift deklariert Apple-only-Targets nur unter macOS, damit der Build hier gelingt.
+    runs-on: ubuntu-latest
+    container: swift:6.2-noble
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: SQLite-Header installieren
+        if: hashFiles('Packages/TaktKit/Package.swift') != ''
+        run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
+      - name: Tests (TaktCore, TaktStore)
+        if: hashFiles('Packages/TaktKit/Package.swift') != ''
+        run: swift test --package-path Packages/TaktKit --filter 'TaktCoreTests|TaktStoreTests'

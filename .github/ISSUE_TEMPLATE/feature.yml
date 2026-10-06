@@ -1,0 +1,29 @@
+name: Funktion
+description: Neue Funktion oder Erweiterung
+labels: ["type: feature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Ziel
+      description: Was soll der Nutzer danach können, und warum?
+    validations:
+      required: true
+  - type: input
+    id: requirements
+    attributes:
+      label: Anforderungs-IDs
+      description: IDs aus docs/PRD.md, z. B. TM-04, DO-24
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Akzeptanzkriterien
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Hinweise zur Umsetzung
+      description: Betroffene Module, Verweise auf das technische Konzept oder das Design
