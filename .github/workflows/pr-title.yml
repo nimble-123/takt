@@ -38,6 +38,3 @@ jobs:
             deps
             main
           requireScope: false
-          subjectPattern: ^(?![A-Z]).+$
-          subjectPatternError: |
-            Der Betreff "{subject}" soll klein beginnen, z. B. "feat(core): add split allocation (TM-04)".
