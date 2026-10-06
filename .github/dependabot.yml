@@ -8,12 +8,11 @@ updates:
       prefix: ci
     labels: ["type: chore"]
 
-  # Sobald Packages/TaktKit/Package.swift existiert, aktivieren:
-  # - package-ecosystem: swift
-  #   directory: /Packages/TaktKit
-  #   schedule:
-  #     interval: weekly
-  #   commit-message:
-  #     prefix: build
-  #     include: scope
-  #   labels: ["type: chore"]
+  - package-ecosystem: swift
+    directory: /Packages/TaktKit
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["type: chore"]

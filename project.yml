@@ -1,0 +1,47 @@
+# XcodeGen definition of the app target. Generate with `xcodegen generate`; Takt.xcodeproj is not checked in.
+name: Takt
+
+options:
+  bundleIdPrefix: de.nilslutz
+  deploymentTarget:
+    macOS: "26.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MARKETING_VERSION: 0.0.0 # x-release-please-version
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+
+packages:
+  TaktKit:
+    path: Packages/TaktKit
+
+targets:
+  Takt:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+    dependencies:
+      - package: TaktKit
+        product: TaktUI
+    settings:
+      base:
+        PRODUCT_NAME: Takt
+        PRODUCT_BUNDLE_IDENTIFIER: de.nilslutz.takt
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Takt
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Nils Lutz. Alle Rechte vorbehalten."
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_APP_SANDBOX: NO
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
