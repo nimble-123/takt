@@ -1,0 +1,7 @@
+{
+  "count": 2,
+  "value": [
+    { "alwaysRequired": true, "referenceName": "System.Title", "name": "Title", "url": "https://dev.azure.com/contoso/_apis/wit/fields/System.Title" },
+    { "alwaysRequired": false, "referenceName": "System.History", "name": "History", "url": "https://dev.azure.com/contoso/_apis/wit/fields/System.History" }
+  ]
+}

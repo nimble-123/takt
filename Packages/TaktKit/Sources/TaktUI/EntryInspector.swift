@@ -239,8 +239,56 @@ private struct AssignmentSection: View {
         return values.count == 1 ? values.first : nil
     }
 
+    @State private var pickingWorkItem = false
+    @State private var booked: Int?
+
     var body: some View {
         Section(String(localized: "Assignment", bundle: .module)) {
+            if model.workItems != nil {
+                LabeledContent(String(localized: "Work item", bundle: .module)) {
+                    HStack {
+                        if let link = commonLink {
+                            Text(link.label).lineLimit(1)
+                            Button {
+                                Task { await model.link(ids, to: nil) }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(Text("Remove link", bundle: .module))
+                        } else {
+                            Text(entries.contains { $0.workItemLinkID != nil } ? "Several" : "None", bundle: .module)
+                                .foregroundStyle(
+                                    entries.allSatisfy { $0.workItemLinkID == nil }
+                                        ? Palette.warning : Palette.textSecondary)
+                        }
+                        Button(String(localized: "Link …", bundle: .module)) { pickingWorkItem = true }
+                            .popover(isPresented: $pickingWorkItem) {
+                                if let source = model.workItems {
+                                    WorkItemPicker(source: source) { item in
+                                        Task { await model.link(ids, to: item) }
+                                    }
+                                }
+                            }
+                    }
+                }
+                if let booking = model.booking, ids.count == 1, commonLink != nil {
+                    HStack {
+                        Text(bookedText)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Palette.textSecondary)
+                        Spacer()
+                        Button(String(localized: "Book Now", bundle: .module)) {
+                            Task {
+                                if let id = ids.first { await booking.book(entry: id) }
+                                booked = await booking.bookedSeconds(of: Array(ids)).values.first
+                            }
+                        }
+                        .controlSize(.small)
+                    }
+                    .task(id: ids) { booked = await booking.bookedSeconds(of: Array(ids)).values.first ?? 0 }
+                }
+            }
             Picker(String(localized: "Project", bundle: .module), selection: projectBinding) {
                 Text("None", bundle: .module).tag(ProjectID?.none)
                 ForEach(projects) { project in
@@ -280,6 +328,17 @@ private struct AssignmentSection: View {
             let names = Set(byEntry.values.flatMap { $0.map(\.name) })
             tags = names.sorted().joined(separator: ", ")
         }
+    }
+
+    private var commonLink: WorkItemLink? {
+        (common(\.workItemLinkID) ?? nil).flatMap { model.workItemLinks[$0] }
+    }
+
+    /// HW-02: what was booked; later changes are booked as differences.
+    private var bookedText: String {
+        let hours = Double(booked ?? 0) / 3600
+        let value = hours.formatted(.number.precision(.fractionLength(2)))
+        return String(localized: "Booked: \(value) h · changes are booked as a difference", bundle: .module)
     }
 
     /// Active projects plus archived ones still assigned, so the picker shows them.

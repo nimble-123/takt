@@ -50,3 +50,15 @@ extension Timestamp {
         return Timestamp(start)..<Timestamp(end)
     }
 }
+
+extension Timestamp {
+    /// `YYYY-MM-DD` of the local day, as stored in `sync_record.local_day`.
+    public func localDayString(in calendar: Calendar = .current) -> String {
+        let parts = calendar.dateComponents([.year, .month, .day], from: date)
+        func pad(_ value: Int?, _ width: Int) -> String {
+            let string = String(value ?? 0)
+            return String(repeating: "0", count: max(0, width - string.count)) + string
+        }
+        return "\(pad(parts.year, 4))-\(pad(parts.month, 2))-\(pad(parts.day, 2))"
+    }
+}

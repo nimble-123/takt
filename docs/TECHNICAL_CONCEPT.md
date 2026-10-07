@@ -348,6 +348,10 @@ Eine Buchung ist ein einziger JSON-Patch. Der Kommentar steht im selben Patch un
 5. Erfolg: Status `synced` mit neuer Revision. Revisionskonflikt: neu lesen und bis zu dreimal wiederholen. Keine Verbindung: Datensatz bleibt `pending`; die Warteschlange sendet erneut, sobald `NWPathMonitor` Netz meldet (exponentielles Backoff, `Retry-After` wird beachtet). Andere Fehler: Status `failed`, sichtbar im Tagesabschluss.
 6. Beim App-Start werden `pending`-Datensätze zuerst im Verlauf des Work Items gesucht (Kennung `takt:<id>`). Gefunden heißt bereits gebucht, sonst wird neu gesendet.
 
+**Umsetzung.** `BookingPlanner` (TaktADO) bildet die Zeilen je Eintrag, Work Item und lokalem Tag und rechnet direkt mit `TaktCore.Allocation` (Dienste hängen nicht voneinander ab). Ein Eintrag mit noch ausstehender Buchung bekommt keine zweite; gelöschte Einträge und geänderte Verknüpfungen erscheinen über ihre alten Datensätze mit Soll 0 und werden zurückgebucht. Das Zeitfeld wird erst beim Senden je Projekt und Typ gelesen, damit auch offline vorgemerkt werden kann; hat ein Typ kein `CompletedWork`, geht nur der Kommentar raus (eine Rückfrage beim Nutzer entfällt vorerst). Der Kommentar steht auf Deutsch („Takt: +0,25 h am 06.10.2026 · Notiz [takt:…]“). Fehler werden als Code in `sync_record.error` gespeichert und in der Oberfläche übersetzt. Die Warteschlange läuft beim Start, wenn `NWPathMonitor` Netz meldet, und minütlich mit exponentiellem Backoff (30 s bis 15 min, `Retry-After` hat Vorrang). Einstellungen: `reduceRemainingWork` (DO-22) und `bookingIncludesNote` (DO-23).
+
+**Tagesabschluss** ist ein eigener Bereich im Hauptfenster (statt einer Spalte neben „Heute“): Soll, Gebucht und Differenz je Work Item, Fehler sichtbar, Einträge ohne Work Item in Amber mit „Verknüpfen …“, „Alles buchen“ als Hauptaktion. Im Buchungsmodus „automatisch“ bucht Takt direkt nach dem Stoppen, im Modus „manuell“ über „Jetzt buchen“ im Inspektor.
+
 ```mermaid
 flowchart LR
     A["Soll − Gebucht<br/>pro Eintrag und Tag"] --> B{"≠ 0?"}

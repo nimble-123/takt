@@ -31,6 +31,8 @@ public struct MainWindowView: View {
                 }
                 switch model.section {
                 case .today: DayScreen(model: model)
+                case .dayClose:
+                    if let booking = model.booking { DayCloseScreen(model: model, booking: booking) }
                 case .week: WeekScreen(model: model)
                 case .entries: EntryListScreen(model: model)
                 case .analytics:
@@ -99,7 +101,7 @@ public struct MainWindowView: View {
 
     private var title: String {
         switch model.section {
-        case .today:
+        case .today, .dayClose:
             model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
         case .projects:
             String(localized: "Projects", bundle: .module)
@@ -129,6 +131,7 @@ extension MainWindowModel.Section {
     var title: String {
         switch self {
         case .today: String(localized: "Today", bundle: .module)
+        case .dayClose: String(localized: "Day Close", bundle: .module)
         case .week: String(localized: "Week", bundle: .module)
         case .entries: String(localized: "Entries", bundle: .module)
         case .analytics: String(localized: "Analytics", bundle: .module)
@@ -140,6 +143,7 @@ extension MainWindowModel.Section {
     var symbol: String {
         switch self {
         case .today: "sun.max"
+        case .dayClose: "checkmark.seal"
         case .week: "calendar"
         case .entries: "list.bullet"
         case .analytics: "chart.bar.xaxis"

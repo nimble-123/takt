@@ -51,12 +51,32 @@
         }
       }
     },
+    "%lld waiting for the network": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld warten auf das Netz"
+          }
+        }
+      }
+    },
     "A name is required.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Ein Name ist erforderlich."
+          }
+        }
+      }
+    },
+    "Add the entry's note to the comment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz des Eintrags in den Kommentar übernehmen"
           }
         }
       }
@@ -181,6 +201,26 @@
         }
       }
     },
+    "Azure DevOps rejected the token.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps hat das Token abgelehnt."
+          }
+        }
+      }
+    },
+    "Azure DevOps reported an error.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps hat einen Fehler gemeldet."
+          }
+        }
+      }
+    },
     "Back": {
       "localizations": {
         "de": {
@@ -207,6 +247,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sicherung gespeichert."
+          }
+        }
+      }
+    },
+    "Book All": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alles buchen"
+          }
+        }
+      }
+    },
+    "Book Now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt buchen"
+          }
+        }
+      }
+    },
+    "Booked": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebucht"
+          }
+        }
+      }
+    },
+    "Booked: %@ h · changes are booked as a difference": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebucht: %@ h · Änderungen werden als Differenz nachgebucht"
           }
         }
       }
@@ -541,6 +621,16 @@
         }
       }
     },
+    "Day Close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesabschluss"
+          }
+        }
+      }
+    },
     "Default": {
       "localizations": {
         "de": {
@@ -587,6 +677,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Entwicklung"
+          }
+        }
+      }
+    },
+    "Difference": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Differenz"
           }
         }
       }
@@ -771,6 +871,16 @@
         }
       }
     },
+    "ID or title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID oder Titel"
+          }
+        }
+      }
+    },
     "Import Backup …": {
       "localizations": {
         "de": {
@@ -841,12 +951,32 @@
         }
       }
     },
+    "Link Work Item": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work Item verknüpfen"
+          }
+        }
+      }
+    },
     "Link work items and book your time to them. You can do this later in the settings.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Verknüpfe Work Items und buche deine Zeit darauf. Das geht auch später in den Einstellungen."
+          }
+        }
+      }
+    },
+    "Link …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verknüpfen …"
           }
         }
       }
@@ -1011,12 +1141,32 @@
         }
       }
     },
+    "No entries with a work item on this day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An diesem Tag gibt es keine Einträge mit Work Item."
+          }
+        }
+      }
+    },
     "None": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Keine"
+          }
+        }
+      }
+    },
+    "Not connected to this organization.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit dieser Organisation nicht verbunden."
           }
         }
       }
@@ -1301,6 +1451,26 @@
         }
       }
     },
+    "Reduce Remaining Work by the booked time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remaining Work um die gebuchte Zeit reduzieren"
+          }
+        }
+      }
+    },
+    "Remove link": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verknüpfung entfernen"
+          }
+        }
+      }
+    },
     "Rename": {
       "localizations": {
         "de": {
@@ -1441,6 +1611,16 @@
         }
       }
     },
+    "Send Again": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut senden"
+          }
+        }
+      }
+    },
     "Set by your organization": {
       "localizations": {
         "de": {
@@ -1457,6 +1637,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Einstellungen"
+          }
+        }
+      }
+    },
+    "Several": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehrere"
           }
         }
       }
@@ -1731,6 +1921,16 @@
         }
       }
     },
+    "Target": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soll"
+          }
+        }
+      }
+    },
     "Task": {
       "localizations": {
         "de": {
@@ -1761,6 +1961,16 @@
         }
       }
     },
+    "The bookings could not be loaded.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Buchungen konnten nicht geladen werden."
+          }
+        }
+      }
+    },
     "The entry was changed in the meantime.": {
       "localizations": {
         "de": {
@@ -1787,6 +1997,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Organisation wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "The work item is unknown.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Work Item ist unbekannt."
+          }
+        }
+      }
+    },
+    "The work item kept changing; try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Work Item wurde ständig geändert; versuch es noch einmal."
+          }
+        }
+      }
+    },
+    "The work item no longer exists.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Work Item gibt es nicht mehr."
           }
         }
       }
@@ -1851,6 +2091,16 @@
         }
       }
     },
+    "To book": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu buchen"
+          }
+        }
+      }
+    },
     "Today": {
       "localizations": {
         "de": {
@@ -1897,6 +2147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rückgängig ⌘Z"
+          }
+        }
+      }
+    },
+    "Waiting to be sent": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartet auf das Senden"
           }
         }
       }
@@ -1967,6 +2227,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ohne"
+          }
+        }
+      }
+    },
+    "Without work item": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Work Item"
           }
         }
       }

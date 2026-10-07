@@ -1,0 +1,10 @@
+{
+  "id": 1234,
+  "rev": 58,
+  "fields": {
+    "System.Id": 1234,
+    "Microsoft.VSTS.Scheduling.CompletedWork": 8.0,
+    "Microsoft.VSTS.Scheduling.RemainingWork": 2.5
+  },
+  "url": "https://dev.azure.com/contoso/_apis/wit/workItems/1234"
+}

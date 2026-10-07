@@ -1,0 +1,9 @@
+{
+  "count": 4,
+  "value": [
+    { "alwaysRequired": true, "referenceName": "System.Title", "name": "Title", "url": "https://dev.azure.com/contoso/_apis/wit/fields/System.Title" },
+    { "alwaysRequired": false, "referenceName": "System.History", "name": "History", "url": "https://dev.azure.com/contoso/_apis/wit/fields/System.History" },
+    { "alwaysRequired": false, "referenceName": "Microsoft.VSTS.Scheduling.RemainingWork", "name": "Remaining Work", "url": "https://dev.azure.com/contoso/_apis/wit/fields/Microsoft.VSTS.Scheduling.RemainingWork" },
+    { "alwaysRequired": false, "referenceName": "Microsoft.VSTS.Scheduling.CompletedWork", "name": "Completed Work", "url": "https://dev.azure.com/contoso/_apis/wit/fields/Microsoft.VSTS.Scheduling.CompletedWork" }
+  ]
+}
