@@ -4,6 +4,7 @@
   "include-component-in-tag": false,
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": false,
+  "initial-version": "0.1.0",
   "pull-request-title-pattern": "chore${scope}: release ${version}",
   "changelog-sections": [
     { "type": "feat", "section": "Neue Funktionen" },
