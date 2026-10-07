@@ -21,6 +21,16 @@
         }
       }
     },
+    "%@ of %@ target": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ von %2$@ Soll"
+          }
+        }
+      }
+    },
     "%@ · token expires on %@ – renew it": {
       "localizations": {
         "de": {
@@ -287,6 +297,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sicherung gespeichert."
+          }
+        }
+      }
+    },
+    "Balance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saldo"
           }
         }
       }
@@ -631,6 +651,16 @@
         }
       }
     },
+    "Created %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellt %@"
+          }
+        }
+      }
+    },
     "Custom": {
       "localizations": {
         "de": {
@@ -907,6 +937,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Als JSON exportieren …"
+          }
+        }
+      }
+    },
+    "Export as PDF Report …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als PDF-Bericht exportieren …"
           }
         }
       }
@@ -1421,6 +1461,16 @@
         }
       }
     },
+    "Page %lld of %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seite %1$lld von %2$lld"
+          }
+        }
+      }
+    },
     "Parallel time": {
       "localizations": {
         "de": {
@@ -1747,6 +1797,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Review"
+          }
+        }
+      }
+    },
+    "Rounded": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerundet"
           }
         }
       }
@@ -2381,6 +2441,16 @@
         }
       }
     },
+    "Time report": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitbericht"
+          }
+        }
+      }
+    },
     "Timer": {
       "localizations": {
         "de": {
@@ -2551,6 +2621,16 @@
         }
       }
     },
+    "Weekly hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochenstunden"
+          }
+        }
+      }
+    },
     "Weight": {
       "localizations": {
         "de": {
@@ -2627,6 +2707,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Work Items"
+          }
+        }
+      }
+    },
+    "Working days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitstage"
           }
         }
       }

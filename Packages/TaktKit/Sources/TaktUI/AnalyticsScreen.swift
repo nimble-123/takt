@@ -15,7 +15,7 @@ struct AnalyticsScreen: View {
             VStack(alignment: .leading, spacing: 20) {
                 controls
                 if let report = model.report {
-                    KPIRow(report: report, previous: model.previous)
+                    KPIRow(report: report, previous: model.previous, comparison: model.comparison)
                     HStack(alignment: .top, spacing: 20) {
                         DayBars(model: model, report: report)
                             .frame(maxWidth: .infinity)
@@ -104,6 +104,7 @@ struct AnalyticsScreen: View {
             Menu {
                 Button(String(localized: "Export as CSV …", bundle: .module)) { export(.csv) }
                 Button(String(localized: "Export as JSON …", bundle: .module)) { export(.json) }
+                Button(String(localized: "Export as PDF Report …", bundle: .module)) { export(.pdf) }
             } label: {
                 Label(String(localized: "Export", bundle: .module), systemImage: "square.and.arrow.up")
             }
@@ -146,6 +147,7 @@ extension Grouping {
 private struct KPIRow: View {
     let report: Report
     let previous: Report?
+    let comparison: TargetPlan.Comparison?
 
     var body: some View {
         HStack(spacing: 28) {
@@ -153,6 +155,18 @@ private struct KPIRow: View {
                 String(localized: "Total", bundle: .module), DurationText.hoursMinutes(report.total),
                 change: previous.map { change(report.total, $0.total) } ?? nil
             )
+            if let comparison, comparison.target > 0 {
+                // AN-07: target from the weekly hours, counted up to today.
+                figure(
+                    String(localized: "Balance", bundle: .module),
+                    (comparison.balance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(comparison.balance)),
+                    detail: String(
+                        localized:
+                            "\(DurationText.hoursMinutes(comparison.actual)) of \(DurationText.hoursMinutes(comparison.target)) target",
+                        bundle: .module
+                    )
+                )
+            }
             figure(String(localized: "Pauses", bundle: .module), DurationText.hoursMinutes(report.pauses))
             figure(
                 String(localized: "Multitasking", bundle: .module),
@@ -234,6 +248,16 @@ private struct DayBars: View {
                             y: .value("Hours", seconds / 3600)
                         )
                         .foregroundStyle(by: .value("Group", top.contains(key) ? model.label(key) : other))
+                    }
+                    let target = model.targetHours(on: day.start)
+                    if target > 0 {
+                        RuleMark(
+                            xStart: .value("From", day.start.date),
+                            xEnd: .value("To", day.start.date.addingTimeInterval(86_400)),
+                            y: .value("Target", target)
+                        )
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        .foregroundStyle(Palette.textSecondary)
                     }
                 }
             }
@@ -372,7 +396,13 @@ private struct Heatmap: View {
 @MainActor
 func saveExport(_ model: AnalyticsModel, _ format: AnalyticsModel.ExportFormat) {
     let panel = NSSavePanel()
-    panel.allowedContentTypes = [format == .csv ? .commaSeparatedText : .json]
+    let type: UTType =
+        switch format {
+        case .csv: .commaSeparatedText
+        case .json: .json
+        case .pdf: .pdf
+        }
+    panel.allowedContentTypes = [type]
     panel.nameFieldStringValue = model.exportFileName
     guard panel.runModal() == .OK, let url = panel.url else { return }
     do {

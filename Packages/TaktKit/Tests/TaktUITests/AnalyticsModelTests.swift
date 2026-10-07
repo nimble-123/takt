@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import TaktAnalytics
 import TaktCore
@@ -62,5 +63,31 @@ struct AnalyticsModelTests {
         let csv = String(decoding: try model.export(.csv), as: UTF8.self)
         #expect(csv.contains("2026-10-07,A,"))
         #expect(model.exportFileName == "Takt 2026-10-07 – 2026-10-07")
+    }
+}
+
+extension AnalyticsModelTests {
+    @Test func pdfReportHasASummaryAndTablePages() async throws {
+        for index in 0..<40 {
+            try await track("Eintrag \(index)", hours: 0.1)
+        }
+        model.period = .day
+        await model.reload()
+
+        let data = try model.export(.pdf)
+        #expect(data.starts(with: Data("%PDF".utf8)))
+        let provider = try #require(CGDataProvider(data: data as CFData))
+        let document = try #require(CGPDFDocument(provider))
+        #expect(document.numberOfPages == 3)  // summary, then 40 rows on two table pages
+        try? data.write(to: FileManager.default.temporaryDirectory.appending(path: "takt-report-test.pdf"))
+    }
+
+    @Test func balanceComparesWithTheWeeklyHours() async throws {
+        try await track("A", hours: 2)
+        model.period = .day
+        await model.reload()
+        let comparison = try #require(model.comparison)
+        #expect(comparison.actual == 2 * 3600)
+        #expect(comparison.target == model.targetPlan.target(on: clock.now(), calendar: calendar))
     }
 }

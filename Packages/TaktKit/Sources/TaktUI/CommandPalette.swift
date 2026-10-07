@@ -127,6 +127,11 @@ public final class CommandPaletteModel {
                     id: "export-json", title: String(localized: "Export as JSON …", bundle: .module),
                     symbol: "square.and.arrow.up", keywords: ["export"]
                 ) { [weak self] in self?.export?(.json) })
+            items.append(
+                PaletteItem(
+                    id: "export-pdf", title: String(localized: "Export as PDF Report …", bundle: .module),
+                    symbol: "doc.richtext", keywords: ["export", "report", "bericht"]
+                ) { [weak self] in self?.export?(.pdf) })
         }
         if let booking = window.booking {
             items.append(

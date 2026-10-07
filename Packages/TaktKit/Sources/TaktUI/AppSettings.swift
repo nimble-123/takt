@@ -10,7 +10,7 @@ public final class AppSettings {
     public enum Key: String, CaseIterable, Sendable {
         case startMode, countingMode, idleThresholdMinutes, lockCountsAsPause, roundingMinutes
         case bookingMode, dailyGoalHours, showElapsedInMenuBar, onboardingCompleted
-        case reduceRemainingWork, bookingIncludesNote
+        case reduceRemainingWork, bookingIncludesNote, weeklyHours, workDays
     }
 
     /// When booked time goes to Azure DevOps (DO-21).
@@ -50,6 +50,14 @@ public final class AppSettings {
     public var onboardingCompleted: Bool {
         didSet { write(.onboardingCompleted, onboardingCompleted) }
     }
+    /// AN-07: contractual hours per week for the target/actual comparison.
+    public var weeklyHours: Double {
+        didSet { write(.weeklyHours, weeklyHours) }
+    }
+    /// AN-07: working days, 1 = Monday … 7 = Sunday.
+    public var workDays: Set<Int> {
+        didSet { write(.workDays, workDays.sorted()) }
+    }
     /// DO-22: reduce Remaining Work by the booked time (never below 0).
     public var reduceRemainingWork: Bool {
         didSet { write(.reduceRemainingWork, reduceRemainingWork) }
@@ -74,6 +82,8 @@ public final class AppSettings {
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted.rawValue)
         reduceRemainingWork = defaults.object(forKey: Key.reduceRemainingWork.rawValue) as? Bool ?? true
         bookingIncludesNote = defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true
+        weeklyHours = defaults.object(forKey: Key.weeklyHours.rawValue) as? Double ?? 40
+        workDays = Set(defaults.array(forKey: Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
     }
 
     /// Whether a configuration profile sets this value.
