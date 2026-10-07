@@ -21,6 +21,7 @@ xcodegen generate                                       # erzeugt Takt.xcodeproj
 swift test --package-path Packages/TaktKit              # Package-Tests
 swift format lint --strict --recursive App Packages     # Lint (swift-format aus der Toolchain)
 xcodebuild -project Takt.xcodeproj -scheme Takt -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+scripts/run-local.sh --test --seed                     # App bauen und mit Beispieldaten in ~/takt-test starten
 ```
 
 Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die App und Apple-Frameworks nicht gebaut werden. Dann: Code sorgfältig schreiben, `TaktCore`/`TaktStore` Linux-kompatibel halten und auf die CI verlassen. Nie behaupten, etwas sei getestet, wenn es nicht lief.

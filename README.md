@@ -2,7 +2,7 @@
 
 Zeit erfassen, ohne den Takt zu verlieren: ein nativer macOS-Timetracker für die Menüleiste, mit Pausen, Multitasking, Analysen und Buchung nach Azure DevOps. Alle Daten bleiben lokal auf dem Mac.
 
-> Status: in Entwicklung, Phase 1 (Erfassen). Noch kein Release.
+> Status: Phasen 1–3 umgesetzt (ohne Entra ID und Outlook-Kalender). Noch kein Release.
 
 ## Dokumentation
 
@@ -26,6 +26,17 @@ swift test --package-path Packages/TaktKit
 ```
 
 Das Xcode-Projekt wird aus `project.yml` erzeugt und nicht eingecheckt.
+
+### Lokal starten
+
+```bash
+scripts/run-local.sh                          # bauen und mit deinen echten Daten starten
+scripts/run-local.sh --test --seed            # eigener Datenordner ~/takt-test mit Beispieldaten
+scripts/run-local.sh --test --seed --clean    # Testdaten neu anlegen
+scripts/run-local.sh --no-build --logs        # ohne Build starten und das Log mitlesen
+```
+
+Im Testmodus bleiben die Einträge getrennt; Einstellungen, Azure-DevOps-Verbindungen und Schlüsselbund teilt Takt mit der echten App. `scripts/run-local.sh --help` zeigt alle Optionen.
 
 ## Mitarbeiten
 
