@@ -18,7 +18,7 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Xcode wählen
         uses: maxim-lobanov/setup-xcode@v1
@@ -73,7 +73,7 @@ jobs:
     container: swift:6.2-noble
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: SQLite-Header installieren
         if: hashFiles('Packages/TaktKit/Package.swift') != ''
         run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
