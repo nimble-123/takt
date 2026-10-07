@@ -8,7 +8,7 @@ Versionen entstehen automatisch aus den Commit-Nachrichten; signiert und notaris
 2. Nach jedem Push auf `main` aktualisiert release-please einen Release-PR („chore(main): release x.y.z“). Er enthält den neuen `CHANGELOG.md`-Abschnitt und die Versionsnummer in `project.yml` (`MARKETING_VERSION`, markiert mit `# x-release-please-version`).
 3. Auf dem Release-PR läuft zusätzlich der Check „Release-Build (Apple Silicon)“ (`.github/workflows/release-build.yml`). Er baut und packt die App genau so wie später für das Release; ist er grün, lässt sich der Stand ausliefern.
 4. Ist der Stand releasebereit, wird der Release-PR gemergt. release-please legt dann den Tag `vX.Y.Z` und ein GitHub-Release mit den Release Notes an.
-5. Das veröffentlichte Release startet den Release-Build erneut. Er hängt `Takt-X.Y.Z-arm64.dmg`, `.zip` und die SHA-256-Prüfsummen an und ergänzt die Release Notes um einen Installationshinweis. Lokal geht dasselbe mit `scripts/package-unsigned.sh X.Y.Z`; über „Run workflow“ lässt sich der Build für ein bestehendes Tag wiederholen.
+5. Das veröffentlichte Release startet den Release-Build erneut. Er hängt `Takt-X.Y.Z-arm64.dmg`, `.zip` und die SHA-256-Prüfsummen an und ergänzt die Release Notes um einen Installationshinweis. Lokal geht dasselbe mit `scripts/package-unsigned.sh X.Y.Z`; über „Run workflow“ lässt sich der Build für ein bestehendes Tag wiederholen. Danach setzt der Job „Homebrew-Tap“ `version` und `sha256` in `Casks/takt.rb` von [nimble-123/homebrew-tap](https://github.com/nimble-123/homebrew-tap) auf die neue DMG.
 6. Für die Verteilung per MDM lokal das signierte PKG bauen und an das Release hängen:
 
    ```bash
@@ -52,3 +52,7 @@ Soll die CI signieren, kommen Zertifikat (als `.p12`), dessen Passwort und ein A
 ## Token für release-please
 
 Von release-please mit dem Standard-`GITHUB_TOKEN` erstellte PRs und Releases starten keine anderen Workflows: Weder die Checks auf dem Release-PR noch der Release-Build würden laufen. Deshalb ist ein Fine-grained PAT (nur dieses Repo; Contents und Pull requests: Read & Write) als Secret `RELEASE_PLEASE_TOKEN` hinterlegt; der Workflow nutzt es automatisch. Läuft das Token ab, fällt release-please still auf das Standard-Token zurück. Dann fehlen die Checks auf dem Release-PR, und der Release-Build muss über „Run workflow“ nachgeholt werden.
+
+## Token für den Homebrew-Tap
+
+Der Job „Homebrew-Tap“ schreibt in ein anderes Repo und braucht dafür das Secret `HOMEBREW_TAP_TOKEN`: ein Fine-grained PAT nur für `nimble-123/homebrew-tap` mit Contents: Read & Write. Fehlt es, warnt der Job und bricht ab, ohne das Release scheitern zu lassen; der Cask zeigt dann weiter auf die vorige Version.
