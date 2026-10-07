@@ -39,7 +39,7 @@ jobs:
 
       - name: SwiftPM-Cache
         if: hashFiles('Packages/TaktKit/Package.swift') != ''
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: Packages/TaktKit/.build
           key: spm-macos-${{ hashFiles('Packages/TaktKit/Package.resolved', 'Packages/TaktKit/Package.swift') }}
