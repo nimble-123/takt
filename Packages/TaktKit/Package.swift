@@ -60,7 +60,9 @@ let package = Package(
                 "TaktSystem",
                 "TaktADO",
                 "TaktCalendar",
-            ]
+            ],
+            resources: [.process("Resources")]
         ),
+        .testTarget(name: "TaktUITests", dependencies: ["TaktUI"]),
     ]
 #endif

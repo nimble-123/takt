@@ -29,6 +29,12 @@ targets:
     dependencies:
       - package: TaktKit
         product: TaktUI
+      - package: TaktKit
+        product: TaktCore
+      - package: TaktKit
+        product: TaktStore
+      - package: TaktKit
+        product: TaktSystem
     settings:
       base:
         PRODUCT_NAME: Takt

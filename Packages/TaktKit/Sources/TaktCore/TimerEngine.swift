@@ -8,6 +8,15 @@ public struct TimerUndo: Hashable, Sendable {
         self.changes = changes.reversed().map(\.inverse)
     }
 
+    private init(inverseChanges: [TimerChange]) {
+        self.changes = inverseChanges
+    }
+
+    /// One undo for several commands that ran in this order; reverts the last one first.
+    public init(combining undos: [TimerUndo]) {
+        self.init(inverseChanges: undos.reversed().flatMap(\.changes))
+    }
+
     public var isEmpty: Bool { changes.isEmpty }
 }
 
@@ -165,10 +174,17 @@ public actor TimerEngine {
         return event
     }
 
+    /// Writes edits made outside the timer commands, e.g. a note or a corrected segment.
+    /// Each change must state the row as currently stored; otherwise nothing is written.
+    @discardableResult
+    public func apply(_ changes: [TimerChange]) async throws -> TimerUndo {
+        try await perform { _ in TimerUpdate(changes: changes) }.undo
+    }
+
     /// Reverts a command. Returns the undo of the undo, i.e. the redo.
     @discardableResult
     public func undo(_ undo: TimerUndo) async throws -> TimerUndo {
-        try await perform { _ in TimerUpdate(changes: undo.changes) }.undo
+        try await apply(undo.changes)
     }
 
     // MARK: Observation
