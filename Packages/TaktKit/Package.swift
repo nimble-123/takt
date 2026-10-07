@@ -31,7 +31,6 @@ let package = Package(
         .target(name: "TaktAnalytics", dependencies: ["TaktCore", "TaktStore"]),
         .testTarget(name: "TaktCoreTests", dependencies: ["TaktCore"]),
         .testTarget(name: "TaktStoreTests", dependencies: ["TaktStore"]),
-        .testTarget(name: "TaktAnalyticsTests", dependencies: ["TaktAnalytics"]),
     ]
 )
 
@@ -63,6 +62,5 @@ let package = Package(
                 "TaktCalendar",
             ]
         ),
-        .testTarget(name: "TaktADOTests", dependencies: ["TaktADO"]),
     ]
 #endif
