@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/nimble-123/takt/compare/v0.1.0...v0.2.0) (2026-10-07)
+
+
+### Neue Funktionen
+
+* **app:** add app icon and logo ([#60](https://github.com/nimble-123/takt/issues/60)) ([e129cff](https://github.com/nimble-123/takt/commit/e129cff7056aaf1841ccb275bdddb48047937030))
+
 ## 0.1.0 (2026-10-07)
 
 
