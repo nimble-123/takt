@@ -118,7 +118,7 @@ struct AnalyzerTests {
     }
 
     @Test func weekdaysStartOnMonday() {
-        let sunday = entry("A", [(6 * 24 + 9, 6 * 24 + 10)])
+        let sunday = entry("A", [(6.0 * 24 + 9, 6.0 * 24 + 10)])
         let report = analyzer.report(AnalyticsData(entries: [sunday]), in: week, now: at(200), by: .weekday)
         #expect(report.groups.map(\.key) == [.weekday(7)])
     }
