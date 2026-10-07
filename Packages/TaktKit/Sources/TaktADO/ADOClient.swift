@@ -22,6 +22,7 @@ public struct ADOClient: Sendable {
     private let authorization: any AuthorizationProvider
     private let session: URLSession
     private let baseURL: URL
+    private let searchBaseURL: URL
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "ado")
 
     public static let apiVersion = "7.1"
@@ -30,21 +31,27 @@ public struct ADOClient: Sendable {
         organization: String,
         authorization: any AuthorizationProvider,
         session: URLSession = .shared,
-        baseURL: URL = ADOClient.defaultBaseURL
+        baseURL: URL = ADOClient.defaultBaseURL,
+        searchBaseURL: URL = ADOClient.defaultSearchBaseURL
     ) {
         self.organization = organization
         self.authorization = authorization
         self.session = session
         self.baseURL = baseURL
+        self.searchBaseURL = searchBaseURL
     }
 
     /// `https://dev.azure.com`
-    public static let defaultBaseURL: URL = {
+    public static let defaultBaseURL = url(host: "dev.azure.com")
+    /// Work item search lives on its own host.
+    public static let defaultSearchBaseURL = url(host: "almsearch.dev.azure.com")
+
+    private static func url(host: String) -> URL {
         var components = URLComponents()
         components.scheme = "https"
-        components.host = "dev.azure.com"
+        components.host = host
         return components.url ?? URL(filePath: "/")
-    }()
+    }
 
     // MARK: Requests
 
@@ -54,9 +61,10 @@ public struct ADOClient: Sendable {
     }
 
     func post<Body: Encodable, Response: Decodable>(
-        _ path: String, query: [URLQueryItem] = [], body: Body, contentType: String = "application/json"
+        _ path: String, query: [URLQueryItem] = [], body: Body, contentType: String = "application/json",
+        onSearchHost: Bool = false
     ) async throws -> Response {
-        var request = try await request("POST", path, query: query)
+        var request = try await request("POST", path, query: query, onSearchHost: onSearchHost)
         request.httpBody = try JSONEncoder().encode(body)
         request.setValue(contentType, forHTTPHeaderField: "Content-Type")
         return try await send(request)
@@ -71,9 +79,12 @@ public struct ADOClient: Sendable {
         return try await send(request)
     }
 
-    private func request(_ method: String, _ path: String, query: [URLQueryItem] = []) async throws -> URLRequest {
+    private func request(
+        _ method: String, _ path: String, query: [URLQueryItem] = [], onSearchHost: Bool = false
+    ) async throws -> URLRequest {
+        let base = onSearchHost ? searchBaseURL : baseURL
         var components = URLComponents(
-            url: baseURL.appending(path: organization).appending(path: path), resolvingAgainstBaseURL: false
+            url: base.appending(path: organization).appending(path: path), resolvingAgainstBaseURL: false
         )
         components?.queryItems = query + [URLQueryItem(name: "api-version", value: Self.apiVersion)]
         guard let url = components?.url else { throw ADOError.invalidResponse }

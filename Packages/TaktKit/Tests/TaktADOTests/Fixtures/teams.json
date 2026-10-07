@@ -1,0 +1,6 @@
+{
+  "value": [
+    { "id": "a1b2c3d4-0000-4000-8000-000000000001", "name": "Team Login", "url": "https://dev.azure.com/contoso/_apis/projects/c4a2b2f0/teams/a1b2c3d4", "description": "", "identityUrl": "https://spsprodweu5.vssps.visualstudio.com/x", "projectName": "Kundenportal", "projectId": "c4a2b2f0-1111-4c3b-9a1e-0f1e2d3c4b5a" }
+  ],
+  "count": 1
+}

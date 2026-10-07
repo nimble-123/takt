@@ -91,7 +91,8 @@ public struct Tag: Hashable, Sendable, Codable, Identifiable {
     }
 }
 
-/// An Azure DevOps work item an entry is linked to, with the last seen details (DO-10, DO-12).
+/// An Azure DevOps work item, cached locally with the details of the last fetch (DO-10–DO-12).
+/// Entries link to it; search results are stored here too, so they show up instantly next time.
 public struct WorkItemLink: Hashable, Sendable, Codable, Identifiable {
     public var id: WorkItemLinkID
     public var organization: String
@@ -101,6 +102,14 @@ public struct WorkItemLink: Hashable, Sendable, Codable, Identifiable {
     public var cachedType: String?
     public var cachedState: String?
     public var cachedAt: Timestamp?
+    public var assignedTo: String?
+    public var iterationPath: String?
+    public var remainingWork: Double?
+    public var completedWork: Double?
+    public var parentID: Int?
+    /// Plain-text start of the description, for the detail preview (DO-13).
+    public var descriptionExcerpt: String?
+    public var tags: [String]
 
     public init(
         id: WorkItemLinkID = WorkItemLinkID(),
@@ -110,7 +119,14 @@ public struct WorkItemLink: Hashable, Sendable, Codable, Identifiable {
         cachedTitle: String? = nil,
         cachedType: String? = nil,
         cachedState: String? = nil,
-        cachedAt: Timestamp? = nil
+        cachedAt: Timestamp? = nil,
+        assignedTo: String? = nil,
+        iterationPath: String? = nil,
+        remainingWork: Double? = nil,
+        completedWork: Double? = nil,
+        parentID: Int? = nil,
+        descriptionExcerpt: String? = nil,
+        tags: [String] = []
     ) {
         self.id = id
         self.organization = organization
@@ -120,10 +136,24 @@ public struct WorkItemLink: Hashable, Sendable, Codable, Identifiable {
         self.cachedType = cachedType
         self.cachedState = cachedState
         self.cachedAt = cachedAt
+        self.assignedTo = assignedTo
+        self.iterationPath = iterationPath
+        self.remainingWork = remainingWork
+        self.completedWork = completedWork
+        self.parentID = parentID
+        self.descriptionExcerpt = descriptionExcerpt
+        self.tags = tags
     }
 
     /// `#1234 Title`
     public var label: String {
         cachedTitle.map { "#\(workItemID) \($0)" } ?? "#\(workItemID)"
+    }
+
+    /// The same work item with the details of `fresh`, keeping this row's local ID.
+    public func updated(with fresh: WorkItemLink) -> WorkItemLink {
+        var updated = fresh
+        updated.id = id
+        return updated
     }
 }

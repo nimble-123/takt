@@ -39,8 +39,12 @@ final class Composition {
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         let queries = EntryQueries(database: database)
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
-        azureDevOps = AzureDevOpsModel(accounts: ADOAccounts(), catalog: catalog, clock: clock)
-        menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings)
+        let accounts = ADOAccounts()
+        azureDevOps = AzureDevOpsModel(accounts: accounts, catalog: catalog, clock: clock)
+        menuBar = MenuBarModel(
+            engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings,
+            workItems: AzureDevOpsWorkItems(accounts: accounts, cache: WorkItemCache(database: database), clock: clock)
+        )
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,
             analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),

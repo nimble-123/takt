@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import TaktADO
 import TaktCore
 import TaktStore
 import os
@@ -9,13 +10,16 @@ import os
 @MainActor
 @Observable
 public final class MenuBarModel {
-    /// A start option in the search: a recent activity or a local task (DESIGN: "Lokale Tasks").
+    /// A start option in the search: a work item, a recent activity or a local task
+    /// (DESIGN: "Treffer gruppiert (Azure DevOps, Lokale Tasks)").
     public struct Suggestion: Hashable, Identifiable {
-        public enum Group: Hashable { case recent, localTask }
+        public enum Group: Hashable { case azureDevOps, recent, localTask }
         public var draft: EntryDraft
         public var group: Group
         /// Project › task, shown below the title.
         public var subtitle: String?
+        /// For Azure DevOps hits: the details of the compact preview.
+        public var workItem: WorkItemLink?
         public var id: Int { hashValue }
     }
 
@@ -48,8 +52,20 @@ public final class MenuBarModel {
     public private(set) var openCount = 0
 
     public var query = "" {
-        didSet { selection = nil }
+        didSet {
+            guard query != oldValue else { return }
+            selection = nil
+            previewedItem = nil
+            searchWorkItems()
+        }
     }
+    /// Azure DevOps hits for the query: cached ones at once, fresh ones after a pause in typing.
+    public private(set) var workItemResults: [WorkItemLink] = []
+    public private(set) var isSearchingWorkItems = false
+    /// Suggested work items while the search field is empty (PRD "Vorgeschlagene Items").
+    public private(set) var suggestedWorkItems: [WorkItemLink] = []
+    /// The work item whose detail preview is open (Space, DO-13).
+    public private(set) var previewedItem: WorkItemLink?
     /// Highlighted suggestion; `nil` means Enter starts the typed text.
     public var selection: Int?
 
@@ -59,6 +75,9 @@ public final class MenuBarModel {
     let queries: EntryQueries
     private let clock: any TaktClock
     private let calendar: Calendar
+    private let workItems: (any WorkItemSource)?
+    private var searchTask: Task<Void, Never>?
+    private var suggestionsLoadedAt: Timestamp?
     private var undoStack: [TimerUndo] = []
     private var toastTask: Task<Void, Never>?
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "menu-bar")
@@ -72,8 +91,10 @@ public final class MenuBarModel {
         catalog: CatalogModel,
         clock: any TaktClock,
         settings: AppSettings,
+        workItems: (any WorkItemSource)? = nil,
         calendar: Calendar = .current
     ) {
+        self.workItems = workItems
         self.engine = engine
         self.catalog = catalog
         self.queries = queries
@@ -125,7 +146,97 @@ public final class MenuBarModel {
     public func popoverDidOpen() {
         openCount += 1
         query = ""
-        Task { await refresh() }
+        Task {
+            await refresh()
+            await loadSuggestedWorkItems()
+        }
+    }
+
+    // MARK: Azure DevOps (DO-10–DO-13)
+
+    /// Debounce for remote searches (DO-11).
+    static let searchDelay: Duration = .milliseconds(250)
+
+    private func searchWorkItems() {
+        searchTask?.cancel()
+        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let workItems, !text.isEmpty else {
+            workItemResults = []
+            isSearchingWorkItems = false
+            return
+        }
+        searchTask = Task { [weak self] in
+            let cached = (try? await workItems.cached(text)) ?? []
+            guard !Task.isCancelled else { return }
+            self?.workItemResults = cached
+            try? await Task.sleep(for: Self.searchDelay)
+            guard !Task.isCancelled else { return }
+            self?.isSearchingWorkItems = true
+            defer { self?.isSearchingWorkItems = false }
+            do {
+                let fresh = try await workItems.search(text)
+                guard !Task.isCancelled else { return }
+                // The same work item may come from cache and server; the fresh one wins.
+                let freshKeys = Set(fresh.map { "\($0.organization)#\($0.workItemID)" })
+                self?.workItemResults =
+                    fresh + cached.filter { !freshKeys.contains("\($0.organization)#\($0.workItemID)") }
+            } catch {
+                // Offline or not allowed: the cached hits stay.
+                self?.logger.info("Work item search failed: \(String(describing: error), privacy: .public)")
+            }
+        }
+    }
+
+    /// Loads suggestions at most every five minutes.
+    public func loadSuggestedWorkItems(force: Bool = false) async {
+        guard let workItems else { return }
+        let now = clock.now()
+        if !force, let loaded = suggestionsLoadedAt, now.seconds(since: loaded) < 300 { return }
+        suggestionsLoadedAt = now
+        let recentlyUsed = (try? await workItems.recentlyUsed()) ?? []
+        suggestedWorkItems = recentlyUsed
+        var projects: [String: [String]] = [:]
+        for project in catalog.activeProjects where project.source == .ado {
+            if let organization = project.adoOrganization, let name = project.adoProject {
+                projects[organization, default: []].append(name)
+            }
+        }
+        do {
+            let suggested = try await workItems.suggestions(projects: projects)
+            let keys = Set(suggested.map { "\($0.organization)#\($0.workItemID)" })
+            // Current iteration first, then recently used in the app (PRD order 1, 2, 3).
+            let used = recentlyUsed.filter { !keys.contains("\($0.organization)#\($0.workItemID)") }
+            suggestedWorkItems = Array((suggested + used).prefix(5))
+        } catch {
+            logger.info("Work item suggestions failed: \(String(describing: error), privacy: .public)")
+        }
+    }
+
+    /// A timer for a work item: its title, linked, in the taken-over project (DO-10).
+    public func draft(for item: WorkItemLink) -> EntryDraft {
+        let projects = catalog.activeProjects.filter {
+            $0.source == .ado && $0.adoOrganization == item.organization && $0.adoProject == item.project
+        }
+        let project = projects.first { $0.areaPath == nil } ?? projects.first
+        return EntryDraft(
+            title: item.cachedTitle ?? "#\(item.workItemID)", projectID: project?.id, workItemLinkID: item.id)
+    }
+
+    private var selectedWorkItem: WorkItemLink? {
+        guard let selection, suggestions.indices.contains(selection) else { return nil }
+        return suggestions[selection].workItem
+    }
+
+    /// Space on a selected work item opens or closes its detail preview. Returns whether it did.
+    public func togglePreview() -> Bool {
+        guard let item = selectedWorkItem else { return false }
+        previewedItem = previewedItem?.id == item.id ? nil : item
+        return true
+    }
+
+    /// ⌘↩: the selected work item's page in Azure DevOps.
+    public var selectedWorkItemURL: URL? {
+        selectedWorkItem.map(ADOClient.webURL(of:))
     }
 
     // MARK: Search and start
@@ -137,6 +248,9 @@ public final class MenuBarModel {
             return recents.prefix(Self.recentCount).map {
                 Suggestion(draft: $0, group: .recent, subtitle: subtitle($0))
             }
+        }
+        let azure = workItemResults.prefix(6).map { item in
+            Suggestion(draft: draft(for: item), group: .azureDevOps, subtitle: nil, workItem: item)
         }
         let recent = recents.filter { $0.title.localizedStandardContains(text) }.prefix(5)
             .map { Suggestion(draft: $0, group: .recent, subtitle: subtitle($0)) }
@@ -155,7 +269,7 @@ public final class MenuBarModel {
             !recent.contains { $0.draft.taskID == task.draft.taskID && $0.draft.title == task.draft.title }
         }
         .prefix(5)
-        return Array(recent) + Array(tasks)
+        return Array(azure) + Array(recent) + Array(tasks)
     }
 
     private func subtitle(_ draft: EntryDraft) -> String? {
