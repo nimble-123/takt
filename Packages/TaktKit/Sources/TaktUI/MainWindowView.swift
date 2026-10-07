@@ -14,7 +14,7 @@ public struct MainWindowView: View {
 
     public var body: some View {
         NavigationSplitView {
-            List(MainWindowModel.Section.allCases, selection: sectionBinding) { section in
+            List(model.sections, selection: sectionBinding) { section in
                 Label(section.title, systemImage: section.symbol)
             }
             .navigationSplitViewColumnWidth(min: 160, ideal: 180)
@@ -36,6 +36,8 @@ public struct MainWindowView: View {
                 case .analytics:
                     if let analytics = model.analytics { AnalyticsScreen(model: analytics) }
                 case .projects: CatalogScreen(catalog: model.catalog)
+                case .settings:
+                    if let settings = model.settings { SettingsScreen(settings: settings, model: model) }
                 }
             }
             .inspector(isPresented: inspectorBinding) {
@@ -83,10 +85,10 @@ public struct MainWindowView: View {
         .frame(minWidth: 820, minHeight: 520)
     }
 
-    /// The inspector edits entries; the projects and analytics screens have none.
+    /// The inspector edits entries; only the timeline, week and list screens show it.
     private var inspectorBinding: Binding<Bool> {
         Binding(
-            get: { showInspector && model.section != .projects && model.section != .analytics },
+            get: { showInspector && [.today, .week, .entries].contains(model.section) },
             set: { showInspector = $0 }
         )
     }
@@ -103,6 +105,8 @@ public struct MainWindowView: View {
             String(localized: "Projects", bundle: .module)
         case .analytics:
             String(localized: "Analytics", bundle: .module)
+        case .settings:
+            String(localized: "Settings", bundle: .module)
         case .week, .entries:
             String(
                 localized: "Week \(model.weekRange.lowerBound.date.formatted(.dateTime.week()))",
@@ -129,6 +133,7 @@ extension MainWindowModel.Section {
         case .entries: String(localized: "Entries", bundle: .module)
         case .analytics: String(localized: "Analytics", bundle: .module)
         case .projects: String(localized: "Projects", bundle: .module)
+        case .settings: String(localized: "Settings", bundle: .module)
         }
     }
 
@@ -139,6 +144,7 @@ extension MainWindowModel.Section {
         case .entries: "list.bullet"
         case .analytics: "chart.bar.xaxis"
         case .projects: "folder"
+        case .settings: "gearshape"
         }
     }
 }

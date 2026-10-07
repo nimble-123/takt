@@ -71,8 +71,8 @@ public struct PopoverView: View {
                 .font(.system(size: 14))
                 .focused($searchFocused)
                 .onKeyPress(.return, phases: .down) { press in
-                    let parallel = press.modifiers.contains(.option)
-                    Task { await model.submit(parallel: parallel) }
+                    let alternate = press.modifiers.contains(.option)
+                    Task { await model.submit(alternate: alternate) }
                     return .handled
                 }
                 .onKeyPress(.downArrow) {
@@ -149,7 +149,7 @@ struct SuggestionList: View {
                         .padding(.top, index == 0 ? 0 : 6)
                 }
                 Button {
-                    Task { await model.start(suggestion.draft, parallel: false) }
+                    Task { await model.start(suggestion.draft, parallel: model.settings.startMode == .parallel) }
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 0) {

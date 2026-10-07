@@ -31,6 +31,16 @@
         }
       }
     },
+    "Settings …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen …"
+          }
+        }
+      }
+    },
     "Takt": {
       "shouldTranslate": false
     },
@@ -50,6 +60,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Timer läuft seit über 10 Stunden"
+          }
+        }
+      }
+    },
+    "Welcome to Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei Takt"
           }
         }
       }

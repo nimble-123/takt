@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var panel: PopoverPanel?
     private var mainWindow: MainWindowController?
+    private var onboarding: OnboardingWindowController?
     private var titleTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -28,17 +29,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         composition.launch()
 
         GlobalShortcut.togglePopover.onKeyUp { [weak self] in
-            self?.togglePanel()
+            // During the onboarding the shortcut is being tried out (step 2).
+            if let onboarding = self?.onboarding, onboarding.isVisible {
+                onboarding.model.shortcutPressed()
+            } else {
+                self?.togglePanel()
+            }
         }
         GlobalShortcut.togglePauseAll.onKeyUp {
             Task { await composition.menuBar.togglePauseAll() }
         }
         observeStatus()
         scheduleTitleUpdates()
+        if !composition.settings.onboardingCompleted {
+            showOnboarding(composition.settings)
+        }
 
         #if DEBUG
-            // `-openPopover YES` / `-openMainWindow YES` show the popover or main window at launch, `-appearance dark|light` forces an
-            // appearance; both for screenshots and UI tests.
+            // For screenshots and UI tests: `-openPopover YES` / `-openMainWindow YES` show the popover or
+            // main window at launch, `-appearance dark|light` forces an appearance and
+            // `-onboardingCompleted YES` skips the onboarding.
             if let appearance = UserDefaults.standard.string(forKey: "appearance") {
                 NSApp.appearance = NSAppearance(named: appearance == "dark" ? .darkAqua : .aqua)
             }
@@ -89,6 +99,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             action: #selector(openMainWindowFromMenu),
             keyEquivalent: "0"
         ).target = self
+        menu.addItem(
+            withTitle: String(localized: "Settings …"),
+            action: #selector(openSettingsFromMenu),
+            keyEquivalent: ","
+        ).target = self
         menu.addItem(.separator())
         menu.addItem(
             withTitle: String(localized: "Quit Takt"),
@@ -102,6 +117,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openMainWindowFromMenu() {
         showMainWindow()
+    }
+
+    @objc private func openSettingsFromMenu() {
+        composition?.mainWindow.section = .settings
+        showMainWindow()
+    }
+
+    private func showOnboarding(_ settings: AppSettings) {
+        let controller = OnboardingWindowController(model: OnboardingModel(settings: settings))
+        controller.model.onFinish = { [weak self] in
+            self?.onboarding?.close()
+            self?.onboarding = nil
+            self?.showPanel()
+        }
+        onboarding = controller
+        #if DEBUG
+            if let step = OnboardingModel.Step(rawValue: UserDefaults.standard.integer(forKey: "onboardingStep")) {
+                controller.model.step = step
+            }
+        #endif
+        controller.show()
     }
 
     private func showMainWindow() {
@@ -156,7 +192,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         image?.isTemplate = true
         button.image = image
-        button.title = status.title.map { " \($0)" } ?? ""
+        let showTitle = composition.settings.showElapsedInMenuBar
+        button.title = showTitle ? status.title.map { " \($0)" } ?? "" : ""
     }
 
     private func showLaunchFailure(_ error: any Error) {

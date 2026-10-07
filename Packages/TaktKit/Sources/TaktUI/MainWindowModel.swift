@@ -9,7 +9,7 @@ import os
 @Observable
 public final class MainWindowModel {
     public enum Section: String, Hashable, CaseIterable, Identifiable {
-        case today, week, entries, analytics, projects
+        case today, week, entries, analytics, projects, settings
         public var id: Self { self }
     }
 
@@ -31,6 +31,10 @@ public final class MainWindowModel {
     public let catalog: CatalogModel
     /// The analysis screen; `nil` hides it (tests, previews).
     public let analytics: AnalyticsModel?
+    /// The settings screen; `nil` hides it.
+    public let settings: AppSettings?
+    /// For backup and import in the settings.
+    public let database: AppDatabase?
     let clock: any TaktClock
     let calendar: Calendar
     @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
@@ -41,6 +45,8 @@ public final class MainWindowModel {
         queries: EntryQueries,
         catalog: CatalogModel,
         analytics: AnalyticsModel? = nil,
+        settings: AppSettings? = nil,
+        database: AppDatabase? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
     ) {
@@ -48,6 +54,8 @@ public final class MainWindowModel {
         self.queries = queries
         self.catalog = catalog
         self.analytics = analytics
+        self.settings = settings
+        self.database = database
         self.clock = clock
         self.calendar = calendar
         self.day = clock.now()
@@ -94,6 +102,25 @@ public final class MainWindowModel {
         } catch {
             show(error)
         }
+    }
+
+    /// Sidebar sections; screens without a model are left out.
+    public var sections: [Section] {
+        Section.allCases.filter { section in
+            switch section {
+            case .analytics: analytics != nil
+            case .settings: settings != nil
+            default: true
+            }
+        }
+    }
+
+    /// After an import replaced all data: refresh every screen and the menu bar.
+    public func dataWasReplaced() async {
+        try? await engine.publish()
+        await catalog.reload()
+        await analytics?.reload()
+        await reload()
     }
 
     public func entry(_ id: EntryID) -> EntryWithSegments? {
