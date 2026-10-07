@@ -48,6 +48,8 @@ public final class MenuBarModel {
     public private(set) var errorMessage: String?
     /// Opens the main window; set by the app.
     @ObservationIgnored public var openMainWindow: (() -> Void)?
+    /// Called after entries were stopped, e.g. to book them automatically (DO-21).
+    @ObservationIgnored public var onStopped: (([EntryID]) -> Void)?
     /// Increments whenever the popover opens, so the view can focus the search field.
     public private(set) var openCount = 0
 
@@ -329,6 +331,7 @@ public final class MenuBarModel {
         let title = snapshot.entry(id)?.entry.title ?? ""
         if await perform({ try await $0.stop(id) }) {
             showToast(Toast(id: id, title: title))
+            onStopped?([id])
         }
     }
 
@@ -349,13 +352,14 @@ public final class MenuBarModel {
     /// Stops every running and paused entry; one ⌘Z brings them all back.
     public func stopAll() async {
         let ids = snapshot.entries.map(\.id)
-        await perform { engine in
+        let stopped = await perform { engine in
             var undos: [TimerUndo] = []
             for id in ids {
                 undos.append(try await engine.stop(id))
             }
             return TimerUndo(combining: undos)
         }
+        if stopped { onStopped?(ids) }
     }
 
     /// Running entries first, then paused ones; each group oldest first.

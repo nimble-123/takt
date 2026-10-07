@@ -85,6 +85,16 @@ struct SettingsScreen: View {
                     Text("Automatically when stopping", bundle: .module).tag(AppSettings.BookingMode.automatic)
                 }
                 .managed(settings.isLocked(.bookingMode))
+                Toggle(
+                    String(localized: "Reduce Remaining Work by the booked time", bundle: .module),
+                    isOn: $settings.reduceRemainingWork
+                )
+                .managed(settings.isLocked(.reduceRemainingWork))
+                Toggle(
+                    String(localized: "Add the entry's note to the comment", bundle: .module),
+                    isOn: $settings.bookingIncludesNote
+                )
+                .managed(settings.isLocked(.bookingIncludesNote))
                 Text(
                     "Raw data stays exact to the second; rounding applies to export and bookings only.", bundle: .module
                 )

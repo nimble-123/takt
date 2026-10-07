@@ -1,0 +1,9 @@
+{
+  "$id": "1",
+  "innerException": null,
+  "message": "TF26071: This work item has been changed by someone else since you opened it. You will need to refresh it and discard your changes.",
+  "typeName": "Microsoft.TeamFoundation.WorkItemTracking.Server.WorkItemRevisionMismatchException, Microsoft.TeamFoundation.WorkItemTracking.Server",
+  "typeKey": "WorkItemRevisionMismatchException",
+  "errorCode": 0,
+  "eventId": 3200
+}

@@ -9,7 +9,7 @@ import os
 @Observable
 public final class MainWindowModel {
     public enum Section: String, Hashable, CaseIterable, Identifiable {
-        case today, week, entries, analytics, projects, settings
+        case today, dayClose, week, entries, analytics, projects, settings
         public var id: Self { self }
     }
 
@@ -35,6 +35,12 @@ public final class MainWindowModel {
     public let settings: AppSettings?
     /// Azure DevOps connections in the settings; `nil` hides them.
     public let azureDevOps: AzureDevOpsModel?
+    /// Day close and booking; `nil` hides them.
+    public let booking: BookingCoordinator?
+    /// Work item search for linking entries.
+    public let workItems: (any WorkItemSource)?
+    /// Linked work items of the shown entries.
+    public private(set) var workItemLinks: [WorkItemLinkID: WorkItemLink] = [:]
     /// For backup and import in the settings.
     public let database: AppDatabase?
     let clock: any TaktClock
@@ -49,6 +55,8 @@ public final class MainWindowModel {
         analytics: AnalyticsModel? = nil,
         settings: AppSettings? = nil,
         azureDevOps: AzureDevOpsModel? = nil,
+        booking: BookingCoordinator? = nil,
+        workItems: (any WorkItemSource)? = nil,
         database: AppDatabase? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
@@ -59,6 +67,8 @@ public final class MainWindowModel {
         self.analytics = analytics
         self.settings = settings
         self.azureDevOps = azureDevOps
+        self.booking = booking
+        self.workItems = workItems
         self.database = database
         self.clock = clock
         self.calendar = calendar
@@ -97,11 +107,14 @@ public final class MainWindowModel {
         return days
     }
 
-    var shownRange: Range<Timestamp> { section == .today ? dayRange : weekRange }
+    var shownRange: Range<Timestamp> { section == .today || section == .dayClose ? dayRange : weekRange }
 
     public func reload() async {
         do {
             data = try await queries.timeline(in: shownRange, now: clock.now())
+            if data.entries.contains(where: { $0.entry.workItemLinkID != nil }) {
+                workItemLinks = try await queries.workItemLinks()
+            }
             selection.formIntersection(Set(data.entries.map(\.id)))
         } catch {
             show(error)
@@ -114,6 +127,7 @@ public final class MainWindowModel {
             switch section {
             case .analytics: analytics != nil
             case .settings: settings != nil
+            case .dayClose: booking != nil
             default: true
             }
         }
@@ -224,6 +238,12 @@ public final class MainWindowModel {
         if await apply(changes, name: String(localized: "Delete", bundle: .module)) {
             selection.subtract(ids)
         }
+    }
+
+    /// Links entries to a work item, or removes the link (DO-10).
+    public func link(_ ids: Set<EntryID>, to item: WorkItemLink?) async {
+        if let item { workItemLinks[item.id] = item }
+        await update(ids, name: String(localized: "Link Work Item", bundle: .module)) { $0.workItemLinkID = item?.id }
     }
 
     /// Title, note, counting mode or weight for one or many entries (HW-04 bulk edit).

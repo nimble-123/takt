@@ -17,6 +17,7 @@ final class Composition {
     let settings = AppSettings()
     let catalog: CatalogModel
     let azureDevOps: AzureDevOpsModel
+    let booking: BookingCoordinator
     let menuBar: MenuBarModel
     let mainWindow: MainWindowModel
     let idleMonitor: IdleMonitor
@@ -41,14 +42,31 @@ final class Composition {
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
         let accounts = ADOAccounts()
         azureDevOps = AzureDevOpsModel(accounts: accounts, catalog: catalog, clock: clock)
+        let cache = WorkItemCache(database: database)
+        let records = SyncRecordStore(database: database)
+        let service = BookingService(
+            accounts: accounts, records: records, cache: cache, entries: queries, clock: clock
+        ) {
+            // Read on every booking, so changed settings apply at once.
+            let defaults = UserDefaults.standard
+            return BookingService.Options(
+                reduceRemainingWork: defaults.object(forKey: "reduceRemainingWork") as? Bool ?? true,
+                includeNote: defaults.object(forKey: "bookingIncludesNote") as? Bool ?? true
+            )
+        }
+        booking = BookingCoordinator(
+            service: service, records: records, cache: cache, queries: queries, settings: settings, clock: clock
+        )
+        let workItems = AzureDevOpsWorkItems(accounts: accounts, cache: cache, clock: clock)
         menuBar = MenuBarModel(
             engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings,
-            workItems: AzureDevOpsWorkItems(accounts: accounts, cache: WorkItemCache(database: database), clock: clock)
+            workItems: workItems
         )
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,
             analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
-            settings: settings, azureDevOps: azureDevOps, database: database, clock: clock
+            settings: settings, azureDevOps: azureDevOps, booking: booking, workItems: workItems,
+            database: database, clock: clock
         )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()
@@ -77,6 +95,10 @@ final class Composition {
                     logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
                 }
                 await catalog.seedDefaults()
+                // Bookings left pending by a crash or while offline (TECHNICAL_CONCEPT step 6).
+                await booking.processPending(force: true)
+                menuBar.onStopped = { [weak self] ids in self?.bookAutomatically(ids) }
+                tasks.append(Task { await sendQueueWhenOnline() })
                 tasks.append(Task { await menuBar.run() })
                 tasks.append(Task { await mainWindow.run() })
                 tasks.append(Task { await runChores() })
@@ -100,11 +122,29 @@ final class Composition {
                 try backup.backupIfNeeded(database, now: clock.now())
                 await warnAboutLongRunners(try await engine.snapshot())
                 await remindAboutExpiringTokens()
+                if booking.pendingCount > 0 { await booking.processPending() }
             } catch {
                 logger.error("Background chore failed: \(String(describing: error), privacy: .public)")
             }
             await menuBar.refresh()
             try? await Task.sleep(for: .seconds(60))
+        }
+    }
+
+    /// DO-21: book right after stopping, if the user chose so.
+    private func bookAutomatically(_ ids: [EntryID]) {
+        guard settings.bookingMode == .automatic else { return }
+        Task {
+            for id in ids {
+                await booking.book(entry: id)
+            }
+        }
+    }
+
+    /// DO-26: the offline queue goes out as soon as the network is back.
+    private func sendQueueWhenOnline() async {
+        for await online in NetworkMonitor.changes() where online {
+            await booking.processPending(force: true)
         }
     }
 

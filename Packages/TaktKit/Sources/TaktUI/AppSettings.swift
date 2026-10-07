@@ -10,6 +10,7 @@ public final class AppSettings {
     public enum Key: String, CaseIterable, Sendable {
         case startMode, countingMode, idleThresholdMinutes, lockCountsAsPause, roundingMinutes
         case bookingMode, dailyGoalHours, showElapsedInMenuBar, onboardingCompleted
+        case reduceRemainingWork, bookingIncludesNote
     }
 
     /// When booked time goes to Azure DevOps (DO-21).
@@ -49,6 +50,14 @@ public final class AppSettings {
     public var onboardingCompleted: Bool {
         didSet { write(.onboardingCompleted, onboardingCompleted) }
     }
+    /// DO-22: reduce Remaining Work by the booked time (never below 0).
+    public var reduceRemainingWork: Bool {
+        didSet { write(.reduceRemainingWork, reduceRemainingWork) }
+    }
+    /// DO-23: add the entry's note to the comment on the work item.
+    public var bookingIncludesNote: Bool {
+        didSet { write(.bookingIncludesNote, bookingIncludesNote) }
+    }
 
     public static let roundingChoices = [0, 5, 6, 10, 15, 30]
 
@@ -63,6 +72,8 @@ public final class AppSettings {
         dailyGoalHours = defaults.object(forKey: Key.dailyGoalHours.rawValue) as? Double ?? 8
         showElapsedInMenuBar = defaults.object(forKey: Key.showElapsedInMenuBar.rawValue) as? Bool ?? true
         onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted.rawValue)
+        reduceRemainingWork = defaults.object(forKey: Key.reduceRemainingWork.rawValue) as? Bool ?? true
+        bookingIncludesNote = defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true
     }
 
     /// Whether a configuration profile sets this value.
