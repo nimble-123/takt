@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import TaktCore
 
@@ -25,6 +26,9 @@ public struct PopoverView: View {
                 }
                 if !model.snapshot.entries.isEmpty {
                     TimerList(model: model)
+                }
+                if model.query.isEmpty, !model.suggestedWorkItems.isEmpty {
+                    SuggestedWorkItems(model: model)
                 }
                 if model.query.isEmpty, !model.suggestions.isEmpty {
                     RecentList(model: model)
@@ -71,9 +75,18 @@ public struct PopoverView: View {
                 .font(.system(size: 14))
                 .focused($searchFocused)
                 .onKeyPress(.return, phases: .down) { press in
+                    if press.modifiers.contains(.command) {
+                        // ⌘↩ opens the selected work item in the browser (DO-13).
+                        if let url = model.selectedWorkItemURL { NSWorkspace.shared.open(url) }
+                        return .handled
+                    }
                     let alternate = press.modifiers.contains(.option)
                     Task { await model.submit(alternate: alternate) }
                     return .handled
+                }
+                .onKeyPress(.space) {
+                    // Space previews a selected work item; otherwise it types a space.
+                    model.togglePreview() ? .handled : .ignored
                 }
                 .onKeyPress(.downArrow) {
                     model.moveSelection(by: 1)
@@ -151,34 +164,33 @@ struct SuggestionList: View {
                 Button {
                     Task { await model.start(suggestion.draft, parallel: model.settings.startMode == .parallel) }
                 } label: {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(suggestion.draft.title).lineLimit(1)
-                            if let subtitle = suggestion.subtitle {
-                                Text(subtitle)
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(Palette.textSecondary)
-                                    .lineLimit(1)
-                            }
-                        }
-                        Spacer()
-                        if model.selection == index {
-                            Text("↩").foregroundStyle(Palette.textSecondary)
-                        }
+                    if let item = suggestion.workItem {
+                        WorkItemRow(item: item, query: model.query, selected: model.selection == index)
+                    } else {
+                        textRow(suggestion, selected: model.selection == index)
                     }
-                    .padding(.horizontal, 10)
-                    .frame(minHeight: 28)
-                    .background(
-                        model.selection == index ? Palette.accentSurface : .clear,
-                        in: RoundedRectangle(cornerRadius: 6)
-                    )
-                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                if let item = suggestion.workItem, model.previewedItem?.id == item.id {
+                    WorkItemDetail(item: item)
+                }
+            }
+            if model.isSearchingWorkItems {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.mini)
+                    Text("Searching Azure DevOps …", bundle: .module)
+                }
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+                .padding(.horizontal, 10)
             }
             HStack(spacing: 12) {
                 Text("↩ Start", bundle: .module)
                 Text("⌥↩ Parallel", bundle: .module)
+                if !model.workItemResults.isEmpty {
+                    Text("Space Preview", bundle: .module)
+                    Text("⌘↩ Open", bundle: .module)
+                }
             }
             .font(.system(size: 11))
             .foregroundStyle(Palette.textSecondary)
@@ -188,11 +200,53 @@ struct SuggestionList: View {
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
+
+    private func textRow(_ suggestion: MenuBarModel.Suggestion, selected: Bool) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(suggestion.draft.title).lineLimit(1)
+                if let subtitle = suggestion.subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer()
+            if selected {
+                Text("↩").foregroundStyle(Palette.textSecondary)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(minHeight: 28)
+        .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 6))
+        .contentShape(Rectangle())
+    }
+}
+
+/// Suggested work items while the search field is empty.
+struct SuggestedWorkItems: View {
+    let model: MenuBarModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            SectionTitle(text: String(localized: "Suggested", bundle: .module))
+            ForEach(model.suggestedWorkItems.prefix(3)) { item in
+                Button {
+                    Task { await model.start(model.draft(for: item), parallel: model.settings.startMode == .parallel) }
+                } label: {
+                    WorkItemRow(item: item, query: "", selected: false, compact: true)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
 }
 
 extension MenuBarModel.Suggestion.Group {
     var title: String {
         switch self {
+        case .azureDevOps: String(localized: "Azure DevOps", bundle: .module)
         case .recent: String(localized: "Recent", bundle: .module)
         case .localTask: String(localized: "Local tasks", bundle: .module)
         }

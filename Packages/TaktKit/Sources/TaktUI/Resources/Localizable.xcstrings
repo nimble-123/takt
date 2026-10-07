@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ h done · %@ h left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ h erledigt · %2$@ h offen"
+          }
+        }
+      }
+    },
     "%@ · token expires on %@ – renew it": {
       "localizations": {
         "de": {
@@ -981,6 +991,16 @@
         }
       }
     },
+    "No description.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Beschreibung."
+          }
+        }
+      }
+    },
     "No entries to show for this group.": {
       "localizations": {
         "de": {
@@ -1391,6 +1411,16 @@
         }
       }
     },
+    "Searching Azure DevOps …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suche in Azure DevOps …"
+          }
+        }
+      }
+    },
     "Segments": {
       "localizations": {
         "de": {
@@ -1491,6 +1521,16 @@
         }
       }
     },
+    "Space Preview": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leertaste Vorschau"
+          }
+        }
+      }
+    },
     "Split": {
       "localizations": {
         "de": {
@@ -1577,6 +1617,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gestoppt: %@"
+          }
+        }
+      }
+    },
+    "Suggested": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorgeschlagen"
           }
         }
       }
@@ -2037,6 +2087,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "↩ Starten"
+          }
+        }
+      }
+    },
+    "⌘↩ Open": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↩ Öffnen"
+          }
+        }
+      }
+    },
+    "⌘↩ opens it in Azure DevOps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌘↩ öffnet es in Azure DevOps"
           }
         }
       }

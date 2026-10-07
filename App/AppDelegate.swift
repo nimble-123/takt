@@ -67,7 +67,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             if UserDefaults.standard.bool(forKey: "openPopover") {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.togglePanel() }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.togglePanel()
+                    if let query = UserDefaults.standard.string(forKey: "popoverQuery") {
+                        composition.menuBar.query = query
+                        if UserDefaults.standard.bool(forKey: "popoverSelect") {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                composition.menuBar.moveSelection(by: 1)
+                                _ = composition.menuBar.togglePreview()
+                            }
+                        }
+                    }
+                }
             }
         #endif
     }

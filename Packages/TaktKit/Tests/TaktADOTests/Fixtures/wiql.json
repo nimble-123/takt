@@ -1,0 +1,11 @@
+{
+  "queryType": "flat",
+  "queryResultType": "workItem",
+  "asOf": "2026-10-07T09:12:44.38Z",
+  "columns": [ { "referenceName": "System.Id", "name": "ID", "url": "https://dev.azure.com/contoso/_apis/wit/fields/System.Id" } ],
+  "sortColumns": [ { "field": { "referenceName": "System.ChangedDate", "name": "Changed Date" }, "descending": true } ],
+  "workItems": [
+    { "id": 1234, "url": "https://dev.azure.com/contoso/_apis/wit/workItems/1234" },
+    { "id": 1200, "url": "https://dev.azure.com/contoso/_apis/wit/workItems/1200" }
+  ]
+}

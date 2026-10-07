@@ -35,6 +35,7 @@ public struct AppDatabase: Sendable {
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1", migrate: Schema.v1)
+        migrator.registerMigration("v2-work-item-details", migrate: Schema.v2)
         return migrator
     }
 }

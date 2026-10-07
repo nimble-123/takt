@@ -109,4 +109,20 @@ enum Schema {
                 """
         )
     }
+
+    /// Details for the compact preview of cached work items (DO-12, DO-13).
+    static func v2(_ db: Database) throws {
+        try db.execute(
+            sql: """
+                ALTER TABLE work_item_link ADD COLUMN assigned_to TEXT;
+                ALTER TABLE work_item_link ADD COLUMN iteration_path TEXT;
+                ALTER TABLE work_item_link ADD COLUMN remaining_work REAL;
+                ALTER TABLE work_item_link ADD COLUMN completed_work REAL;
+                ALTER TABLE work_item_link ADD COLUMN parent_id INTEGER;
+                ALTER TABLE work_item_link ADD COLUMN description_excerpt TEXT;
+                ALTER TABLE work_item_link ADD COLUMN tags TEXT NOT NULL DEFAULT '[]';
+                CREATE INDEX work_item_link_seen ON work_item_link(cached_at);
+                """
+        )
+    }
 }

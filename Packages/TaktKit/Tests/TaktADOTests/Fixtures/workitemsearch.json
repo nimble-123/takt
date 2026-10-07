@@ -1,0 +1,13 @@
+{
+  "count": 1,
+  "results": [
+    {
+      "project": { "id": "c4a2b2f0-1111-4c3b-9a1e-0f1e2d3c4b5a", "name": "Kundenportal" },
+      "fields": { "system.id": "1234", "system.workitemtype": "Task", "system.title": "Token-Refresh im Interceptor", "system.state": "Active" },
+      "hits": [ { "fieldReferenceName": "system.title", "highlights": [ "<highlighthit>Token</highlighthit>-Refresh im Interceptor" ] } ],
+      "url": "https://dev.azure.com/contoso/_apis/wit/workItems/1234"
+    }
+  ],
+  "infoCode": 0,
+  "facets": null
+}
