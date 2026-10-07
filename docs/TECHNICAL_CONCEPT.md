@@ -202,13 +202,14 @@ Die Timer-Engine ist ein `actor` in `TaktCore`. Jeder Befehl läuft als genau ei
 public actor TimerEngine {
     public enum StartMode: Sendable { case switchTo, parallel }
 
-    public func start(_ draft: EntryDraft, mode: StartMode) async throws -> EntryID
-    public func pause(_ id: EntryID) async throws
-    public func resume(_ id: EntryID, mode: StartMode) async throws
-    public func stop(_ id: EntryID) async throws
-    public func pauseAll() async throws -> GlobalPauseID?
-    public func resumeAll(_ pause: GlobalPauseID) async throws
-    public func resolveIdle(_ event: IdleEvent, _ resolution: IdleResolution) async throws
+    public func start(_ draft: EntryDraft, mode: StartMode) async throws -> CommandResult<EntryID>
+    public func pause(_ id: EntryID) async throws -> TimerUndo
+    public func resume(_ id: EntryID, mode: StartMode) async throws -> TimerUndo
+    public func stop(_ id: EntryID) async throws -> TimerUndo
+    public func pauseAll() async throws -> CommandResult<GlobalPauseID?>
+    public func resumeAll(_ pause: GlobalPauseID) async throws -> TimerUndo
+    public func resolveIdle(_ event: IdleEvent, _ resolution: IdleResolution) async throws -> TimerUndo
+    public func undo(_ undo: TimerUndo) async throws -> TimerUndo   // liefert das Redo
     public func updates() async throws -> AsyncStream<TimerSnapshot>
 }
 
@@ -221,6 +222,8 @@ public protocol TimerStore: Sendable {
 }
 ```
 
+Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand (`nil` vorher = einfügen, `nil` nachher = löschen). Der Store schreibt eine Änderung nur, wenn die gespeicherte Zeile noch dem alten Stand entspricht; sonst wirft er `TimerStoreError.conflict` und schreibt nichts. Zeiten sind im Kern `Timestamp` (UTC-Millisekunden), damit Zeilen nach dem Speichern exakt vergleichbar bleiben.
+
 | Befehl | Wirkung in der Datenbank |
 | --- | --- |
 | `start` mit `switchTo` | Offene Segmente anderer Einträge schließen (Ende = jetzt, Zustand `paused`), neuen Eintrag mit offenem Segment anlegen |
@@ -232,7 +235,7 @@ public protocol TimerStore: Sendable {
 
 **Uhr.** Die Engine liest die Zeit nie direkt, sondern über ein injiziertes `TaktClock`-Protokoll. Tests nutzen eine manuelle Uhr.
 
-**Undo.** Jeder Befehl liefert seine Umkehrung, die der `UndoManager` des Fensters bzw. des Popovers registriert. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
+**Undo.** Jeder Befehl liefert seine Umkehrung (`TimerUndo`: die vertauschten Änderungen in umgekehrter Reihenfolge), die der `UndoManager` des Fensters bzw. des Popovers registriert. Wurde eine betroffene Zeile inzwischen anders geändert, schlägt das Undo mit einem Konflikt fehl, statt neuere Daten zu überschreiben. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
 
 **Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting`. Findet sie beim Start offene Segmente und liegt der letzte Heartbeat länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente beim Heartbeat und erzeugt ein `idle_event`. Der Nutzer entscheidet dann im Inaktivitätsdialog.
 
