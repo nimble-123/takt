@@ -1,6 +1,26 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ · token expires on %@ – renew it": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · Token läuft am %2$@ ab – bitte erneuern"
+          }
+        }
+      }
+    },
+    "%@ · token valid until %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · Token gültig bis %2$@"
+          }
+        }
+      }
+    },
     "%@%@ vs. previous period": {
       "localizations": {
         "de": {
@@ -127,6 +147,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Azure DevOps"
+          }
+        }
+      }
+    },
+    "Azure DevOps cannot be reached. Check the network connection.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps ist nicht erreichbar. Prüfe die Netzwerkverbindung."
+          }
+        }
+      }
+    },
+    "Azure DevOps did not accept the token. Check the organization, the token and its scope “Work Items: Read & Write”.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps hat das Token nicht akzeptiert. Prüfe Organisation, Token und den Bereich „Work Items: Read & Write“."
           }
         }
       }
@@ -301,12 +341,42 @@
         }
       }
     },
+    "Connect": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        }
+      }
+    },
+    "Connect Another Organization …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Organisation verbinden …"
+          }
+        }
+      }
+    },
     "Connect Azure DevOps": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Azure DevOps verbinden"
+          }
+        }
+      }
+    },
+    "Connected to %@ as %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden mit %1$@ als %2$@."
           }
         }
       }
@@ -367,6 +437,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zählweise"
+          }
+        }
+      }
+    },
+    "Create the token in Azure DevOps under User settings → Personal access tokens with the scope “Work Items: Read & Write” and copy its expiry date. Takt keeps it in the keychain only.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lege das Token in Azure DevOps unter Benutzereinstellungen → Personal access tokens mit dem Bereich „Work Items: Read & Write“ an und übernimm sein Ablaufdatum. Takt speichert es nur im Schlüsselbund."
+          }
+        }
+      }
+    },
+    "Create token in Azure DevOps …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token in Azure DevOps anlegen …"
           }
         }
       }
@@ -501,6 +591,16 @@
         }
       }
     },
+    "Disconnect": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trennen"
+          }
+        }
+      }
+    },
     "Duration": {
       "localizations": {
         "de": {
@@ -537,6 +637,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Einträge, Projekte und in Takt gespeicherte Einstellungen werden ersetzt. Das lässt sich nicht rückgängig machen."
+          }
+        }
+      }
+    },
+    "Expires on": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Läuft ab am"
           }
         }
       }
@@ -951,6 +1061,16 @@
         }
       }
     },
+    "Organization": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organisation"
+          }
+        }
+      }
+    },
     "Other": {
       "localizations": {
         "de": {
@@ -1071,6 +1191,16 @@
         }
       }
     },
+    "Personal Access Token": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal Access Token"
+          }
+        }
+      }
+    },
     "Press it in any app to open Takt, type two letters and hit Return.": {
       "localizations": {
         "de": {
@@ -1117,6 +1247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Projekte"
+          }
+        }
+      }
+    },
+    "Projects …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekte …"
           }
         }
       }
@@ -1511,6 +1651,36 @@
         }
       }
     },
+    "Take over": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übernehmen"
+          }
+        }
+      }
+    },
+    "Take over the projects you work on:": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übernimm die Projekte, an denen du arbeitest:"
+          }
+        }
+      }
+    },
+    "Taken over": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übernommen"
+          }
+        }
+      }
+    },
     "Task": {
       "localizations": {
         "de": {
@@ -1557,6 +1727,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Auswertung konnte nicht geladen werden."
+          }
+        }
+      }
+    },
+    "The organization was not found.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Organisation wurde nicht gefunden."
           }
         }
       }

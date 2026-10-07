@@ -1,4 +1,5 @@
 import Foundation
+import TaktADO
 import TaktAnalytics
 import TaktCore
 import TaktStore
@@ -15,6 +16,7 @@ final class Composition {
     let engine: TimerEngine
     let settings = AppSettings()
     let catalog: CatalogModel
+    let azureDevOps: AzureDevOpsModel
     let menuBar: MenuBarModel
     let mainWindow: MainWindowModel
     let idleMonitor: IdleMonitor
@@ -37,11 +39,12 @@ final class Composition {
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         let queries = EntryQueries(database: database)
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
+        azureDevOps = AzureDevOpsModel(accounts: ADOAccounts(), catalog: catalog, clock: clock)
         menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings)
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,
             analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
-            settings: settings, database: database, clock: clock
+            settings: settings, azureDevOps: azureDevOps, database: database, clock: clock
         )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()
@@ -92,11 +95,28 @@ final class Composition {
                 try await engine.heartbeat()
                 try backup.backupIfNeeded(database, now: clock.now())
                 await warnAboutLongRunners(try await engine.snapshot())
+                await remindAboutExpiringTokens()
             } catch {
                 logger.error("Background chore failed: \(String(describing: error), privacy: .public)")
             }
             await menuBar.refresh()
             try? await Task.sleep(for: .seconds(60))
+        }
+    }
+
+    /// DO-01: once a day per organization, starting 14 days before the token expires.
+    private func remindAboutExpiringTokens() async {
+        let day = clock.now().localDay().lowerBound.milliseconds
+        for connection in azureDevOps.expiringSoon {
+            let key = "adoExpiryReminded-\(connection.organization)"
+            guard UserDefaults.standard.object(forKey: key) as? Int64 != day else { continue }
+            UserDefaults.standard.set(day, forKey: key)
+            await notifier.post(
+                id: key,
+                title: String(localized: "Azure DevOps token expires soon"),
+                body: String(
+                    localized: "Renew the token for \(connection.organization) and enter it in Takt's settings.")
+            )
         }
     }
 

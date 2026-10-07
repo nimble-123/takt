@@ -1,0 +1,10 @@
+{
+  "authenticatedUser": {
+    "id": "aa442486-e5d3-4ab0-9e65-4c9e5b2c8bd6",
+    "descriptor": "System:PublicAccess;aa442486-e5d3-4ab0-9e65-4c9e5b2c8bd6",
+    "providerDisplayName": "Anonymous",
+    "isActive": true
+  },
+  "instanceId": "6f1b1b3a-0b8c-4f5e-9d2a-7c3e4b5a6d7e",
+  "deploymentType": "hosted"
+}

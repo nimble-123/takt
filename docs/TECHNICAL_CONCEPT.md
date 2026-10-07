@@ -300,7 +300,9 @@ Takt bucht nie absolute Werte, sondern immer die Differenz zwischen dem Soll aus
 
 ### Anmeldung
 
-- **PAT (ab Release 1):** Basic-Auth mit leerem Benutzernamen, Scope „Work Items: Read & Write“. Takt prüft beim Speichern die Gültigkeit und zeigt das Ablaufdatum; 14 Tage vorher erinnert es an die Erneuerung.
+- **PAT (ab Release 1):** Basic-Auth mit leerem Benutzernamen, Scope „Work Items: Read & Write“. Takt prüft beim Speichern die Gültigkeit (`_apis/connectionData`, eine anonyme Identität gilt als abgelehnt) und zeigt das Ablaufdatum; 14 Tage vorher erinnert es einmal täglich per Mitteilung an die Erneuerung. Das Ablaufdatum gibt der Nutzer beim Anlegen ein, wie Azure DevOps es anzeigt: Die PAT-Lifecycle-API akzeptiert nur Entra-Tokens, keine PATs.
+- **Mehrere Organisationen (DO-02):** Verbindungen liegen in `UserDefaults` (`adoConnections`, mit Default-Projekt), je Organisation ein Token im Schlüsselbund (Dienst `de.nilslutz.takt.azure-devops`, nur auf diesem Gerät). Ein MDM-Profil kann die Organisation über `adoOrganization` vorgeben.
+- **Projekte übernehmen (ST-03):** Projekte und Area Paths (zwei Ebenen) werden einzeln als Takt-Projekte mit Quelle `ado` angelegt; schon übernommene sind markiert.
 - **Entra ID (sobald registriert):** MSAL mit dem Scope `499b84ac-1321-427f-aa17-267ca6975798/.default` (Ressource Azure DevOps), Redirect-URI `msauth.de.nilslutz.takt://auth`. Client-ID und Tenant-ID kommen per MDM-Konfiguration; fehlen sie, blendet Takt die Option aus.
 - Beide Wege liefern dem REST-Client nur einen `AuthorizationProvider`; der Rest des Codes kennt den Unterschied nicht.
 - Tokens und PAT liegen im Schlüsselbund.

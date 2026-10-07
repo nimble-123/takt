@@ -15,6 +15,9 @@ struct SettingsScreen: View {
 
     var body: some View {
         Form {
+            if let azureDevOps = model.azureDevOps {
+                AzureDevOpsSettings(model: azureDevOps)
+            }
             Section(String(localized: "General", bundle: .module)) {
                 Toggle(String(localized: "Open at login", bundle: .module), isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { setLaunchAtLogin(launchAtLogin) }

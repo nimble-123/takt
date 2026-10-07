@@ -68,6 +68,7 @@ let package = Package(
             resources: [.process("Resources")]
         ),
         .testTarget(name: "TaktSystemTests", dependencies: ["TaktSystem"]),
+        .testTarget(name: "TaktADOTests", dependencies: ["TaktADO"], resources: [.copy("Fixtures")]),
         .testTarget(name: "TaktUITests", dependencies: ["TaktUI"]),
     ]
 #endif
