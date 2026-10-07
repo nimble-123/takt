@@ -5,6 +5,7 @@ import TaktStore
 /// Projects with tasks, categories and tags (ST-01–ST-04). Archive instead of delete.
 struct CatalogScreen: View {
     let catalog: CatalogModel
+    var rules: RulesModel?
     @State private var showArchived = false
     @State private var newProject = ""
     @State private var newCategory = ""
@@ -47,6 +48,10 @@ struct CatalogScreen: View {
                 }
             } header: {
                 Text("Categories", bundle: .module)
+            }
+
+            if let rules {
+                RulesSection(rules: rules, catalog: catalog)
             }
 
             Section {

@@ -119,7 +119,7 @@ public struct MainWindowView: View {
         case .entries: EntryListScreen(model: model)
         case .analytics:
             if let analytics = model.analytics { AnalyticsScreen(model: analytics) }
-        case .projects: CatalogScreen(catalog: model.catalog)
+        case .projects: CatalogScreen(catalog: model.catalog, rules: model.rules)
         case .settings:
             if let settings = model.settings { SettingsScreen(settings: settings, model: model) }
         }

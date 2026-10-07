@@ -39,6 +39,8 @@ public final class MainWindowModel {
     public let booking: BookingCoordinator?
     /// Work item search for linking entries.
     public let workItems: (any WorkItemSource)?
+    /// Rules for new and newly linked entries (ST-05, DO-14).
+    public let rules: RulesModel?
     /// Full-text search (HW-06); `nil` hides the search field.
     public let search: SearchIndex?
     /// Text in the window's search field; results replace the screen while it is not empty.
@@ -66,6 +68,7 @@ public final class MainWindowModel {
         booking: BookingCoordinator? = nil,
         workItems: (any WorkItemSource)? = nil,
         search: SearchIndex? = nil,
+        rules: RulesModel? = nil,
         database: AppDatabase? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
@@ -79,6 +82,7 @@ public final class MainWindowModel {
         self.booking = booking
         self.workItems = workItems
         self.search = search
+        self.rules = rules
         self.database = database
         self.clock = clock
         self.calendar = calendar
@@ -223,9 +227,23 @@ public final class MainWindowModel {
     // MARK: Timer commands (command palette)
 
     /// Starts a timer in the configured start mode; undoable in this window.
+    /// The cached work item of a draft, for the rules.
+    private func linkedWorkItem(of draft: EntryDraft) async -> WorkItemLink? {
+        guard let id = draft.workItemLinkID, let workItems else { return nil }
+        return try? await workItems.link(id)
+    }
+
     public func startTimer(_ draft: EntryDraft) async {
         let mode: TimerEngine.StartMode = settings?.startMode ?? .switchTo
-        await command(String(localized: "Start Timer", bundle: .module)) { try await $0.start(draft, mode: mode).undo }
+        let workItem = await linkedWorkItem(of: draft)
+        let (ruled, tags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        var started: EntryID?
+        await command(String(localized: "Start Timer", bundle: .module)) { engine in
+            let result = try await engine.start(ruled, mode: mode)
+            started = result.value
+            return result.undo
+        }
+        if let started, !tags.isEmpty { await catalog.setTags(named: tags, on: [started]) }
     }
 
     /// Pauses what runs, or resumes what "Pause all" paused (MB-06).
@@ -352,9 +370,26 @@ public final class MainWindowModel {
     }
 
     /// Links entries to a work item, or removes the link (DO-10).
+    /// Rules fill category and project where they are empty and add tags (DO-14).
     public func link(_ ids: Set<EntryID>, to item: WorkItemLink?) async {
         if let item { workItemLinks[item.id] = item }
-        await update(ids, name: String(localized: "Link Work Item", bundle: .module)) { $0.workItemLinkID = item?.id }
+        let rules = rules?.rules ?? []
+        await update(ids, name: String(localized: "Link Work Item", bundle: .module)) { entry in
+            entry.workItemLinkID = item?.id
+            guard let item else { return }
+            let result = Rules.evaluate(rules, title: entry.title, workItem: item)
+            if entry.categoryID == nil { entry.categoryID = result.categoryID }
+            if entry.projectID == nil { entry.projectID = result.projectID }
+        }
+        guard let item else { return }
+        let tags = Rules.evaluate(rules, title: "", workItem: item).tags
+        guard !tags.isEmpty else { return }
+        let existing = await catalog.tags(of: Array(ids))
+        for id in ids {
+            let names = (existing[id] ?? []).map(\.name)
+            let missing = tags.filter { tag in !names.contains { $0.caseInsensitiveCompare(tag) == .orderedSame } }
+            if !missing.isEmpty { await catalog.setTags(named: names + missing, on: [id]) }
+        }
     }
 
     /// Title, note, counting mode or weight for one or many entries (HW-04 bulk edit).

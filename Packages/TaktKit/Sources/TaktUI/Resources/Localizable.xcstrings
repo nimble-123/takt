@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    " and ": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " und "
+          }
+        }
+      }
+    },
     "%@ h done · %@ h left": {
       "localizations": {
         "de": {
@@ -67,6 +77,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Name ist erforderlich."
+          }
+        }
+      }
+    },
+    "Add Condition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedingung hinzufügen"
+          }
+        }
+      }
+    },
+    "Add Example “Bug → Support”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beispiel „Bug → Support“ hinzufügen"
           }
         }
       }
@@ -201,6 +231,16 @@
         }
       }
     },
+    "Azure DevOps project is": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure-DevOps-Projekt ist"
+          }
+        }
+      }
+    },
     "Azure DevOps rejected the token.": {
       "localizations": {
         "de": {
@@ -307,6 +347,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Buchung"
+          }
+        }
+      }
+    },
+    "Bugs are support": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bugs sind Support"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
           }
         }
       }
@@ -751,6 +811,26 @@
         }
       }
     },
+    "Edit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeiten"
+          }
+        }
+      }
+    },
+    "Enabled": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktiv"
+          }
+        }
+      }
+    },
     "Entries": {
       "localizations": {
         "de": {
@@ -921,6 +1001,16 @@
         }
       }
     },
+    "If": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn"
+          }
+        }
+      }
+    },
     "Import Backup …": {
       "localizations": {
         "de": {
@@ -1061,12 +1151,32 @@
         }
       }
     },
+    "Move Down": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach unten"
+          }
+        }
+      }
+    },
     "Move Entry": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eintrag verschieben"
+          }
+        }
+      }
+    },
+    "Move Up": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach oben"
           }
         }
       }
@@ -1097,6 +1207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neuer Eintrag"
+          }
+        }
+      }
+    },
+    "New Rule …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Regel …"
           }
         }
       }
@@ -1541,6 +1661,16 @@
         }
       }
     },
+    "Remove condition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedingung entfernen"
+          }
+        }
+      }
+    },
     "Remove link": {
       "localizations": {
         "de": {
@@ -1631,12 +1761,42 @@
         }
       }
     },
+    "Rules": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regeln"
+          }
+        }
+      }
+    },
+    "Rules fill in category, project and tags when a timer starts or a work item is linked. Choices you make yourself always win; the first matching rule wins per field.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regeln setzen Kategorie, Projekt und Tags, wenn ein Timer startet oder ein Work Item verknüpft wird. Was du selbst auswählst, hat immer Vorrang; pro Feld gewinnt die erste passende Regel."
+          }
+        }
+      }
+    },
     "Running": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Läuft"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sichern"
           }
         }
       }
@@ -2181,6 +2341,16 @@
         }
       }
     },
+    "Then": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dann"
+          }
+        }
+      }
+    },
     "Ticket": {
       "localizations": {
         "de": {
@@ -2241,6 +2411,16 @@
         }
       }
     },
+    "Title contains": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel enthält"
+          }
+        }
+      }
+    },
     "To book": {
       "localizations": {
         "de": {
@@ -2297,6 +2477,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Befehl oder Suche eingeben"
+          }
+        }
+      }
+    },
+    "Unchanged": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unverändert"
           }
         }
       }
@@ -2407,6 +2597,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Work Item"
+          }
+        }
+      }
+    },
+    "Work item has tag": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work Item hat Tag"
+          }
+        }
+      }
+    },
+    "Work item type is": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work-Item-Typ ist"
           }
         }
       }
