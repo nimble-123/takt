@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 928 616" width="928" height="616" role="img" aria-labelledby="arch-dark-title arch-dark-desc">
+<title id="arch-dark-title">Takt module architecture</title>
+<desc id="arch-dark-desc">Layered modules: the app uses TaktUI, which uses TaktSystem, TaktAnalytics, TaktCalendar and TaktADO; the services use TaktStore and TaktCore; dependencies only point downwards. TaktADO talks to Azure DevOps.</desc>
+<defs>
+<marker id="arch-dark-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9" fill="none" stroke="#AEAEB2" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<marker id="arch-dark-arrow-link" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1,1 L9,5 L1,9" fill="none" stroke="#60A5FA" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="0.5" y="0.5" width="927" height="615" rx="10" fill="#12161B" stroke="#3A3A3C"/>
+<line x1="368" y1="88" x2="368" y2="136" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="104" y1="192" x2="104" y2="240" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="280" y1="192" x2="280" y2="240" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="456" y1="192" x2="456" y2="240" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="632" y1="192" x2="632" y2="240" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="280" y1="304" x2="280" y2="352" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="456" y1="304" x2="456" y2="352" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="632" y1="304" x2="632" y2="352" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="456" y1="416" x2="456" y2="464" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="104" y1="304" x2="104" y2="464" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<line x1="704" y1="272" x2="752" y2="272" stroke="#60A5FA" stroke-width="1.4" stroke-dasharray="4,3" marker-end="url(#arch-dark-arrow-link)"/>
+<text x="728" y="264" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9" letter-spacing="0.08em" fill="#60A5FA">REST</text>
+<rect x="264" y="32" width="208" height="56" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="368" y="56" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">Takt.app</text>
+<text x="368" y="74" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">status item · wiring</text>
+<rect x="32" y="136" width="672" height="56" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="368" y="160" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">TaktUI</text>
+<text x="368" y="178" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">SwiftUI · popover · main window · onboarding</text>
+<rect x="32" y="240" width="144" height="64" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="104" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">TaktSystem</text>
+<text x="104" y="284" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">idle · hotkeys</text>
+<rect x="208" y="240" width="144" height="64" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="280" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">TaktAnalytics</text>
+<text x="280" y="284" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">KPIs · PDF report</text>
+<rect x="384" y="240" width="144" height="64" rx="8" fill="#1A1F26" stroke="#AEAEB2" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="456" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#AEAEB2">TaktCalendar</text>
+<text x="456" y="284" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">Graph · planned</text>
+<rect x="560" y="240" width="144" height="64" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="632" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">TaktADO</text>
+<text x="632" y="284" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">REST · booking</text>
+<rect x="752" y="240" width="144" height="64" rx="8" fill="#1A1F26" stroke="#60A5FA" stroke-width="1.2" stroke-dasharray="5,4"/>
+<text x="824" y="266" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">Azure DevOps</text>
+<text x="824" y="284" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">work items</text>
+<rect x="208" y="352" width="496" height="64" rx="8" fill="#1A1F26" stroke="#48484A" stroke-width="1.2"/>
+<text x="456" y="378" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#F5F5F7">TaktStore</text>
+<text x="456" y="396" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#8E8E93">GRDB · SQLite WAL · migrations</text>
+<rect x="32" y="464" width="672" height="64" rx="8" fill="#12332F" stroke="#2DD4BF" stroke-width="1.6"/>
+<text x="368" y="490" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#2DD4BF">TaktCore</text>
+<text x="368" y="508" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="10.5" fill="#AEAEB2">models · timer engine · allocation · rounding · Foundation only</text>
+<line x1="32" y1="574" x2="896" y2="574" stroke="#3A3A3C"/>
+<line x1="32" y1="590" x2="60" y2="590" stroke="#AEAEB2" stroke-width="1.4" marker-end="url(#arch-dark-arrow)"/>
+<text x="70" y="593" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" letter-spacing="0.08em" fill="#AEAEB2">DEPENDS ON (DOWNWARDS ONLY)</text>
+<rect x="328" y="584" width="20" height="12" rx="3" fill="none" stroke="#AEAEB2" stroke-width="1.2" stroke-dasharray="3,2"/>
+<text x="356" y="593" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" letter-spacing="0.08em" fill="#AEAEB2">PLANNED / EXTERNAL</text>
+<rect x="548" y="584" width="20" height="12" rx="3" fill="#12332F" stroke="#2DD4BF" stroke-width="1.4"/>
+<text x="576" y="593" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="9.5" letter-spacing="0.08em" fill="#AEAEB2">PURE DOMAIN, NO APPLE FRAMEWORKS</text>
+</svg>

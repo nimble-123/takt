@@ -47,7 +47,7 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_CFBundleDisplayName: Takt
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
-        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Nils Lutz. Alle Rechte vorbehalten."
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Nils Lutz. MIT License."
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_APP_SANDBOX: NO
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

@@ -41,7 +41,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 
 ## Konventionen
 
-- Code, Bezeichner und Code-Kommentare auf Englisch; UI-Texte über String Catalog (Deutsch und Englisch); Doku auf Deutsch.
+- Code, Bezeichner und Code-Kommentare auf Englisch; UI-Texte über String Catalog (Deutsch und Englisch); Doku auf Deutsch, nur `README.md` auf Englisch.
 - Tests mit Swift Testing (`import Testing`). Jede Fehlerbehebung bekommt einen Test, der vorher fehlschlägt.
 - Commits und PR-Titel nach Conventional Commits; der PR-Titel wird geprüft und wird per Squash-Merge zur Commit-Nachricht.
   - Typen: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`
