@@ -109,6 +109,12 @@ Or download `Takt-<version>-arm64.dmg` from the [latest release](https://github.
 > [!IMPORTANT]
 > These builds are not signed or notarized yet, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Takt.app`. After each update macOS asks again for access to the Keychain.
 
+To check that a download was built by this repository's release workflow, verify its [build provenance](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations) with the [GitHub CLI](https://cli.github.com):
+
+```bash
+gh attestation verify Takt-<version>-arm64.dmg --repo nimble-123/takt
+```
+
 ## Getting started
 
 Build from source. Requirements: macOS 26, Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen).

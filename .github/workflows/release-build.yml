@@ -34,6 +34,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      id-token: write # Build-Provenienz (Sigstore)
+      attestations: write
     env:
       TAG: ${{ github.event.release.tag_name || inputs.tag }}
     steps:
@@ -72,6 +74,16 @@ jobs:
           path: build/unsigned/dist/
           retention-days: 14
 
+      # Nur für Releases: belegt, dass DMG und ZIP aus diesem Repo und Workflow stammen.
+      # Prüfen mit: gh attestation verify <datei> --repo nimble-123/takt
+      - name: Build-Provenienz attestieren
+        if: env.TAG != ''
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: |
+            build/unsigned/dist/*.dmg
+            build/unsigned/dist/*.zip
+
       - name: An das Release hängen
         if: env.TAG != ''
         env:
@@ -85,6 +97,8 @@ jobs:
           ### Installation (Apple Silicon, unsigniert)
 
           `Takt-*-arm64.dmg` öffnen und Takt nach „Programme“ ziehen. Der Build ist nicht signiert und nicht notarisiert, deshalb blockiert macOS den ersten Start: unter **Systemeinstellungen → Datenschutz & Sicherheit** auf **Trotzdem öffnen** klicken oder `xattr -dr com.apple.quarantine /Applications/Takt.app` ausführen. Nach jedem Update fragt macOS erneut nach dem Zugriff auf den Schlüsselbund.
+
+          Herkunft prüfen: `gh attestation verify Takt-*-arm64.dmg --repo nimble-123/takt`
           EOF
             printf '%s\n\n%s\n' "${notes}" "$(cat note.md)" > notes.md
             gh release edit "${TAG}" --notes-file notes.md
