@@ -123,15 +123,7 @@ struct AnalyticsScreen: View {
     }
 
     private func export(_ format: AnalyticsModel.ExportFormat) {
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [format == .csv ? .commaSeparatedText : .json]
-        panel.nameFieldStringValue = model.exportFileName
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            try model.export(format).write(to: url, options: .atomic)
-        } catch {
-            NSAlert(error: error).runModal()
-        }
+        saveExport(model, format)
     }
 }
 
@@ -373,5 +365,19 @@ private struct Heatmap: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("Weekday × hour", bundle: .module))
         }
+    }
+}
+
+/// Asks where to save and writes the export of the shown period (AN-06).
+@MainActor
+func saveExport(_ model: AnalyticsModel, _ format: AnalyticsModel.ExportFormat) {
+    let panel = NSSavePanel()
+    panel.allowedContentTypes = [format == .csv ? .commaSeparatedText : .json]
+    panel.nameFieldStringValue = model.exportFileName
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    do {
+        try model.export(format).write(to: url, options: .atomic)
+    } catch {
+        NSAlert(error: error).runModal()
     }
 }

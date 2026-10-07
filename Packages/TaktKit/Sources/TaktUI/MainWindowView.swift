@@ -7,9 +7,11 @@ public struct MainWindowView: View {
     @Bindable var model: MainWindowModel
     @Environment(\.undoManager) private var undoManager
     @State private var showInspector = true
+    @State private var palette: CommandPaletteModel
 
     public init(model: MainWindowModel) {
         self.model = model
+        _palette = State(initialValue: CommandPaletteModel(window: model))
     }
 
     public var body: some View {
@@ -41,6 +43,32 @@ public struct MainWindowView: View {
             }
         }
         .modifier(SearchField(model: model))
+        .sheet(isPresented: $palette.isPresented) {
+            CommandPaletteView(model: palette)
+        }
+        .background {
+            // ⌘K: every action is one search away (HW-05).
+            Button("") { palette.isPresented.toggle() }
+                .keyboardShortcut("k", modifiers: .command)
+                .hidden()
+        }
+        .onAppear {
+            #if DEBUG
+                // `-paletteQuery text` opens the palette with a query, for screenshots and UI tests.
+                if let query = UserDefaults.standard.string(forKey: "paletteQuery") {
+                    palette.isPresented = true
+                    palette.query = query
+                }
+            #endif
+            palette.export = { [model] format in
+                guard let analytics = model.analytics else { return }
+                // The analysis may not have been opened yet: load the shown period first.
+                Task {
+                    await analytics.reload()
+                    saveExport(analytics, format)
+                }
+            }
+        }
         .navigationTitle(title)
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
@@ -58,7 +86,7 @@ public struct MainWindowView: View {
             }
             ToolbarItem {
                 Button {
-                    Task { await createEntry() }
+                    Task { await model.createRecentEntry() }
                 } label: {
                     Label(String(localized: "New Entry", bundle: .module), systemImage: "plus")
                 }
@@ -127,14 +155,6 @@ public struct MainWindowView: View {
         }
     }
 
-    /// ⌘N: 30 minutes up to now on today, otherwise 9:00–9:30 on the shown day.
-    private func createEntry() async {
-        let now = model.now
-        let day = model.dayRange
-        let end = day.contains(now) ? DayTimeline.snapped(now) : day.lowerBound.adding(seconds: 9.5 * 3600)
-        let start = max(day.lowerBound, end.adding(seconds: -30 * 60))
-        await model.createEntry(from: start, to: min(end, now))
-    }
 }
 
 /// The window's search field (HW-06), only when a search index is available.

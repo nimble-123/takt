@@ -211,6 +211,54 @@ public final class MainWindowModel {
         return created.entry.id
     }
 
+    /// ⌘N: 30 minutes up to now on today, otherwise 9:00–9:30 on the shown day.
+    public func createRecentEntry() async {
+        let now = clock.now()
+        let day = dayRange
+        let end = day.contains(now) ? DayTimeline.snapped(now) : day.lowerBound.adding(seconds: 9.5 * 3600)
+        let start = max(day.lowerBound, end.adding(seconds: -30 * 60))
+        await createEntry(from: start, to: min(end, now))
+    }
+
+    // MARK: Timer commands (command palette)
+
+    /// Starts a timer in the configured start mode; undoable in this window.
+    public func startTimer(_ draft: EntryDraft) async {
+        let mode: TimerEngine.StartMode = settings?.startMode ?? .switchTo
+        await command(String(localized: "Start Timer", bundle: .module)) { try await $0.start(draft, mode: mode).undo }
+    }
+
+    /// Pauses what runs, or resumes what "Pause all" paused (MB-06).
+    public func togglePauseAll() async {
+        await command(String(localized: "Pause All", bundle: .module)) { engine in
+            let snapshot = try await engine.snapshot()
+            if !snapshot.running.isEmpty { return try await engine.pauseAll().undo }
+            if let pause = snapshot.globalPause { return try await engine.resumeAll(pause.id) }
+            return TimerUndo(combining: [])
+        }
+    }
+
+    public func stopAll() async {
+        await command(String(localized: "Stop All", bundle: .module)) { engine in
+            var undos: [TimerUndo] = []
+            for active in try await engine.snapshot().entries {
+                undos.append(try await engine.stop(active.id))
+            }
+            return TimerUndo(combining: undos)
+        }
+    }
+
+    private func command(_ name: String, _ body: (TimerEngine) async throws -> TimerUndo) async {
+        do {
+            let undo = try await body(engine)
+            self.undo.register(undo, actionName: name, on: undoManager)
+            errorMessage = nil
+            await reload()
+        } catch {
+            show(error)
+        }
+    }
+
     public func setBounds(of segment: Segment, start: Timestamp, end: Timestamp?) async {
         guard let changes = attempt({ try EntryEdits.setBounds(of: segment, start: start, end: end, now: clock.now()) })
         else { return }
