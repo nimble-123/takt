@@ -1,10 +1,14 @@
 <div align="center">
 
+<img src="docs/assets/logo.png" alt="" width="112" height="112">
+
 # Takt
 
 **Track time without losing your rhythm.**<br>
 A native macOS time tracker that lives in your menu bar, keeps every byte on your Mac, and books time straight into Azure DevOps.
 
+[![Release](https://img.shields.io/github/v/release/nimble-123/takt?color=0F766E)](https://github.com/nimble-123/takt/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/nimble-123/takt/total?color=2ea44f)](https://github.com/nimble-123/takt/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/nimble-123/takt/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/nimble-123/takt/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/nimble-123/takt?color=0F766E)](LICENSE)
 [![macOS 26+](https://img.shields.io/badge/macOS-26%2B-000000?logo=apple&logoColor=white)](#getting-started)
@@ -91,11 +95,14 @@ The full picture is in the [technical concept](docs/TECHNICAL_CONCEPT.md).
 
 ## Install
 
-With [Homebrew](https://brew.sh):
+With [Homebrew](https://brew.sh), from the [nimble-123/tap](https://github.com/nimble-123/homebrew-tap) tap:
 
 ```bash
-brew install --cask nimble-123/tap/takt
+brew tap nimble-123/tap
+brew install --cask takt
 ```
+
+Update with `brew upgrade --cask takt`. Every release updates the cask automatically, usually within minutes.
 
 Or download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
 
