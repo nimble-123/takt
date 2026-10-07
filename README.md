@@ -20,6 +20,32 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 > [!NOTE]
 > Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. There is no downloadable build yet, so for now you build it from source.
 
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/week-dark.png">
+  <img alt="Takt main window showing the week view with entries as colored blocks on a calendar grid" src="docs/assets/screenshots/week-light.png" width="860">
+</picture>
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/popover-dark.png">
+  <img alt="Takt menu bar popover with search field, inactivity prompt, running timers, recent tasks and a daily progress bar" src="docs/assets/screenshots/popover-light.png" width="280">
+</picture>
+    </td>
+    <td align="center" valign="top">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/analytics-dark.png">
+  <img alt="Takt analytics view with totals, a bar chart per day, a project donut and a weekday by hour heatmap" src="docs/assets/screenshots/analytics-light.png" width="560">
+</picture>
+    </td>
+  </tr>
+</table>
+
+</div>
+
 ## Why Takt
 
 Time tracking usually happens after the fact and from memory, because starting, switching and booking cost too many clicks. Takt makes it as casual as glancing at a clock:
