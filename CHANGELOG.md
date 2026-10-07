@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0](https://github.com/nimble-123/takt/compare/v0.2.0...v0.3.0) (2026-10-07)
+
+
+### Neue Funktionen
+
+* **ui:** open today and week timelines at the current hour ([#72](https://github.com/nimble-123/takt/issues/72)) ([39a6a2e](https://github.com/nimble-123/takt/commit/39a6a2e61997b5ed99fb3c4e11f232041ef8807e))
+* **ui:** set daily goal and weekly hours in 0.1 h steps ([#75](https://github.com/nimble-123/takt/issues/75)) ([8ce17cb](https://github.com/nimble-123/takt/commit/8ce17cb780aaf99f18c240d8eb12429d081f882a))
+* **ui:** start timers with [@category](https://github.com/category), /project and #tag tokens (MB-09) ([#73](https://github.com/nimble-123/takt/issues/73)) ([68744ea](https://github.com/nimble-123/takt/commit/68744eafcba139f619049e251293ddcc52463bef))
+
 ## [0.2.0](https://github.com/nimble-123/takt/compare/v0.1.0...v0.2.0) (2026-10-07)
 
 
