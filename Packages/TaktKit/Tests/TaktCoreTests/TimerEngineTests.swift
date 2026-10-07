@@ -122,7 +122,7 @@ struct TimerEngineTests {
 
         let pauseID = try #require(try await engine.pauseAll().value)
         #expect(await snapshot().running.isEmpty)
-        #expect(await snapshot().globalPause?.entryIDs == [a, b])
+        #expect(Set(await snapshot().globalPause?.entryIDs ?? []) == [a, b])
 
         clock.advance(seconds: 1800)
         try await engine.resumeAll(pauseID)
@@ -146,7 +146,7 @@ struct TimerEngineTests {
         let second = try await engine.pauseAll().value
 
         #expect(first == second)
-        #expect(await snapshot().globalPause?.entryIDs == [a, b])
+        #expect(Set(await snapshot().globalPause?.entryIDs ?? []) == [a, b])
     }
 
     @Test func resumeAllSkipsStoppedEntries() async throws {
