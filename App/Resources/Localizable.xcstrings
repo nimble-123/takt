@@ -1,19 +1,29 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "Quit Takt" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Takt beenden"
+  "sourceLanguage": "en",
+  "strings": {
+    "Quit Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt beenden"
           }
         }
       }
     },
-    "Takt" : {
-      "shouldTranslate" : false
+    "Takt": {
+      "shouldTranslate": false
+    },
+    "Takt could not open its database.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt konnte seine Datenbank nicht öffnen."
+          }
+        }
+      }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

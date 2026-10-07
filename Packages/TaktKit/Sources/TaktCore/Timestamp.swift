@@ -40,3 +40,13 @@ public struct Timestamp: Hashable, Comparable, Sendable, Codable, CustomStringCo
         try container.encode(milliseconds)
     }
 }
+
+extension Timestamp {
+    /// The local day containing `self`, from midnight to midnight. Days around a daylight saving
+    /// change are 23 or 25 hours long.
+    public func localDay(in calendar: Calendar = .current) -> Range<Timestamp> {
+        let start = calendar.startOfDay(for: date)
+        let end = calendar.date(byAdding: .day, value: 1, to: start) ?? start.addingTimeInterval(86_400)
+        return Timestamp(start)..<Timestamp(end)
+    }
+}

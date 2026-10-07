@@ -258,3 +258,34 @@ struct TimerEngineTests {
         #expect(await iterator.next()?.entry(id)?.entry.state == .paused)
     }
 }
+
+extension TimerEngineTests {
+    @Test func applyEditsAStoppedEntryAndCanBeUndone() async throws {
+        let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+        clock.advance(seconds: 60)
+        try await engine.stop(id)
+        let stopped = try #require(await store.tables.entries[id])
+
+        var noted = stopped
+        noted.note = "Done"
+        let undo = try await engine.apply([.entry(before: stopped, after: noted)])
+        #expect(await store.tables.entries[id]?.note == "Done")
+
+        try await engine.undo(undo)
+        #expect(await store.tables.entries[id] == stopped)
+    }
+}
+
+extension TimerEngineTests {
+    @Test func combinedUndoRevertsSeveralCommands() async throws {
+        let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+        let b = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
+        clock.advance(seconds: 60)
+        let before = await store.tables
+
+        let undo = TimerUndo(combining: [try await engine.stop(a), try await engine.stop(b)])
+        try await engine.undo(undo)
+
+        #expect(await store.tables == before)
+    }
+}
