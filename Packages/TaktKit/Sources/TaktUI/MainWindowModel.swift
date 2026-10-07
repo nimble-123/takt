@@ -233,10 +233,12 @@ public final class MainWindowModel {
         return try? await workItems.link(id)
     }
 
-    public func startTimer(_ draft: EntryDraft) async {
+    /// `tags` come from typed tokens (MB-09) and are merged with tags from rules.
+    public func startTimer(_ draft: EntryDraft, tags typed: [String] = []) async {
         let mode: TimerEngine.StartMode = settings?.startMode ?? .switchTo
         let workItem = await linkedWorkItem(of: draft)
-        let (ruled, tags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        let (ruled, ruleTags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        let tags = StartTokens.merged(typed, ruleTags)
         var started: EntryID?
         await command(String(localized: "Start Timer", bundle: .module)) { engine in
             let result = try await engine.start(ruled, mode: mode)

@@ -88,6 +88,7 @@ Die Menüleiste ist das Cockpit für das Erfassen, das Hauptfenster der Ort für
 | MB-06 | Alle pausieren / alle fortsetzen / alle stoppen | Must |
 | MB-07 | Notiz zum laufenden Eintrag inline ergänzen | Should |
 | MB-08 | Tagessumme und Fortschritt zum Tagesziel | Should |
+| MB-09 | Kürzel im Suchfeld beim Start: `@Kategorie`, `/Projekt` bzw. `/Projekt/Task`, `#Tag`, mit Vervollständigung und Chips; `#` nur mit Ziffern bleibt Work-Item-Suche | Should |
 
 ### Timer, Pausen & Multitasking
 

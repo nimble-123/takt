@@ -59,9 +59,23 @@ public final class MenuBarModel {
             guard query != oldValue else { return }
             selection = nil
             previewedItem = nil
+            completionSelection = 0
+            completionsDismissed = false
             searchWorkItems()
         }
     }
+    /// The search text split into a title and tokens: `@category`, `/project/task`, `#tag` (MB-09).
+    public var input: StartInput { StartInput.parse(query) }
+    /// The input's tokens matched against the catalog; shown as chips below the search field.
+    var tokens: StartTokens { StartTokens(input, catalog: catalog) }
+    /// Completions for the token at the end of the query; none after Esc until the query changes.
+    var completions: [StartTokens.Completion] {
+        guard !completionsDismissed, let partial = StartInput.partial(in: query) else { return [] }
+        return StartTokens.completions(for: partial, catalog: catalog)
+    }
+    /// Highlighted completion.
+    public var completionSelection = 0
+    private var completionsDismissed = false
     /// Azure DevOps hits for the query: cached ones at once, fresh ones after a pause in typing.
     public private(set) var workItemResults: [WorkItemLink] = []
     public private(set) var isSearchingWorkItems = false
@@ -170,7 +184,8 @@ public final class MenuBarModel {
 
     private func searchWorkItems() {
         searchTask?.cancel()
-        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        // Tokens are not part of the work item's title.
+        let text = input.title
         guard let workItems, !text.isEmpty else {
             workItemResults = []
             isSearchingWorkItems = false
@@ -276,7 +291,7 @@ public final class MenuBarModel {
 
     /// Recent activities if the query is empty, otherwise matching recent activities and local tasks.
     public var suggestions: [Suggestion] {
-        let text = query.trimmingCharacters(in: .whitespaces)
+        let text = input.title
         if text.isEmpty {
             return recents.prefix(Self.recentCount).map {
                 Suggestion(draft: $0, group: .recent, subtitle: subtitle($0))
@@ -311,6 +326,11 @@ public final class MenuBarModel {
     }
 
     public func moveSelection(by offset: Int) {
+        let completions = completions
+        if !completions.isEmpty {
+            completionSelection = (completionSelection + offset + completions.count) % completions.count
+            return
+        }
         let count = suggestions.count
         guard count > 0 else { return }
         guard let current = selection else {
@@ -323,18 +343,45 @@ public final class MenuBarModel {
 
     /// Enter starts the highlighted suggestion or the typed text in the configured start mode;
     /// ⌥↩ (`alternate`) uses the other mode (TM-05).
+    /// While a token is being typed, Enter takes the highlighted completion instead (MB-09).
     public func submit(alternate: Bool) async {
+        if acceptCompletion() { return }
+        let title = input.title
         let draft: EntryDraft
         if let selection, suggestions.indices.contains(selection) {
             draft = suggestions[selection].draft
         } else {
-            let title = query.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !title.isEmpty else { return }
             draft = EntryDraft(title: title)
         }
+        let tokens = tokens
         query = ""
         let parallel = settings.startMode == .parallel
-        await start(draft, parallel: alternate ? !parallel : parallel)
+        await start(tokens.applied(to: draft), parallel: alternate ? !parallel : parallel, tags: tokens.tags)
+    }
+
+    /// A click on a suggestion; tokens typed alongside still apply (MB-09).
+    public func start(suggestion: Suggestion, parallel: Bool) async {
+        let tokens = tokens
+        query = ""
+        await start(tokens.applied(to: suggestion.draft), parallel: parallel, tags: tokens.tags)
+    }
+
+    /// Tab or Enter while completions show: replaces the typed token with the highlighted one.
+    /// Returns whether it did.
+    @discardableResult
+    public func acceptCompletion() -> Bool {
+        let completions = completions
+        guard completions.indices.contains(completionSelection) else { return false }
+        query = StartInput.completing(query, with: completions[completionSelection].token)
+        return true
+    }
+
+    /// Esc closes the completion list and keeps the text. Returns whether a list was open.
+    public func dismissCompletions() -> Bool {
+        guard !completions.isEmpty else { return false }
+        completionsDismissed = true
+        return true
     }
 
     /// ⌘1–⌘4 (MB-05).
@@ -350,16 +397,18 @@ public final class MenuBarModel {
         return try? await workItems.link(id)
     }
 
-    public func start(_ draft: EntryDraft, parallel: Bool) async {
+    /// Starts `draft`; `tags` come from typed tokens and are merged with tags from rules.
+    public func start(_ draft: EntryDraft, parallel: Bool, tags typed: [String] = []) async {
         let workItem = await linkedWorkItem(of: draft)
-        let (ruled, tags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        let (ruled, ruleTags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        let tags = StartTokens.merged(typed, ruleTags)
         var started: EntryID?
         await perform { engine in
             let result = try await engine.start(ruled, mode: parallel ? .parallel : .switchTo)
             started = result.value
             return result.undo
         }
-        // Tags from rules (ST-05); the entry is new, so it has none yet.
+        // Typed tags (MB-09) and tags from rules (ST-05); the entry is new, so it has none yet.
         if let started, !tags.isEmpty {
             await catalog.setTags(named: tags, on: [started])
         }

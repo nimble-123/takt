@@ -57,12 +57,19 @@ public final class CommandPaletteModel {
             return best.map { (item, $0) }
         }
         scored.sort { $0.1 > $1.1 }
+        // The typed text may carry tokens: `@category`, `/project/task`, `#tag` (MB-09).
+        let input = StartInput.parse(text)
+        guard !input.title.isEmpty else { return scored.map(\.0) + hits }
+        let tokens = StartTokens(input, catalog: window.catalog)
         let start = PaletteItem(
             id: "start-typed",
-            title: String(localized: "Start Timer “\(text)”", bundle: .module),
+            title: String(localized: "Start Timer “\(input.title)”", bundle: .module),
+            subtitle: tokens.chips.isEmpty ? nil : tokens.chips.map(\.label).joined(separator: " · "),
             symbol: "play.circle",
             shortcut: "↩"
-        ) { [window] in await window.startTimer(EntryDraft(title: text)) }
+        ) { [window] in
+            await window.startTimer(tokens.applied(to: EntryDraft(title: input.title)), tags: tokens.tags)
+        }
         return scored.map(\.0) + [start] + hits
     }
 
