@@ -54,6 +54,7 @@ ditto -c -k --keepParent "${APP}" "${DIST}/${NAME}.zip"
 dmgbuild \
   -s "${ROOT}/scripts/dmg/settings.py" \
   -D app="${APP}" \
+  -D background="${ROOT}/scripts/dmg/background.png" \
   -D icon="${APP}/Contents/Resources/AppIcon.icns" \
   Takt "${DIST}/${NAME}.dmg"
 hdiutil verify -quiet "${DIST}/${NAME}.dmg"

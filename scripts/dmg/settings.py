@@ -1,12 +1,12 @@
 # dmgbuild settings for the Takt disk image, used by scripts/package-unsigned.sh:
-#   dmgbuild -s scripts/dmg/settings.py -D app=<path to Takt.app> [-D icon=<.icns>] Takt <out.dmg>
+#   dmgbuild -s scripts/dmg/settings.py -D app=<Takt.app> -D background=<background.png> \
+#     [-D icon=<.icns>] Takt <out.dmg>
 # Icon positions must match scripts/dmg/make-background.py.
 import os.path
 
 # `defines` is provided by dmgbuild (values passed with -D).
 app = defines["app"]  # noqa: F821
 icon_path = defines.get("icon")  # noqa: F821
-here = os.path.dirname(os.path.abspath(settings_file))  # noqa: F821
 
 format = "UDZO"
 filesystem = "HFS+"
@@ -15,7 +15,7 @@ files = [app]
 symlinks = {"Applications": "/Applications"}
 
 # dmgbuild picks up background@2x.png next to it and combines both into a HiDPI TIFF.
-background = os.path.join(here, "background.png")
+background = defines["background"]  # noqa: F821
 if icon_path and os.path.exists(icon_path):
     icon = icon_path
 
