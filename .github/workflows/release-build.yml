@@ -2,6 +2,7 @@ name: Release-Build
 
 # Baut die unsignierte Apple-Silicon-App (scripts/package-unsigned.sh).
 # - Release-PRs von release-please: nur bauen und packen, als Check vor dem Release.
+# - PRs, die das Packen ändern (Skript, scripts/dmg/, dieser Workflow): ebenso nur bauen und packen.
 # - Veröffentlichtes Release: bauen, packen und DMG/ZIP an das Release hängen.
 #   Startet nur, wenn release-please mit RELEASE_PLEASE_TOKEN arbeitet (siehe docs/RELEASING.md).
 # - Manuell: für ein bestehendes Tag neu bauen und hochladen.
@@ -26,10 +27,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Packen geändert?
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      packaging: ${{ steps.filter.outputs.packaging }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            packaging:
+              - scripts/package-unsigned.sh
+              - scripts/dmg/**
+              - .github/workflows/release-build.yml
+
   build:
     name: Release-Build (Apple Silicon)
+    needs: changes
     # Auf normalen PRs übersprungen; ein übersprungener Job gilt als bestandener Pflicht-Check.
-    if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'release-please--')
+    # !cancelled(): bei Releases ist "changes" übersprungen, der Build soll trotzdem laufen.
+    if: >-
+      !cancelled() && (
+        github.event_name != 'pull_request' ||
+        startsWith(github.head_ref, 'release-please--') ||
+        needs.changes.outputs.packaging == 'true'
+      )
     runs-on: macos-26
     timeout-minutes: 30
     permissions:
@@ -47,8 +73,11 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: XcodeGen installieren
-        run: brew install xcodegen
+      - name: Werkzeuge installieren
+        run: |
+          brew install xcodegen
+          command -v pipx >/dev/null || brew install pipx
+          pipx install dmgbuild==1.6.7
 
       - name: Version bestimmen
         id: version
@@ -93,8 +122,10 @@ jobs:
   homebrew:
     name: Homebrew-Tap
     needs: build
-    # Nur für veröffentlichte Releases, nie auf PRs.
-    if: github.event_name != 'pull_request'
+    # Nur für veröffentlichte Releases, nie auf PRs. Der Status von "build" wird ausdrücklich
+    # geprüft, weil der übersprungene Job "changes" sonst die ganze Kette überspringen ließe.
+    if: >-
+      !cancelled() && needs.build.result == 'success' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
