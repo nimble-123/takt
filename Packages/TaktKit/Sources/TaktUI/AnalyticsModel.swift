@@ -15,7 +15,7 @@ public final class AnalyticsModel {
     }
 
     public enum ExportFormat {
-        case csv, json
+        case csv, json, pdf
     }
 
     public var period: Period = .week {
@@ -65,6 +65,25 @@ public final class AnalyticsModel {
 
     var rounding: Rounding {
         Rounding(minutes: UserDefaults.standard.integer(forKey: "roundingMinutes"))
+    }
+
+    /// AN-07: from the settings (or an MDM profile).
+    public var targetPlan: TargetPlan {
+        let defaults = UserDefaults.standard
+        return TargetPlan(
+            weeklyHours: defaults.object(forKey: "weeklyHours") as? Double ?? 40,
+            workDays: Set(defaults.array(forKey: "workDays") as? [Int] ?? [1, 2, 3, 4, 5])
+        )
+    }
+
+    /// Target against tracked time of the shown period, up to today.
+    public var comparison: TargetPlan.Comparison? {
+        report.map { targetPlan.compare($0, now: clock.now(), calendar: calendar) }
+    }
+
+    /// Target hours of a day, for the line in the bar chart.
+    public func targetHours(on day: Timestamp) -> Double {
+        targetPlan.target(on: day, calendar: calendar) / 3600
     }
 
     // MARK: Range
@@ -193,6 +212,7 @@ public final class AnalyticsModel {
         switch format {
         case .csv: return Data(Exporter.csv(rows).utf8)
         case .json: return try Exporter.json(rows, range: range, calendar: calendar)
+        case .pdf: return ReportPDF.render(self, rows: rows)
         }
     }
 

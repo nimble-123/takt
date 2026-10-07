@@ -28,6 +28,27 @@ struct SettingsScreen: View {
                     }
                 }
                 .managed(settings.isLocked(.dailyGoalHours))
+                Stepper(value: $settings.weeklyHours, in: 0...60, step: 0.5) {
+                    LabeledContent(String(localized: "Weekly hours", bundle: .module)) {
+                        Text("\(settings.weeklyHours.formatted(.number.precision(.fractionLength(0...1)))) h")
+                            .monospacedDigit()
+                    }
+                }
+                .managed(settings.isLocked(.weeklyHours))
+                LabeledContent(String(localized: "Working days", bundle: .module)) {
+                    HStack(spacing: 4) {
+                        ForEach(1...7, id: \.self) { day in
+                            Toggle(
+                                Calendar.current.veryShortWeekdaySymbols[day % 7],
+                                isOn: Binding(get: { settings.workDays.contains(day) }) { on in
+                                    if on { settings.workDays.insert(day) } else { settings.workDays.remove(day) }
+                                }
+                            )
+                            .toggleStyle(.button)
+                        }
+                    }
+                }
+                .managed(settings.isLocked(.workDays))
                 Toggle(
                     String(localized: "Show running time in the menu bar", bundle: .module),
                     isOn: $settings.showElapsedInMenuBar

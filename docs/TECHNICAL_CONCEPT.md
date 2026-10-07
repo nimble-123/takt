@@ -394,6 +394,8 @@ ORDER BY s.start_at;
 - Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
 - Ein einziger Sweep (`Allocation.intervals`) liefert Intervalle mit den Anteilen der laufenden Einträge. `TaktAnalytics.Analyzer` schneidet sie an lokalen Tages- und Stundengrenzen und leitet daraus Gruppen, Tagesbalken, Heatmap, Fokusblöcke, Kontextwechsel und Multitasking-Anteil ab. Gemessen: 12 Monate (3.000 Einträge, 36.000 Segmente) von der Datenbank bis zum Bericht in rund 0,2 s (Release-Build).
 - Bei Tags zählt ein Eintrag mit mehreren Tags in jedem davon; Einträge ohne Wert landen in der Gruppe „Ohne“.
+- **Soll/Ist (AN-07):** Wochenstunden (`weeklyHours`, Default 40) verteilen sich gleichmäßig auf die Arbeitstage (`workDays`, Default Mo–Fr). Der Saldo zählt nur Tage bis heute, damit eine laufende Woche kein künstliches Minus zeigt; Feiertage kennt Takt nicht. Die Tagesbalken zeigen das Soll als gestrichelte Linie.
+- **PDF-Bericht (AN-07):** A4, immer hell, gerendert mit `ImageRenderer` aus SwiftUI und Swift Charts: Seite 1 mit Kennzahlen, Soll/Ist, Tagesbalken und Verteilung, danach die Tabelle je Eintrag und Tag (34 Zeilen pro Seite) – dieselben Zeilen wie im CSV-Export.
 - Diagramme zeichnet Swift Charts; Export als CSV (RFC 4180, Dezimalpunkt) und JSON nutzt dieselbe Verteilung wie die Ansicht: eine Zeile je Eintrag und lokalem Tag mit Rohsekunden, Stunden und gerundeten Stunden (Rundung aus `roundingMinutes`).
 
 ## Sicherheit, Verteilung und Updates
