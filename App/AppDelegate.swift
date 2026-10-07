@@ -125,7 +125,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func showOnboarding(_ settings: AppSettings) {
-        let controller = OnboardingWindowController(model: OnboardingModel(settings: settings))
+        let controller = OnboardingWindowController(
+            model: OnboardingModel(settings: settings, azureDevOps: composition?.azureDevOps)
+        )
         controller.model.onFinish = { [weak self] in
             self?.onboarding?.close()
             self?.onboarding = nil

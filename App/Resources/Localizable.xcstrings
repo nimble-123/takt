@@ -11,6 +11,16 @@
         }
       }
     },
+    "Azure DevOps token expires soon": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure-DevOps-Token läuft bald ab"
+          }
+        }
+      }
+    },
     "Open Takt": {
       "localizations": {
         "de": {
@@ -27,6 +37,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Takt beenden"
+          }
+        }
+      }
+    },
+    "Renew the token for %@ and enter it in Takt's settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneuere das Token für %@ und trage es in den Einstellungen von Takt ein."
           }
         }
       }

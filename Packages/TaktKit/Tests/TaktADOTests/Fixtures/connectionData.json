@@ -1,0 +1,21 @@
+{
+  "authenticatedUser": {
+    "id": "8d6e2f7e-4a31-4a8c-9e6b-1f2c3d4e5f60",
+    "descriptor": "Microsoft.IdentityModel.Claims.ClaimsIdentity;contoso\\nils@contoso.com",
+    "subjectDescriptor": "aad.ODZlMmY3ZTQtYTMxNC1hOGM5ZTZiMWYyYzNkNGU1ZjYw",
+    "providerDisplayName": "Nils Lutz",
+    "isActive": true,
+    "properties": { "Account": { "$type": "System.String", "$value": "nils@contoso.com" } },
+    "resourceVersion": 2,
+    "metaTypeId": 0
+  },
+  "authorizedUser": {
+    "id": "8d6e2f7e-4a31-4a8c-9e6b-1f2c3d4e5f60",
+    "providerDisplayName": "Nils Lutz",
+    "isActive": true
+  },
+  "instanceId": "6f1b1b3a-0b8c-4f5e-9d2a-7c3e4b5a6d7e",
+  "deploymentId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+  "deploymentType": "hosted",
+  "locationServiceData": { "serviceOwner": "00025394-6065-48ca-87d9-7f5672854ef7", "defaultAccessMappingMoniker": "PublicAccessMapping", "lastChangeId": 123, "lastChangeId64": 123 }
+}

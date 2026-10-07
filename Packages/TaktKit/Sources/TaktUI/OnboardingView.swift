@@ -16,12 +16,13 @@ public final class OnboardingModel {
     public private(set) var shortcutTested = false
     public var launchAtLogin = true
     let settings: AppSettings
-    /// Content for step 1, provided by the Azure DevOps integration; `nil` shows a hint instead.
-    @ObservationIgnored public var azureDevOpsStep: (() -> AnyView)?
+    /// Step 1; `nil` shows only the explanation.
+    let azureDevOps: AzureDevOpsModel?
     @ObservationIgnored public var onFinish: (() -> Void)?
 
-    public init(settings: AppSettings) {
+    public init(settings: AppSettings, azureDevOps: AzureDevOpsModel? = nil) {
         self.settings = settings
+        self.azureDevOps = azureDevOps
     }
 
     /// The app forwards the global shortcut here while the onboarding is open.
@@ -115,8 +116,8 @@ public struct OnboardingView: View {
                     "Link work items and book your time to them. You can do this later in the settings.",
                     bundle: .module)
             )
-            if let content = model.azureDevOpsStep {
-                content()
+            if let azureDevOps = model.azureDevOps {
+                AzureDevOpsOnboarding(model: azureDevOps)
             }
         }
     }

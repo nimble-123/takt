@@ -33,6 +33,8 @@ public final class MainWindowModel {
     public let analytics: AnalyticsModel?
     /// The settings screen; `nil` hides it.
     public let settings: AppSettings?
+    /// Azure DevOps connections in the settings; `nil` hides them.
+    public let azureDevOps: AzureDevOpsModel?
     /// For backup and import in the settings.
     public let database: AppDatabase?
     let clock: any TaktClock
@@ -46,6 +48,7 @@ public final class MainWindowModel {
         catalog: CatalogModel,
         analytics: AnalyticsModel? = nil,
         settings: AppSettings? = nil,
+        azureDevOps: AzureDevOpsModel? = nil,
         database: AppDatabase? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
@@ -55,6 +58,7 @@ public final class MainWindowModel {
         self.catalog = catalog
         self.analytics = analytics
         self.settings = settings
+        self.azureDevOps = azureDevOps
         self.database = database
         self.clock = clock
         self.calendar = calendar
