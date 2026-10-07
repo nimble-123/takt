@@ -13,6 +13,7 @@ final class Composition {
     let clock: any TaktClock = SystemClock()
     let engine: TimerEngine
     let menuBar: MenuBarModel
+    let mainWindow: MainWindowModel
     let idleMonitor: IdleMonitor
     /// Called when inactivity needs the user's decision, e.g. to open the popover.
     var onIdleNeedsDecision: (@MainActor () -> Void)?
@@ -31,7 +32,9 @@ final class Composition {
         database = try AppDatabase.open(at: url)
         backup = DatabaseBackup(directory: url.deletingLastPathComponent().appending(path: "Backups"))
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
-        menuBar = MenuBarModel(engine: engine, queries: EntryQueries(database: database), clock: clock)
+        let queries = EntryQueries(database: database)
+        menuBar = MenuBarModel(engine: engine, queries: queries, clock: clock)
+        mainWindow = MainWindowModel(engine: engine, queries: queries, clock: clock)
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()
         }
@@ -59,6 +62,7 @@ final class Composition {
                     logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
                 }
                 tasks.append(Task { await menuBar.run() })
+                tasks.append(Task { await mainWindow.run() })
                 tasks.append(Task { await runChores() })
                 tasks.append(Task { await idleMonitor.run() })
                 tasks.append(Task { await forwardIdleReturns() })

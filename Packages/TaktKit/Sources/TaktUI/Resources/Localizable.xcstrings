@@ -1,6 +1,26 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld entries selected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Einträge ausgewählt"
+          }
+        }
+      }
+    },
+    "An entry must end after it starts and cannot end in the future.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Eintrag muss nach seinem Beginn enden und darf nicht in der Zukunft enden."
+          }
+        }
+      }
+    },
     "Apply": {
       "localizations": {
         "de": {
@@ -31,12 +51,142 @@
         }
       }
     },
+    "Change Counting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zählweise ändern"
+          }
+        }
+      }
+    },
+    "Change Note": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz ändern"
+          }
+        }
+      }
+    },
+    "Change Time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit ändern"
+          }
+        }
+      }
+    },
+    "Change Weight": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gewicht ändern"
+          }
+        }
+      }
+    },
+    "Choose a time within the entry to split it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle eine Zeit innerhalb des Eintrags, um ihn zu teilen."
+          }
+        }
+      }
+    },
+    "Convert Pause to Work": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause in Arbeitszeit umwandeln"
+          }
+        }
+      }
+    },
+    "Count as Work": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Arbeitszeit zählen"
+          }
+        }
+      }
+    },
     "Count as pause": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Als Pause werten"
+          }
+        }
+      }
+    },
+    "Counting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zählweise"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum"
+          }
+        }
+      }
+    },
+    "Default": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löschen"
+          }
+        }
+      }
+    },
+    "Delete Entries": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge löschen"
+          }
+        }
+      }
+    },
+    "Delete Entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eintrag löschen"
           }
         }
       }
@@ -51,12 +201,62 @@
         }
       }
     },
+    "Duration": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dauer"
+          }
+        }
+      }
+    },
+    "Entries": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge"
+          }
+        }
+      }
+    },
+    "Full": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voll"
+          }
+        }
+      }
+    },
+    "Inactivity": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktivität"
+          }
+        }
+      }
+    },
     "Inactivity detected": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Inaktivität erkannt"
+          }
+        }
+      }
+    },
+    "Inspector": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inspektor"
           }
         }
       }
@@ -71,6 +271,56 @@
         }
       }
     },
+    "Move Entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eintrag verschieben"
+          }
+        }
+      }
+    },
+    "New Entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Eintrag"
+          }
+        }
+      }
+    },
+    "New entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Eintrag"
+          }
+        }
+      }
+    },
+    "Next": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
+    "No Selection": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Auswahl"
+          }
+        }
+      }
+    },
     "Note": {
       "localizations": {
         "de": {
@@ -81,12 +331,42 @@
         }
       }
     },
+    "Open main window": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hauptfenster öffnen"
+          }
+        }
+      }
+    },
+    "Parallel time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallele Zeit"
+          }
+        }
+      }
+    },
     "Pause": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pausieren"
+          }
+        }
+      }
+    },
+    "Pause %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause %@"
           }
         }
       }
@@ -111,6 +391,26 @@
         }
       }
     },
+    "Pauses": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausen"
+          }
+        }
+      }
+    },
+    "Previous": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
     "Progress towards the daily goal": {
       "localizations": {
         "de": {
@@ -127,6 +427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zuletzt"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbenennen"
           }
         }
       }
@@ -167,6 +477,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suchen oder Timer starten"
+          }
+        }
+      }
+    },
+    "Segments": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segmente"
+          }
+        }
+      }
+    },
+    "Select an entry or draw one in the timeline.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle einen Eintrag aus oder ziehe einen in der Timeline auf."
+          }
+        }
+      }
+    },
+    "Shared": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilt"
+          }
+        }
+      }
+    },
+    "Split": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen"
+          }
+        }
+      }
+    },
+    "Split Entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eintrag teilen"
+          }
+        }
+      }
+    },
+    "Split at": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilen um"
           }
         }
       }
@@ -231,12 +601,32 @@
         }
       }
     },
+    "Time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeit"
+          }
+        }
+      }
+    },
     "Timers": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Timer"
+          }
+        }
+      }
+    },
+    "Title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titel"
           }
         }
       }
@@ -251,6 +641,26 @@
         }
       }
     },
+    "Total": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesamt"
+          }
+        }
+      }
+    },
+    "Tracked": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfasst"
+          }
+        }
+      }
+    },
     "Undo ⌘Z": {
       "localizations": {
         "de": {
@@ -261,12 +671,92 @@
         }
       }
     },
+    "Week": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Woche"
+          }
+        }
+      }
+    },
+    "Week %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KW %@"
+          }
+        }
+      }
+    },
+    "Weight": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gewicht"
+          }
+        }
+      }
+    },
     "What are you working on?": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Woran arbeitest du?"
+          }
+        }
+      }
+    },
+    "calendar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalender"
+          }
+        }
+      }
+    },
+    "inactivity": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktivität"
+          }
+        }
+      }
+    },
+    "live": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "live"
+          }
+        }
+      }
+    },
+    "manual": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "manuell"
+          }
+        }
+      }
+    },
+    "running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "läuft"
           }
         }
       }

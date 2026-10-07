@@ -1,0 +1,328 @@
+import SwiftUI
+import TaktCore
+import TaktStore
+
+/// The main window: sidebar, content and inspector (docs/DESIGN.md, "Hauptfenster").
+public struct MainWindowView: View {
+    @Bindable var model: MainWindowModel
+    @Environment(\.undoManager) private var undoManager
+    @State private var showInspector = true
+
+    public init(model: MainWindowModel) {
+        self.model = model
+    }
+
+    public var body: some View {
+        NavigationSplitView {
+            List(MainWindowModel.Section.allCases, selection: sectionBinding) { section in
+                Label(section.title, systemImage: section.symbol)
+            }
+            .navigationSplitViewColumnWidth(min: 160, ideal: 180)
+        } detail: {
+            VStack(spacing: 0) {
+                if let message = model.errorMessage {
+                    Text(message)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Palette.danger)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(Palette.warningSurface)
+                }
+                switch model.section {
+                case .today: DayScreen(model: model)
+                case .week: WeekScreen(model: model)
+                case .entries: EntryListScreen(model: model)
+                }
+            }
+            .inspector(isPresented: $showInspector) {
+                EntryInspector(model: model)
+                    .inspectorColumnWidth(min: 260, ideal: 300)
+            }
+        }
+        .navigationTitle(title)
+        .toolbar {
+            ToolbarItemGroup(placement: .navigation) {
+                Button {
+                    model.step(by: -1)
+                } label: {
+                    Label(String(localized: "Previous", bundle: .module), systemImage: "chevron.left")
+                }
+                Button(String(localized: "Today", bundle: .module)) { model.showToday() }
+                Button {
+                    model.step(by: 1)
+                } label: {
+                    Label(String(localized: "Next", bundle: .module), systemImage: "chevron.right")
+                }
+            }
+            ToolbarItem {
+                Button {
+                    Task { await createEntry() }
+                } label: {
+                    Label(String(localized: "New Entry", bundle: .module), systemImage: "plus")
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+            ToolbarItem {
+                Button {
+                    showInspector.toggle()
+                } label: {
+                    Label(String(localized: "Inspector", bundle: .module), systemImage: "sidebar.trailing")
+                }
+            }
+        }
+        .onDeleteCommand {
+            Task { await model.delete(model.selection) }
+        }
+        .onAppear { model.undoManager = undoManager }
+        .onChange(of: undoManager) { model.undoManager = undoManager }
+        .task { await model.reload() }
+        .frame(minWidth: 820, minHeight: 520)
+    }
+
+    private var sectionBinding: Binding<MainWindowModel.Section?> {
+        Binding(get: { model.section }, set: { if let section = $0 { model.section = section } })
+    }
+
+    private var title: String {
+        switch model.section {
+        case .today:
+            model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
+        case .week, .entries:
+            String(
+                localized: "Week \(model.weekRange.lowerBound.date.formatted(.dateTime.week()))",
+                bundle: .module
+            )
+        }
+    }
+
+    /// ⌘N: 30 minutes up to now on today, otherwise 9:00–9:30 on the shown day.
+    private func createEntry() async {
+        let now = model.now
+        let day = model.dayRange
+        let end = day.contains(now) ? DayTimeline.snapped(now) : day.lowerBound.adding(seconds: 9.5 * 3600)
+        let start = max(day.lowerBound, end.adding(seconds: -30 * 60))
+        await model.createEntry(from: start, to: min(end, now))
+    }
+}
+
+extension MainWindowModel.Section {
+    var title: String {
+        switch self {
+        case .today: String(localized: "Today", bundle: .module)
+        case .week: String(localized: "Week", bundle: .module)
+        case .entries: String(localized: "Entries", bundle: .module)
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .today: "sun.max"
+        case .week: "calendar"
+        case .entries: "list.bullet"
+        }
+    }
+}
+
+/// KPI row and today's timeline.
+struct DayScreen: View {
+    let model: MainWindowModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 24) {
+                KPI(
+                    title: String(localized: "Tracked", bundle: .module),
+                    value: DurationText.hoursMinutes(model.dayTotal))
+                KPI(
+                    title: String(localized: "Pauses", bundle: .module),
+                    value: DurationText.hoursMinutes(model.dayPauses))
+                KPI(title: String(localized: "Entries", bundle: .module), value: "\(model.data.entries.count)")
+                Spacer()
+            }
+            .padding(16)
+            Divider()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    DayTimeline(model: model, day: model.dayRange)
+                        .padding(.vertical, 12)
+                        .padding(.trailing, 12)
+                }
+                .onAppear {
+                    // After the first layout pass, otherwise the rows have no position yet.
+                    DispatchQueue.main.async { proxy.scrollTo(8, anchor: .top) }
+                }
+            }
+        }
+    }
+}
+
+struct KPI: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 11, weight: .semibold))
+                .textCase(.uppercase)
+                .foregroundStyle(Palette.textSecondary)
+            Text(value)
+                .font(.system(size: 22, weight: .semibold))
+                .monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// Seven day columns in a calendar grid (HW-03).
+struct WeekScreen: View {
+    let model: MainWindowModel
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Spacer().frame(width: 52)
+                ForEach(model.weekDays, id: \.lowerBound) { day in
+                    VStack(spacing: 2) {
+                        Text(day.lowerBound.date, format: .dateTime.weekday(.abbreviated).day())
+                            .font(.system(size: 12, weight: day.contains(model.now) ? .bold : .regular))
+                            .foregroundStyle(day.contains(model.now) ? Palette.accentText : Palette.textPrimary)
+                        Text(DurationText.hoursMinutes(model.total(in: day)))
+                            .font(.system(size: 11))
+                            .monospacedDigit()
+                            .foregroundStyle(Palette.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                    .onTapGesture(count: 2) {
+                        model.day = day.lowerBound
+                        model.section = .today
+                    }
+                }
+            }
+            .padding(.vertical, 8)
+            Divider()
+            ScrollViewReader { proxy in
+                ScrollView {
+                    HStack(alignment: .top, spacing: 0) {
+                        HourLabels(hourHeight: 40, hours: 24)
+                            .frame(width: 52)
+                        ForEach(model.weekDays, id: \.lowerBound) { day in
+                            DayTimeline(model: model, day: day, interactive: false, hourHeight: 40, gutter: 0)
+                                .frame(maxWidth: .infinity)
+                                .overlay(alignment: .leading) {
+                                    Rectangle().fill(Palette.separator).frame(width: 1)
+                                }
+                        }
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.trailing, 8)
+                }
+                .onAppear {
+                    // After the first layout pass, otherwise the rows have no position yet.
+                    DispatchQueue.main.async { proxy.scrollTo(8, anchor: .top) }
+                }
+            }
+        }
+    }
+}
+
+/// Hour labels for the week grid; rows match `DayTimeline`'s grid so scrolling to an hour works.
+struct HourLabels: View {
+    let hourHeight: CGFloat
+    let hours: Int
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(0..<hours, id: \.self) { hour in
+                Text(String(format: "%02d:00", hour))
+                    .font(.system(size: 10))
+                    .monospacedDigit()
+                    .foregroundStyle(Palette.textSecondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(.trailing, 6)
+                    .offset(y: -6)
+                    .frame(height: hourHeight)
+                    .id(hour)
+            }
+        }
+    }
+}
+
+/// All entries of the week with inline title editing, multiple selection and bulk changes (HW-04).
+struct EntryListScreen: View {
+    @Bindable var model: MainWindowModel
+
+    var body: some View {
+        Table(model.data.entries, selection: $model.selection) {
+            TableColumn(String(localized: "Date", bundle: .module)) { entry in
+                Text(entry.segments.first?.start.date ?? model.now.date, format: .dateTime.weekday().day().month())
+                    .monospacedDigit()
+            }
+            .width(min: 90, ideal: 110)
+            TableColumn(String(localized: "Title", bundle: .module)) { entry in
+                InlineTitle(model: model, entry: entry.entry)
+            }
+            .width(min: 160, ideal: 280)
+            TableColumn(String(localized: "Time", bundle: .module)) { entry in
+                Text(timeRange(entry))
+                    .monospacedDigit()
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            .width(min: 90, ideal: 110)
+            TableColumn(String(localized: "Duration", bundle: .module)) { entry in
+                Text(DurationText.hoursMinutes(entry.duration(at: model.now)))
+                    .monospacedDigit()
+            }
+            .width(min: 60, ideal: 70)
+            TableColumn(String(localized: "Counting", bundle: .module)) { entry in
+                Text(entry.entry.countingMode?.label ?? String(localized: "Default", bundle: .module))
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            .width(min: 70, ideal: 90)
+        }
+        .contextMenu(forSelectionType: EntryID.self) { ids in
+            Button(String(localized: "Delete", bundle: .module), role: .destructive) {
+                Task { await model.delete(ids) }
+            }
+        }
+    }
+
+    private func timeRange(_ entry: EntryWithSegments) -> String {
+        guard let first = entry.segments.first else { return "" }
+        let end = entry.segments.last?.end
+        let style = Date.FormatStyle.dateTime.hour().minute()
+        return "\(first.start.date.formatted(style)) – \(end.map { $0.date.formatted(style) } ?? "…")"
+    }
+}
+
+private struct InlineTitle: View {
+    let model: MainWindowModel
+    let entry: TimeEntry
+    @State private var title = ""
+
+    var body: some View {
+        TextField("", text: $title)
+            .textFieldStyle(.plain)
+            .onAppear { title = entry.title }
+            .onChange(of: entry.title) { title = entry.title }
+            .onSubmit {
+                guard let new = title.nilIfBlank, new != entry.title else { return }
+                Task {
+                    await model.update([entry.id], name: String(localized: "Rename", bundle: .module)) {
+                        $0.title = new
+                    }
+                }
+            }
+    }
+}
+
+extension CountingMode {
+    var label: String {
+        switch self {
+        case .full: String(localized: "Full", bundle: .module)
+        case .split: String(localized: "Shared", bundle: .module)
+        }
+    }
+}

@@ -1,0 +1,59 @@
+import TaktCore
+import TaktStore
+import Testing
+
+@testable import TaktUI
+
+struct TimelineLayoutTests {
+    let day = Timestamp(milliseconds: 0)..<Timestamp(milliseconds: 86_400_000)
+
+    private func t(_ hours: Double) -> Timestamp {
+        Timestamp(milliseconds: Int64(hours * 3_600_000))
+    }
+
+    private func entry(_ ranges: [(Double, Double?)]) -> EntryWithSegments {
+        let entry = TimeEntry(title: "E", createdAt: t(0), updatedAt: t(0))
+        return EntryWithSegments(
+            entry: entry,
+            segments: ranges.map { Segment(entryID: entry.id, start: t($0.0), end: $0.1.map(t)) }
+        )
+    }
+
+    @Test func separateItemsShareOneLane() {
+        let layout = TimelineLayout(entries: [entry([(8, 9)]), entry([(9, 10)])], day: day, now: t(12))
+        #expect(layout.items.map(\.lane) == [0, 0])
+        #expect(layout.items.map(\.laneCount) == [1, 1])
+    }
+
+    @Test func parallelItemsGetSideBySideLanes() {
+        let meeting = entry([(9, 10)])
+        let ticket = entry([(9.5, 11)])
+        let later = entry([(12, 13)])
+        let layout = TimelineLayout(entries: [meeting, ticket, later], day: day, now: t(14))
+
+        let byEntry = Dictionary(uniqueKeysWithValues: layout.items.map { ($0.entryID, $0) })
+        #expect(byEntry[meeting.id]?.lane == 0)
+        #expect(byEntry[ticket.id]?.lane == 1)
+        #expect(byEntry[meeting.id]?.laneCount == 2)
+        #expect(byEntry[later.id]?.laneCount == 1)
+    }
+
+    @Test func pausesBetweenSegmentsAreItems() {
+        let layout = TimelineLayout(entries: [entry([(8, 10), (11, 12)])], day: day, now: t(13))
+        let pauses = layout.items.filter(\.isPause)
+        #expect(pauses.count == 1)
+        #expect(pauses.first?.start == t(10) && pauses.first?.end == t(11))
+    }
+
+    @Test func itemsAreClippedToTheDayAndOpenSegmentsEndNow() {
+        let layout = TimelineLayout(entries: [entry([(-2, 1)]), entry([(20, nil)])], day: day, now: t(22))
+        let segments = layout.items.filter { !$0.isPause }.sorted { $0.start < $1.start }
+        #expect(segments.first?.start == t(0))
+        #expect(segments.last?.end == t(22))
+    }
+
+    @Test func overnightGapIsNotAPauseOfTheDay() {
+        let layout = TimelineLayout(entries: [entry([(-5, -4), (9, 10)])], day: day, now: t(11))
+        #expect(layout.items.filter(\.isPause).isEmpty)
+    }
+}
