@@ -1,0 +1,19 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Quit Takt" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takt beenden"
+          }
+        }
+      }
+    },
+    "Takt" : {
+      "shouldTranslate" : false
+    }
+  },
+  "version" : "1.0"
+}
