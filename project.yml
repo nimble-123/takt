@@ -35,6 +35,8 @@ targets:
         product: TaktStore
       - package: TaktKit
         product: TaktSystem
+      - package: TaktKit
+        product: TaktAnalytics
     settings:
       base:
         PRODUCT_NAME: Takt

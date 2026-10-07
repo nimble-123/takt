@@ -1,4 +1,5 @@
 import Foundation
+import TaktAnalytics
 import TaktCore
 import TaktStore
 import TaktSystem
@@ -36,7 +37,10 @@ final class Composition {
         let queries = EntryQueries(database: database)
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
         menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock)
-        mainWindow = MainWindowModel(engine: engine, queries: queries, catalog: catalog, clock: clock)
+        mainWindow = MainWindowModel(
+            engine: engine, queries: queries, catalog: catalog,
+            analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock), clock: clock
+        )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()
         }

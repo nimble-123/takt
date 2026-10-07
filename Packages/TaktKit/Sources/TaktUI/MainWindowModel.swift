@@ -9,7 +9,7 @@ import os
 @Observable
 public final class MainWindowModel {
     public enum Section: String, Hashable, CaseIterable, Identifiable {
-        case today, week, entries, projects
+        case today, week, entries, analytics, projects
         public var id: Self { self }
     }
 
@@ -29,6 +29,8 @@ public final class MainWindowModel {
     let engine: TimerEngine
     let queries: EntryQueries
     public let catalog: CatalogModel
+    /// The analysis screen; `nil` hides it (tests, previews).
+    public let analytics: AnalyticsModel?
     let clock: any TaktClock
     let calendar: Calendar
     @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
@@ -38,12 +40,14 @@ public final class MainWindowModel {
         engine: TimerEngine,
         queries: EntryQueries,
         catalog: CatalogModel,
+        analytics: AnalyticsModel? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
     ) {
         self.engine = engine
         self.queries = queries
         self.catalog = catalog
+        self.analytics = analytics
         self.clock = clock
         self.calendar = calendar
         self.day = clock.now()

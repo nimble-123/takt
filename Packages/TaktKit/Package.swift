@@ -31,6 +31,10 @@ let package = Package(
         .target(name: "TaktAnalytics", dependencies: ["TaktCore", "TaktStore"]),
         .testTarget(name: "TaktCoreTests", dependencies: ["TaktCore"]),
         .testTarget(name: "TaktStoreTests", dependencies: ["TaktStore"]),
+        .testTarget(
+            name: "TaktAnalyticsTests",
+            dependencies: ["TaktAnalytics", .product(name: "GRDB", package: "GRDB.swift")]
+        ),
     ]
 )
 

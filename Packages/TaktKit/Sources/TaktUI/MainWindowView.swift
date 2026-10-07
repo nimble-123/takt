@@ -33,6 +33,8 @@ public struct MainWindowView: View {
                 case .today: DayScreen(model: model)
                 case .week: WeekScreen(model: model)
                 case .entries: EntryListScreen(model: model)
+                case .analytics:
+                    if let analytics = model.analytics { AnalyticsScreen(model: analytics) }
                 case .projects: CatalogScreen(catalog: model.catalog)
                 }
             }
@@ -81,9 +83,12 @@ public struct MainWindowView: View {
         .frame(minWidth: 820, minHeight: 520)
     }
 
-    /// The inspector edits entries; the projects screen has none.
+    /// The inspector edits entries; the projects and analytics screens have none.
     private var inspectorBinding: Binding<Bool> {
-        Binding(get: { showInspector && model.section != .projects }, set: { showInspector = $0 })
+        Binding(
+            get: { showInspector && model.section != .projects && model.section != .analytics },
+            set: { showInspector = $0 }
+        )
     }
 
     private var sectionBinding: Binding<MainWindowModel.Section?> {
@@ -96,6 +101,8 @@ public struct MainWindowView: View {
             model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
         case .projects:
             String(localized: "Projects", bundle: .module)
+        case .analytics:
+            String(localized: "Analytics", bundle: .module)
         case .week, .entries:
             String(
                 localized: "Week \(model.weekRange.lowerBound.date.formatted(.dateTime.week()))",
@@ -120,6 +127,7 @@ extension MainWindowModel.Section {
         case .today: String(localized: "Today", bundle: .module)
         case .week: String(localized: "Week", bundle: .module)
         case .entries: String(localized: "Entries", bundle: .module)
+        case .analytics: String(localized: "Analytics", bundle: .module)
         case .projects: String(localized: "Projects", bundle: .module)
         }
     }
@@ -129,6 +137,7 @@ extension MainWindowModel.Section {
         case .today: "sun.max"
         case .week: "calendar"
         case .entries: "list.bullet"
+        case .analytics: "chart.bar.xaxis"
         case .projects: "folder"
         }
     }

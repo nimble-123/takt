@@ -23,8 +23,34 @@ public enum Allocation {
         }
     }
 
-    /// Allocated seconds per entry within `range` (all time if `nil`). Runs in O(n log n).
-    public static func allocate(_ inputs: [Input], in range: Range<Timestamp>? = nil) -> [EntryID: TimeInterval] {
+    /// A stretch of time in which the same entries run.
+    public struct Interval: Hashable, Sendable {
+        public var start: Timestamp
+        public var end: Timestamp
+        /// Entries running in the interval with their share of it (1 for `full`, the weighted
+        /// fraction for `split`).
+        public var shares: [EntryID: Double]
+
+        public init(start: Timestamp, end: Timestamp, shares: [EntryID: Double]) {
+            self.start = start
+            self.end = end
+            self.shares = shares
+        }
+
+        public var length: TimeInterval { end.seconds(since: start) }
+
+        /// The interval cut to `range`, or `nil` if they do not overlap.
+        public func clipped(to range: Range<Timestamp>) -> Interval? {
+            let start = max(self.start, range.lowerBound)
+            let end = min(self.end, range.upperBound)
+            guard end > start else { return nil }
+            return Interval(start: start, end: end, shares: shares)
+        }
+    }
+
+    /// The sweep: consecutive intervals with at least one running entry, ordered by time.
+    /// Gaps without any entry are left out. Runs in O(n log n) plus the size of the output.
+    public static func intervals(_ inputs: [Input], in range: Range<Timestamp>? = nil) -> [Interval] {
         struct Boundary {
             var time: Timestamp
             var index: Int
@@ -47,14 +73,15 @@ public enum Allocation {
         boundaries.sort { $0.time < $1.time }
 
         let settings = settingsByEntry(inputs)
-        var result: [EntryID: TimeInterval] = [:]
+        var result: [Interval] = []
         // Count of open segments per entry; an entry overlapping itself still counts once.
         var openCount: [EntryID: Int] = [:]
         var previous: Timestamp?
         for boundary in boundaries {
             if let previous, boundary.time > previous, !openCount.isEmpty {
-                let length = boundary.time.seconds(since: previous)
-                distribute(length, among: openCount.keys, settings: settings, into: &result)
+                result.append(
+                    Interval(start: previous, end: boundary.time, shares: shares(of: openCount.keys, settings))
+                )
             }
             previous = boundary.time
             let entryID = inputs[boundary.index].entryID
@@ -64,18 +91,28 @@ public enum Allocation {
         return result
     }
 
-    private static func distribute(
-        _ length: TimeInterval,
-        among open: Dictionary<EntryID, Int>.Keys,
-        settings: [EntryID: Setting],
-        into result: inout [EntryID: TimeInterval]
-    ) {
+    /// Allocated seconds per entry within `range` (all time if `nil`).
+    public static func allocate(_ inputs: [Input], in range: Range<Timestamp>? = nil) -> [EntryID: TimeInterval] {
+        var result: [EntryID: TimeInterval] = [:]
+        for interval in intervals(inputs, in: range) {
+            let length = interval.length
+            for (entryID, share) in interval.shares {
+                result[entryID, default: 0] += length * share
+            }
+        }
+        return result
+    }
+
+    private static func shares(
+        of open: Dictionary<EntryID, Int>.Keys, _ settings: [EntryID: Setting]
+    ) -> [EntryID: Double] {
         let totalWeight = open.reduce(0) { $0 + (settings[$1]?.weight ?? 0) }
+        var shares: [EntryID: Double] = [:]
         for entryID in open {
             guard let setting = settings[entryID] else { continue }
-            let share = setting.mode == .full ? length : length * setting.weight / totalWeight
-            result[entryID, default: 0] += share
+            shares[entryID] = setting.mode == .full ? 1 : setting.weight / totalWeight
         }
+        return shares
     }
 
     private typealias Setting = (mode: CountingMode, weight: Double)
