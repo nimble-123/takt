@@ -36,5 +36,6 @@ jobs:
             app
             release
             deps
+            site
             main
           requireScope: false

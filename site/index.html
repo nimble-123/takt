@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Takt · Time tracking for macOS, in rhythm</title>
+    <meta name="description" content="A native macOS time tracker that lives in your menu bar, keeps every byte on your Mac and books time straight into Azure DevOps." />
+    <script>
+      document.documentElement.classList.add('js')
+      // Never leave the hero hidden if the module fails to load.
+      setTimeout(() => document.documentElement.classList.add('ready'), 4000)
+    </script>
+    <meta name="theme-color" content="#061412" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:title" content="Takt · Time tracking for macOS, in rhythm" />
+    <meta property="og:description" content="Menu bar time tracker for macOS. Local-first, keyboard-first, books time into Azure DevOps." />
+    <meta property="og:image" content="https://nimble-123.github.io/takt/logo-256.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body>
+    <a class="skip" href="#features" data-i18n="skip">Skip to content</a>
+
+    <canvas class="field" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="nav" data-nav>
+      <a class="brand" href="#top" aria-label="Takt">
+        <img src="/logo-256.png" alt="" width="28" height="28" />
+        <span>Takt</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#story" data-i18n="nav.story">A day</a>
+        <a href="#install" data-i18n="nav.install">Install</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="chip" type="button" data-lang data-i18n="nav.lang">Deutsch</button>
+        <a class="chip chip-icon" href="https://github.com/nimble-123/takt" aria-label="GitHub">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.06-.49.06-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- Hero ------------------------------------------------------------ -->
+      <section class="hero" data-hero>
+        <div class="hero-copy">
+          <p class="eyebrow" data-hero-eyebrow>
+            <span class="rec" aria-hidden="true"></span>
+            <span data-i18n="hero.eyebrow">Menu bar time tracker for macOS</span>
+          </p>
+          <h1 class="display" data-hero-title>
+            <span class="line" data-i18n="hero.l1">Track time</span>
+            <span class="line" data-i18n="hero.l2">without losing</span>
+            <span class="line accent" data-i18n="hero.l3" data-beat-line>your rhythm.</span>
+          </h1>
+          <p class="lede" data-hero-lede data-i18n="hero.lede">Takt lives in your menu bar, keeps every byte on your Mac and books time straight into Azure DevOps.</p>
+          <div class="hero-actions" data-hero-actions>
+            <a class="button primary" href="#install" data-press>
+              <span data-i18n="hero.cta">Install with Homebrew</span>
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 2v10m0 0-4-4m4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="button ghost" href="#features" data-press data-i18n="hero.more">See it work</a>
+          </div>
+          <div class="live" data-hero-live aria-live="off">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="live-label" data-i18n="hero.timer">Reading about Takt</span>
+            <span class="live-time mono" data-live-time>0:00:00</span>
+          </div>
+        </div>
+        <img class="hero-fallback" src="/logo-256.png" alt="" width="256" height="256" />
+        <p class="hero-meta mono" data-hero-meta>macOS 26 · Apple Silicon · MIT · v<span data-version></span></p>
+      </section>
+
+      <!-- Feature showcase (WebGL, pinned) ------------------------------------ -->
+      <section class="showcase" id="features" aria-labelledby="show-label">
+        <div class="showcase-stage" data-stage>
+          <div class="showcase-copy">
+            <p class="eyebrow" id="show-label" data-i18n="show.label">What it does</p>
+            <div class="rail" aria-hidden="true">
+              <span class="mono rail-count"><span data-step-num>01</span> / 04</span>
+              <span class="rail-pills">
+                <i data-rail="0"><b></b></i><i data-rail="1"><b></b></i><i data-rail="2"><b></b></i><i data-rail="3"><b></b></i>
+              </span>
+            </div>
+            <div class="panels">
+              <article class="panel" data-panel="0">
+                <p class="kicker" data-i18n="show.s1.k">Start</p>
+                <h2 class="title" data-i18n="show.s1.t">Two seconds to a running timer.</h2>
+                <p class="body" data-i18n="show.s1.b">Press ⌥⇧T, type two letters, hit Return.</p>
+                <p class="keys" aria-hidden="true"><kbd>⌥⇧T</kbd><kbd>a</kbd><kbd>p</kbd><kbd>↩</kbd></p>
+              </article>
+              <article class="panel" data-panel="1">
+                <p class="kicker" data-i18n="show.s2.k">Honest time</p>
+                <h2 class="title" data-i18n="show.s2.t">Pauses and parallel work, on the record.</h2>
+                <p class="body" data-i18n="show.s2.b">Run timers side by side.</p>
+                <p class="legend" aria-hidden="true"><i style="--c: var(--dev)"></i>Dev <i style="--c: var(--meeting)"></i>Meeting <i style="--c: var(--review)"></i>Review <i class="hatch"></i>Pause</p>
+              </article>
+              <article class="panel" data-panel="2">
+                <p class="kicker" data-i18n="show.s3.k">Analytics</p>
+                <h2 class="title" data-i18n="show.s3.t">See where the week actually went.</h2>
+                <p class="body" data-i18n="show.s3.b">Stacked days, projects, heatmap.</p>
+                <p class="keys" aria-hidden="true"><kbd>CSV</kbd><kbd>JSON</kbd><kbd>PDF</kbd></p>
+              </article>
+              <article class="panel" data-panel="3">
+                <p class="kicker" data-i18n="show.s4.k">Azure DevOps</p>
+                <h2 class="title" data-i18n="show.s4.t">Every minute booked. Exactly once.</h2>
+                <p class="body" data-i18n="show.s4.b">Takt writes Completed Work back as differences.</p>
+                <p class="keys mono" aria-hidden="true"><kbd>test /rev</kbd><kbd>+0.25 h</kbd><kbd>takt:7f3a…</kbd></p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Story: one day, three moments -------------------------------------- -->
+      <section class="story" id="story" aria-labelledby="story-label">
+        <div class="story-stage" data-story>
+          <p class="eyebrow story-eyebrow" id="story-label" data-i18n="story.label">One day, three moments</p>
+
+          <div class="story-clock mono" aria-hidden="true"><span data-clock>08:40</span></div>
+
+          <div class="moments">
+            <article class="moment" data-moment="0">
+              <h2 class="moment-title" data-i18n="story.m1.t">Start.</h2>
+              <p class="body" data-i18n="story.m1.b">Coffee in one hand.</p>
+            </article>
+            <article class="moment" data-moment="1">
+              <h2 class="moment-title" data-i18n="story.m2.t">Interrupted.</h2>
+              <p class="body" data-i18n="story.m2.b">A call pulls you away.</p>
+            </article>
+            <article class="moment" data-moment="2">
+              <h2 class="moment-title" data-i18n="story.m3.t">Booked.</h2>
+              <p class="body" data-i18n="story.m3.b">Close the day.</p>
+            </article>
+          </div>
+
+          <div class="cards" aria-hidden="true">
+            <div class="card card-search" data-card="0">
+              <div class="search-field"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="typed" data-typed></span><span class="caret"></span></div>
+              <p class="group-label" data-i18n="story.recent">Azure DevOps</p>
+              <div class="result active">
+                <span class="badge task">T</span>
+                <span class="result-title"><b>API</b>-Dokumentation</span>
+                <span class="mono muted">#4711</span>
+              </div>
+              <div class="result">
+                <span class="badge bug">B</span>
+                <span class="result-title"><b>API</b>-Timeout bei Export</span>
+                <span class="mono muted">#4698</span>
+              </div>
+              <div class="result">
+                <span class="badge story">S</span>
+                <span class="result-title">Rate-Limit für die <b>API</b></span>
+                <span class="mono muted">#4655</span>
+              </div>
+              <div class="card-foot">
+                <span class="key-hint"><kbd>↩</kbd> <span data-i18n="story.start">Start</span></span>
+                <span class="key-hint"><kbd>⌥↩</kbd> <span data-i18n="story.parallel">Parallel</span></span>
+              </div>
+            </div>
+            <div class="card card-shot" data-card="1">
+              <img src="../docs/assets/screenshots/popover-dark.png" alt="" width="360" height="634" loading="lazy" decoding="async" />
+            </div>
+            <div class="card card-ado" data-card="2">
+              <div class="ado-head">
+                <span class="badge task">T</span>
+                <span class="mono muted">Task 4711</span>
+                <span class="synced mono" data-i18n="story.synced">synced · rev 18</span>
+              </div>
+              <p class="ado-title">API-Dokumentation</p>
+              <div class="ado-row">
+                <span class="muted" data-i18n="story.delta">Completed Work</span>
+                <span class="mono ado-num"><s>6.25</s> <span data-ado-num>8.50</span> h</span>
+              </div>
+              <div class="ado-bar"><i data-ado-bar></i></div>
+              <p class="ado-delta mono">+2.25 h</p>
+              <p class="ado-comment mono"><span data-i18n="story.comment">Takt: +2.25 h on 10/07/2026</span> · takt:7f3a9c…</p>
+            </div>
+          </div>
+
+          <div class="ruler" aria-hidden="true">
+            <div class="ruler-lanes" data-lanes></div>
+            <div class="ruler-hours mono" data-hours></div>
+            <div class="ruler-sum mono"><span data-i18n="story.booked">Today</span> <b data-sum>0:00</b></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Look ----------------------------------------------------------------- -->
+      <section class="look" aria-labelledby="look-title">
+        <div class="look-copy">
+          <h2 class="title big" id="look-title" data-i18n="look.t">Feels like it shipped with your Mac.</h2>
+          <p class="body" data-i18n="look.b">Swift 6, SwiftUI and AppKit.</p>
+        </div>
+        <div class="look-stage" data-look>
+          <figure class="window" data-window>
+            <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+            <img src="../docs/assets/screenshots/week-dark.png" alt="Takt main window: a week of entries as coloured blocks on a calendar grid" width="1100" height="720" loading="lazy" decoding="async" />
+          </figure>
+          <figure class="float float-pop" data-float="-1">
+            <img src="../docs/assets/screenshots/popover-dark.png" alt="Menu bar popover with search, running timers and recent tasks" width="360" height="634" loading="lazy" decoding="async" />
+          </figure>
+          <figure class="float float-ana" data-float="1">
+            <img src="../docs/assets/screenshots/analytics-dark.png" alt="Analytics with totals, bars per day, a project donut and a heatmap" width="1100" height="720" loading="lazy" decoding="async" />
+          </figure>
+        </div>
+        <ul class="principles">
+          <li><span class="pill-icon" style="--c: var(--teal)"></span><h3 data-i18n="p.1.t">Local-first</h3><p data-i18n="p.1.b"></p></li>
+          <li><span class="pill-icon" style="--c: var(--dev)"></span><h3 data-i18n="p.2.t">Keyboard-first</h3><p data-i18n="p.2.b"></p></li>
+          <li><span class="pill-icon" style="--c: var(--review)"></span><h3 data-i18n="p.3.t">Undo, not dialogs</h3><p data-i18n="p.3.b"></p></li>
+          <li><span class="pill-icon" style="--c: var(--meeting)"></span><h3 data-i18n="p.4.t">Ready for IT</h3><p data-i18n="p.4.b"></p></li>
+        </ul>
+      </section>
+
+      <!-- Install ---------------------------------------------------------------- -->
+      <section class="install" id="install" aria-labelledby="install-title">
+        <h2 class="display install-title" id="install-title" data-i18n="install.t">Get in rhythm.</h2>
+        <div class="terminal">
+          <code class="mono"><span class="prompt" aria-hidden="true">$</span> brew install --cask nimble-123/tap/takt</code>
+          <button class="button copy" type="button" data-copy="brew install --cask nimble-123/tap/takt" data-press>
+            <span data-copy-label data-i18n="install.copy">Copy</span>
+          </button>
+        </div>
+        <div class="install-actions">
+          <a class="button ghost" data-dmg data-press href="https://github.com/nimble-123/takt/releases/latest">
+            <span data-i18n="install.dmg">Download the DMG</span>
+            <span class="mono muted">v<span data-version></span></span>
+          </a>
+          <p class="muted" data-i18n="install.req">macOS 26 or later · Apple Silicon</p>
+        </div>
+        <p class="note" data-i18n="install.note">Pre-release builds are not notarized yet.</p>
+        <a class="admin" href="https://github.com/nimble-123/takt/blob/main/docs/MDM.md">
+          <span data-i18n="install.admin">Rolling out to a team?</span>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 8h10m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="brand">
+        <img src="/logo-256.png" alt="" width="24" height="24" />
+        <span>Takt</span>
+      </div>
+      <p class="muted" data-i18n="footer.legal">Open source under the MIT license.</p>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/nimble-123/takt">GitHub</a>
+        <a href="https://github.com/nimble-123/takt/tree/main/docs" data-i18n="footer.docs">Documentation</a>
+        <a href="https://github.com/nimble-123/takt/releases" data-i18n="footer.releases">Releases</a>
+        <a href="https://github.com/nimble-123/takt/issues" data-i18n="footer.issues">Issues</a>
+      </nav>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

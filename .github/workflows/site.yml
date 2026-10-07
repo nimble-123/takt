@@ -1,0 +1,63 @@
+name: Website
+
+# Baut die Produktseite aus site/ und veröffentlicht sie auf GitHub Pages.
+# - Pull Requests: nur bauen.
+# - main: bauen und veröffentlichen, wenn sich site/ oder die Version in project.yml ändert.
+# Einmalig nötig: Settings → Pages → Source „GitHub Actions“.
+
+on:
+  pull_request:
+    paths: [site/**, project.yml, .github/workflows/site.yml]
+  push:
+    branches: [main]
+    paths: [site/**, project.yml, .github/workflows/site.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Website bauen
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Abhängigkeiten
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          path: site/dist
+
+  deploy:
+    name: Veröffentlichen
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

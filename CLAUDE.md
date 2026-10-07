@@ -8,6 +8,7 @@ Takt ist ein nativer macOS-Timetracker (Menüleiste + Hauptfenster) mit Azure-De
 - `docs/TECHNICAL_CONCEPT.md` – Architektur, Schema, Timer-Engine, ADO-Buchungsablauf. Quelle der Wahrheit für das *Wie*.
 - `docs/DESIGN.md` – Screens, Farb-Tokens, Typografie, Interaktionsregeln. Entwürfe: Link in der Datei.
 - `docs/RELEASING.md` – Versionierung, Release-PRs, lokales Signieren.
+- `site/` – Produktseite auf GitHub Pages (Vite, GSAP, Lenis, three.js); `npm ci && npm run dev` in `site/`.
 - `docs/MDM.md` – verwaltbare Einstellungen, Beispielprofil `docs/mdm/Takt.mobileconfig`, Verteilung per Intune/Jamf.
 - GitHub-Issues und Milestones (`Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau`) – der Backlog.
 
@@ -45,7 +46,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 - Tests mit Swift Testing (`import Testing`). Jede Fehlerbehebung bekommt einen Test, der vorher fehlschlägt.
 - Commits und PR-Titel nach Conventional Commits; der PR-Titel wird geprüft und wird per Squash-Merge zur Commit-Nachricht.
   - Typen: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`
-  - Scopes: `core`, `store`, `ui`, `system`, `ado`, `analytics`, `calendar`, `app`, `release`, `deps`
+  - Scopes: `core`, `store`, `ui`, `system`, `ado`, `analytics`, `calendar`, `app`, `release`, `deps`, `site`
   - Beispiel: `feat(core): add split allocation with weights (TM-04)`
 - Anforderungs-IDs aus dem PRD in PR-Beschreibung und, wo sinnvoll, im Commit-Titel nennen.
 - Branches: `feat/<issue>-<kurzname>`, `fix/<issue>-<kurzname>`. Kleine PRs, ein Thema pro PR.

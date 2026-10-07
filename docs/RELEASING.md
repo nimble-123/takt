@@ -56,3 +56,7 @@ Von release-please mit dem Standard-`GITHUB_TOKEN` erstellte PRs und Releases st
 ## Token für den Homebrew-Tap
 
 Der Job „Homebrew-Tap“ schreibt in ein anderes Repo und braucht dafür das Secret `HOMEBREW_TAP_TOKEN`: ein Fine-grained PAT nur für `nimble-123/homebrew-tap` mit Contents: Read & Write. Fehlt es, warnt der Job und bricht ab, ohne das Release scheitern zu lassen; der Cask zeigt dann weiter auf die vorige Version.
+
+## Website
+
+Die Produktseite liegt in `site/` und wird von `.github/workflows/site.yml` auf GitHub Pages veröffentlicht (https://nimble-123.github.io/takt/). Die angezeigte Version und der DMG-Link kommen beim Build aus `MARKETING_VERSION` in `project.yml`; weil release-please die Datei beim Release anhebt, baut die Seite danach von selbst neu. Änderungen in `site/` lösen kein App-Release aus (`exclude-paths` in `release-please-config.json`). Einmalig unter Settings → Pages die Quelle „GitHub Actions“ wählen.
