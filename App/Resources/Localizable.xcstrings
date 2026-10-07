@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ is still running. Forgot to stop it?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ läuft noch. Vergessen zu stoppen?"
+          }
+        }
+      }
+    },
     "Quit Takt": {
       "localizations": {
         "de": {
@@ -20,6 +30,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Takt konnte seine Datenbank nicht öffnen."
+          }
+        }
+      }
+    },
+    "Timer running for over 10 hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer läuft seit über 10 Stunden"
           }
         }
       }

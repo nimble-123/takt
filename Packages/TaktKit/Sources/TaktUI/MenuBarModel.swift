@@ -201,6 +201,16 @@ public final class MenuBarModel {
         }
     }
 
+    // MARK: Inactivity
+
+    /// The oldest inactivity the user has not decided on (TM-06).
+    public var pendingIdle: IdleEvent? { snapshot.pendingIdleEvents.first }
+
+    public func resolveIdle(_ decision: IdleDecision) async {
+        guard let event = pendingIdle else { return }
+        await perform { try await $0.resolveIdle(event.id, decision) }
+    }
+
     // MARK: Undo
 
     public var canUndo: Bool { !undoStack.isEmpty }

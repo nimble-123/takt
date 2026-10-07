@@ -63,6 +63,7 @@ let package = Package(
             ],
             resources: [.process("Resources")]
         ),
+        .testTarget(name: "TaktSystemTests", dependencies: ["TaktSystem"]),
         .testTarget(name: "TaktUITests", dependencies: ["TaktUI"]),
     ]
 #endif

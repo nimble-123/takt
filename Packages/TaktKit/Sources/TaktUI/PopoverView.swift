@@ -19,6 +19,10 @@ public struct PopoverView: View {
             }
             Divider().overlay(Palette.separator)
             VStack(alignment: .leading, spacing: 14) {
+                if let event = model.pendingIdle {
+                    IdleDialog(model: model, event: event)
+                        .id(event.id)
+                }
                 if !model.snapshot.entries.isEmpty {
                     TimerList(model: model)
                 }
