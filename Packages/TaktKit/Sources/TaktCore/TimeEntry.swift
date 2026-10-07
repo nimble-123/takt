@@ -146,3 +146,44 @@ public struct GlobalPause: Hashable, Sendable, Codable, Identifiable {
         self.resumedAt = resumedAt
     }
 }
+
+/// What the user decided about a stretch of inactivity (TM-06).
+public enum IdleResolution: String, Sendable, Codable, CaseIterable {
+    /// The time counts as work.
+    case kept
+    /// The time counts as a pause; the entries stay paused.
+    case pause
+    /// The time is dropped; the entries continue from now.
+    case discarded
+    /// The time belongs to another entry.
+    case reassigned
+}
+
+/// Inactivity while timers were running: idle input, sleep, screen lock or a crash.
+public struct IdleEvent: Hashable, Sendable, Codable, Identifiable {
+    public var id: IdleEventID
+    public var start: Timestamp
+    public var end: Timestamp
+    /// Entries that were running when the inactivity began.
+    public var entryIDs: [EntryID]
+    /// `nil` until the user decided.
+    public var resolution: IdleResolution?
+    /// Target entry for `reassigned`.
+    public var targetEntryID: EntryID?
+
+    public init(
+        id: IdleEventID = IdleEventID(),
+        start: Timestamp,
+        end: Timestamp,
+        entryIDs: [EntryID],
+        resolution: IdleResolution? = nil,
+        targetEntryID: EntryID? = nil
+    ) {
+        self.id = id
+        self.start = start
+        self.end = end
+        self.entryIDs = entryIDs
+        self.resolution = resolution
+        self.targetEntryID = targetEntryID
+    }
+}

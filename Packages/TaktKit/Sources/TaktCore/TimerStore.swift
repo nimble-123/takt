@@ -28,10 +28,21 @@ public struct TimerSnapshot: Hashable, Sendable {
     public var entries: [ActiveEntry]
     /// The open "Pause all", if any.
     public var globalPause: GlobalPause?
+    /// Inactivity the user has not decided on yet, oldest first.
+    public var pendingIdleEvents: [IdleEvent]
+    /// Last sign of life of the engine; used to detect a crash.
+    public var lastHeartbeat: Timestamp?
 
-    public init(entries: [ActiveEntry] = [], globalPause: GlobalPause? = nil) {
+    public init(
+        entries: [ActiveEntry] = [],
+        globalPause: GlobalPause? = nil,
+        pendingIdleEvents: [IdleEvent] = [],
+        lastHeartbeat: Timestamp? = nil
+    ) {
         self.entries = entries
         self.globalPause = globalPause
+        self.pendingIdleEvents = pendingIdleEvents
+        self.lastHeartbeat = lastHeartbeat
     }
 
     public var running: [ActiveEntry] { entries.filter { $0.entry.state == .running } }
@@ -50,6 +61,7 @@ public enum TimerChange: Hashable, Sendable {
     case entry(before: TimeEntry?, after: TimeEntry?)
     case segment(before: Segment?, after: Segment?)
     case globalPause(before: GlobalPause?, after: GlobalPause?)
+    case idleEvent(before: IdleEvent?, after: IdleEvent?)
 
     /// The change that restores the state before `self`.
     public var inverse: TimerChange {
@@ -57,6 +69,7 @@ public enum TimerChange: Hashable, Sendable {
         case .entry(let before, let after): .entry(before: after, after: before)
         case .segment(let before, let after): .segment(before: after, after: before)
         case .globalPause(let before, let after): .globalPause(before: after, after: before)
+        case .idleEvent(let before, let after): .idleEvent(before: after, after: before)
         }
     }
 }
@@ -92,4 +105,7 @@ public protocol TimerStore: Sendable {
     func update<T: Sendable>(
         _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
     ) async throws -> T
+
+    /// Stores the engine's sign of life. Not part of undo.
+    func recordHeartbeat(_ timestamp: Timestamp) async throws
 }
