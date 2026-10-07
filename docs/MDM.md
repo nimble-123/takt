@@ -17,8 +17,8 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `bookingMode` | String | `manual`, `review`, `automatic` | Buchung nach Azure DevOps: pro Eintrag, Tagesabschluss (Default) oder beim Stoppen (DO-21) |
 | `reduceRemainingWork` | Boolean | Default `true` | Remaining Work um die gebuchte Zeit reduzieren (DO-22) |
 | `bookingIncludesNote` | Boolean | Default `true` | Notiz des Eintrags in den Kommentar am Work Item (DO-23) |
-| `dailyGoalHours` | Real | Default 8 | Tagesziel im Popover |
-| `weeklyHours` | Real | Default 40 | Wochenstunden für Soll/Ist (AN-07) |
+| `dailyGoalHours` | Real | Default 8, 1–12 | Tagesziel im Popover; Nachkommastellen erlaubt (z. B. 7.6 bei 38 Wochenstunden) |
+| `weeklyHours` | Real | Default 40, 0–60 | Wochenstunden für Soll/Ist (AN-07); Nachkommastellen erlaubt |
 | `workDays` | Array of Integer | 1 = Montag … 7 = Sonntag, Default 1–5 | Arbeitstage für Soll/Ist |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
 | `gitFolders` | Array of String | Pfade | Ordner mit Git-Repositories für Branch-Vorschläge |

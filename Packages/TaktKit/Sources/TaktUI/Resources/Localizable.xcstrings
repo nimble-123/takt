@@ -2621,6 +2621,16 @@
         }
       }
     },
+    "Use %@ h (%@ h ÷ %lld working days)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ h übernehmen (%2$@ h ÷ %3$lld Arbeitstage)"
+          }
+        }
+      }
+    },
     "Waiting to be sent": {
       "localizations": {
         "de": {

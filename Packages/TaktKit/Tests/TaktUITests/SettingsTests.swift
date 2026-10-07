@@ -64,4 +64,43 @@ struct SettingsTests {
         #expect(finished)
         #expect(settings.onboardingCompleted)
     }
+
+    @Test func hoursKeepTenthsAndStayInRange() {
+        let settings = AppSettings(defaults: defaults())
+        settings.dailyGoalHours = 7.6
+        #expect(settings.dailyGoalHours == 7.6)
+        settings.dailyGoalHours = 7.649
+        #expect(settings.dailyGoalHours == 7.6)
+        settings.dailyGoalHours = 20
+        #expect(settings.dailyGoalHours == 12)
+        settings.weeklyHours = 38.56
+        #expect(settings.weeklyHours == 38.6)
+        settings.weeklyHours = -1
+        #expect(settings.weeklyHours == 0)
+    }
+
+    @Test func repeatedStepsLeaveNoRemainder() {
+        let settings = AppSettings(defaults: defaults())
+        settings.dailyGoalHours = 7
+        for _ in 0..<6 { settings.dailyGoalHours += 0.1 }
+        #expect(settings.dailyGoalHours == 7.6)
+        #expect(defaults().double(forKey: AppSettings.Key.dailyGoalHours.rawValue) == 7.6)
+    }
+
+    @Test func dailyGoalIsSuggestedFromWeeklyHours() {
+        let settings = AppSettings(defaults: defaults())
+        settings.weeklyHours = 38
+        settings.workDays = [1, 2, 3, 4, 5]
+        #expect(settings.suggestedDailyGoalHours == 7.6)
+        settings.workDays = []
+        #expect(settings.suggestedDailyGoalHours == nil)
+    }
+
+    @Test func managedValuesKeepTheirDecimals() {
+        let store = defaults()
+        store.set(7.75, forKey: AppSettings.Key.dailyGoalHours.rawValue)
+        let settings = AppSettings(defaults: store) { $0 == AppSettings.Key.dailyGoalHours.rawValue }
+        #expect(settings.dailyGoalHours == 7.75)
+        #expect(settings.isLocked(.dailyGoalHours))
+    }
 }

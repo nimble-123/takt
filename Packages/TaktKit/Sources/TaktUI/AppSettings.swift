@@ -43,8 +43,13 @@ public final class AppSettings {
     public var bookingMode: BookingMode {
         didSet { write(.bookingMode, bookingMode.rawValue) }
     }
+    /// MB-08; kept at 0.1 h steps within `dailyGoalRange`, e.g. 7.6 h for a 38-hour week.
     public var dailyGoalHours: Double {
-        didSet { write(.dailyGoalHours, dailyGoalHours) }
+        didSet {
+            let hours = Self.hours(dailyGoalHours, in: Self.dailyGoalRange)
+            if hours != dailyGoalHours { dailyGoalHours = hours }
+            write(.dailyGoalHours, dailyGoalHours)
+        }
     }
     public var showElapsedInMenuBar: Bool {
         didSet { write(.showElapsedInMenuBar, showElapsedInMenuBar) }
@@ -54,7 +59,11 @@ public final class AppSettings {
     }
     /// AN-07: contractual hours per week for the target/actual comparison.
     public var weeklyHours: Double {
-        didSet { write(.weeklyHours, weeklyHours) }
+        didSet {
+            let hours = Self.hours(weeklyHours, in: Self.weeklyHoursRange)
+            if hours != weeklyHours { weeklyHours = hours }
+            write(.weeklyHours, weeklyHours)
+        }
     }
     /// AN-07: working days, 1 = Monday … 7 = Sunday.
     public var workDays: Set<Int> {
@@ -74,6 +83,15 @@ public final class AppSettings {
     }
 
     public static let roundingChoices = [0, 5, 6, 10, 15, 30]
+    public static let dailyGoalRange: ClosedRange<Double> = 1...12
+    public static let weeklyHoursRange: ClosedRange<Double> = 0...60
+
+    /// Hours as the settings keep them: rounded to 0.1 h, so repeated steps leave no
+    /// floating-point remainders, and clamped to `range`.
+    public static func hours(_ value: Double, in range: ClosedRange<Double>) -> Double {
+        guard value.isFinite else { return range.lowerBound }
+        return min(max((value * 10).rounded() / 10, range.lowerBound), range.upperBound)
+    }
 
     public init(defaults: UserDefaults = .standard, isForced: ((String) -> Bool)? = nil) {
         self.defaults = defaults
@@ -100,6 +118,12 @@ public final class AppSettings {
     }
 
     public var dailyGoal: TimeInterval { dailyGoalHours * 3600 }
+
+    /// The weekly hours spread over the working days, e.g. 38 h ÷ 5 = 7.6 h; `nil` without working days.
+    public var suggestedDailyGoalHours: Double? {
+        guard !workDays.isEmpty else { return nil }
+        return Self.hours(weeklyHours / Double(workDays.count), in: Self.dailyGoalRange)
+    }
 
     private func write(_ key: Key, _ value: Any) {
         guard !isLocked(key) else { return }
