@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Beispielprofil für Takt (siehe docs/MDM.md). Werte an das Team anpassen, nicht benötigte Schlüssel
+  entfernen: Jeder hier gesetzte Wert ist in Takt gesperrt. Vor dem Verteilen neue UUIDs vergeben
+  (uuidgen) und mit `plutil -lint` prüfen.
+-->
+<plist version="1.0">
+<dict>
+  <key>PayloadContent</key>
+  <array>
+    <dict>
+      <key>PayloadType</key>
+      <string>de.nilslutz.takt</string>
+      <key>PayloadIdentifier</key>
+      <string>de.nilslutz.takt.settings</string>
+      <key>PayloadUUID</key>
+      <string>8C1F7E2A-4B6D-4E3F-9A21-5D7C3B8E6F10</string>
+      <key>PayloadVersion</key>
+      <integer>1</integer>
+      <key>PayloadDisplayName</key>
+      <string>Takt – Teameinstellungen</string>
+
+      <key>adoOrganization</key>
+      <string>contoso</string>
+      <key>startMode</key>
+      <string>switch</string>
+      <key>countingMode</key>
+      <string>split</string>
+      <key>idleThresholdMinutes</key>
+      <integer>10</integer>
+      <key>lockCountsAsPause</key>
+      <false/>
+      <key>roundingMinutes</key>
+      <integer>15</integer>
+      <key>bookingMode</key>
+      <string>review</string>
+      <key>reduceRemainingWork</key>
+      <true/>
+      <key>bookingIncludesNote</key>
+      <true/>
+      <key>dailyGoalHours</key>
+      <real>8</real>
+      <key>weeklyHours</key>
+      <real>40</real>
+      <key>workDays</key>
+      <array>
+        <integer>1</integer>
+        <integer>2</integer>
+        <integer>3</integer>
+        <integer>4</integer>
+        <integer>5</integer>
+      </array>
+      <key>showElapsedInMenuBar</key>
+      <true/>
+      <key>gitFolders</key>
+      <array/>
+      <key>onboardingCompleted</key>
+      <false/>
+      <key>entraClientID</key>
+      <string></string>
+      <key>entraTenantID</key>
+      <string></string>
+    </dict>
+  </array>
+  <key>PayloadType</key>
+  <string>Configuration</string>
+  <key>PayloadIdentifier</key>
+  <string>de.nilslutz.takt.profile</string>
+  <key>PayloadUUID</key>
+  <string>2E9B4C71-0D3A-4F58-B6E2-91A7C4D3F582</string>
+  <key>PayloadVersion</key>
+  <integer>1</integer>
+  <key>PayloadDisplayName</key>
+  <string>Takt</string>
+  <key>PayloadDescription</key>
+  <string>Teamweite Einstellungen für den Zeit-Tracker Takt.</string>
+  <key>PayloadScope</key>
+  <string>User</string>
+</dict>
+</plist>

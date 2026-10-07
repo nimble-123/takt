@@ -19,6 +19,8 @@ public final class AppSettings {
     }
 
     @ObservationIgnored private let defaults: UserDefaults
+    /// Whether a configuration profile sets a key; replaceable in tests.
+    @ObservationIgnored private let isForced: (String) -> Bool
 
     /// Enter starts with this mode; ⌥↩ with the other (TM-05).
     public var startMode: TimerEngine.StartMode {
@@ -73,8 +75,9 @@ public final class AppSettings {
 
     public static let roundingChoices = [0, 5, 6, 10, 15, 30]
 
-    public init(defaults: UserDefaults = .standard) {
+    public init(defaults: UserDefaults = .standard, isForced: ((String) -> Bool)? = nil) {
         self.defaults = defaults
+        self.isForced = isForced ?? { defaults.objectIsForced(forKey: $0) }
         startMode = defaults.string(forKey: Key.startMode.rawValue) == "parallel" ? .parallel : .switchTo
         countingMode = defaults.string(forKey: Key.countingMode.rawValue).flatMap(CountingMode.init) ?? .split
         idleThresholdMinutes = max(1, defaults.object(forKey: Key.idleThresholdMinutes.rawValue) as? Int ?? 10)
@@ -93,7 +96,7 @@ public final class AppSettings {
 
     /// Whether a configuration profile sets this value.
     public func isLocked(_ key: Key) -> Bool {
-        defaults.objectIsForced(forKey: key.rawValue)
+        isForced(key.rawValue)
     }
 
     public var dailyGoal: TimeInterval { dailyGoalHours * 3600 }
