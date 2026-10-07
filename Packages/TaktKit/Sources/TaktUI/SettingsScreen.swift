@@ -46,19 +46,31 @@ struct SettingsScreen: View {
             Section(String(localized: "General", bundle: .module)) {
                 Toggle(String(localized: "Open at login", bundle: .module), isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { setLaunchAtLogin(launchAtLogin) }
-                Stepper(value: $settings.dailyGoalHours, in: 1...12, step: 0.5) {
-                    LabeledContent(String(localized: "Daily goal", bundle: .module)) {
-                        Text("\(settings.dailyGoalHours.formatted(.number.precision(.fractionLength(0...1)))) h")
-                            .monospacedDigit()
-                    }
-                }
+                HoursField(
+                    title: String(localized: "Daily goal", bundle: .module),
+                    value: $settings.dailyGoalHours,
+                    range: AppSettings.dailyGoalRange
+                )
                 .managed(settings.isLocked(.dailyGoalHours))
-                Stepper(value: $settings.weeklyHours, in: 0...60, step: 0.5) {
-                    LabeledContent(String(localized: "Weekly hours", bundle: .module)) {
-                        Text("\(settings.weeklyHours.formatted(.number.precision(.fractionLength(0...1)))) h")
-                            .monospacedDigit()
+                if let suggested = settings.suggestedDailyGoalHours, suggested != settings.dailyGoalHours,
+                    !settings.isLocked(.dailyGoalHours)
+                {
+                    Button {
+                        settings.dailyGoalHours = suggested
+                    } label: {
+                        Text(
+                            "Use \(HoursField.text(suggested)) h (\(HoursField.text(settings.weeklyHours)) h ÷ \(settings.workDays.count) working days)",
+                            bundle: .module
+                        )
                     }
+                    .buttonStyle(.link)
+                    .font(.system(size: 12))
                 }
+                HoursField(
+                    title: String(localized: "Weekly hours", bundle: .module),
+                    value: $settings.weeklyHours,
+                    range: AppSettings.weeklyHoursRange
+                )
                 .managed(settings.isLocked(.weeklyHours))
                 LabeledContent(String(localized: "Working days", bundle: .module)) {
                     HStack(spacing: 4) {
@@ -226,6 +238,34 @@ struct SettingsScreen: View {
             Task { await model.dataWasReplaced() }
         } catch {
             message = String(localized: "The backup could not be imported. Nothing was changed.", bundle: .module)
+        }
+    }
+}
+
+/// Hours in 0.1 h steps: a text field to type the value and a stepper next to it.
+/// `AppSettings` rounds and clamps whatever arrives.
+struct HoursField: View {
+    let title: String
+    @Binding var value: Double
+    let range: ClosedRange<Double>
+
+    static func text(_ hours: Double) -> String {
+        hours.formatted(.number.precision(.fractionLength(0...1)))
+    }
+
+    var body: some View {
+        LabeledContent(title) {
+            HStack(spacing: 6) {
+                TextField(title, value: $value, format: .number.precision(.fractionLength(0...1)))
+                    .labelsHidden()
+                    .multilineTextAlignment(.trailing)
+                    .monospacedDigit()
+                    .frame(width: 56)
+                Text(verbatim: "h")
+                    .foregroundStyle(Palette.textSecondary)
+                Stepper(title, value: $value, in: range, step: 0.1)
+                    .labelsHidden()
+            }
         }
     }
 }
