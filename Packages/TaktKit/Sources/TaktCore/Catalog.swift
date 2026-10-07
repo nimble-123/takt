@@ -90,3 +90,40 @@ public struct Tag: Hashable, Sendable, Codable, Identifiable {
         self.name = name
     }
 }
+
+/// An Azure DevOps work item an entry is linked to, with the last seen details (DO-10, DO-12).
+public struct WorkItemLink: Hashable, Sendable, Codable, Identifiable {
+    public var id: WorkItemLinkID
+    public var organization: String
+    public var project: String
+    public var workItemID: Int
+    public var cachedTitle: String?
+    public var cachedType: String?
+    public var cachedState: String?
+    public var cachedAt: Timestamp?
+
+    public init(
+        id: WorkItemLinkID = WorkItemLinkID(),
+        organization: String,
+        project: String,
+        workItemID: Int,
+        cachedTitle: String? = nil,
+        cachedType: String? = nil,
+        cachedState: String? = nil,
+        cachedAt: Timestamp? = nil
+    ) {
+        self.id = id
+        self.organization = organization
+        self.project = project
+        self.workItemID = workItemID
+        self.cachedTitle = cachedTitle
+        self.cachedType = cachedType
+        self.cachedState = cachedState
+        self.cachedAt = cachedAt
+    }
+
+    /// `#1234 Title`
+    public var label: String {
+        cachedTitle.map { "#\(workItemID) \($0)" } ?? "#\(workItemID)"
+    }
+}

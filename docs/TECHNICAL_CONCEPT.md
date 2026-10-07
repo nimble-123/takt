@@ -378,8 +378,10 @@ ORDER BY s.start_at;
 - Gruppierung nach Projekt, Kategorie, Tag, Work Item, Wochentag und Stunde passiert auf dem Ergebnis der Verteilung.
 - **Fokusblöcke:** zusammenhängende Arbeit an einem Eintrag ≥ 25 min ohne parallelen Eintrag.
 - **Kontextwechsel:** Anzahl der Wechsel des aktiven Eintrags pro Tag; Pausen zählen nicht als Wechsel.
-- Ergebnisse vergangener Tage werden pro Tag zwischengespeichert und beim Ändern eines Segments für genau diesen Tag verworfen.
-- Diagramme zeichnet Swift Charts; Export als CSV und JSON nutzt dieselbe Verteilung wie die Ansicht.
+- Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
+- Ein einziger Sweep (`Allocation.intervals`) liefert Intervalle mit den Anteilen der laufenden Einträge. `TaktAnalytics.Analyzer` schneidet sie an lokalen Tages- und Stundengrenzen und leitet daraus Gruppen, Tagesbalken, Heatmap, Fokusblöcke, Kontextwechsel und Multitasking-Anteil ab. Gemessen: 12 Monate (3.000 Einträge, 36.000 Segmente) von der Datenbank bis zum Bericht in rund 0,2 s (Release-Build).
+- Bei Tags zählt ein Eintrag mit mehreren Tags in jedem davon; Einträge ohne Wert landen in der Gruppe „Ohne“.
+- Diagramme zeichnet Swift Charts; Export als CSV (RFC 4180, Dezimalpunkt) und JSON nutzt dieselbe Verteilung wie die Ansicht: eine Zeile je Eintrag und lokalem Tag mit Rohsekunden, Stunden und gerundeten Stunden (Rundung aus `roundingMinutes`).
 
 ## Sicherheit, Verteilung und Updates
 

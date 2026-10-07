@@ -66,7 +66,7 @@ jobs:
             build
 
   linux:
-    name: Linux · Core- und Store-Tests
+    name: Linux · Core-, Store- und Analytics-Tests
     # Hält TaktCore und TaktStore frei von Apple-only-Frameworks (siehe CLAUDE.md).
     # Package.swift deklariert Apple-only-Targets nur unter macOS, damit der Build hier gelingt.
     runs-on: ubuntu-latest
@@ -77,6 +77,6 @@ jobs:
       - name: SQLite-Header installieren
         if: hashFiles('Packages/TaktKit/Package.swift') != ''
         run: apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev
-      - name: Tests (TaktCore, TaktStore)
+      - name: Tests (TaktCore, TaktStore, TaktAnalytics)
         if: hashFiles('Packages/TaktKit/Package.swift') != ''
-        run: swift test --package-path Packages/TaktKit --filter 'TaktCoreTests|TaktStoreTests'
+        run: swift test --package-path Packages/TaktKit --filter 'TaktCoreTests|TaktStoreTests|TaktAnalyticsTests'

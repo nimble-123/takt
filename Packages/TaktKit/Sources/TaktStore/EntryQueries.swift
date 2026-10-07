@@ -36,7 +36,7 @@ public struct TimelineData: Hashable, Sendable {
 
 /// Read-only queries on entries and segments for the UI and analytics.
 public struct EntryQueries: Sendable {
-    private let database: AppDatabase
+    let database: AppDatabase
 
     public init(database: AppDatabase) {
         self.database = database

@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@%@ vs. previous period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@%2$@ ggü. Vorperiode"
+          }
+        }
+      }
+    },
     "%lld entries selected": {
       "localizations": {
         "de": {
@@ -27,6 +37,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ein Eintrag muss nach seinem Beginn enden und darf nicht in der Zukunft enden."
+          }
+        }
+      }
+    },
+    "Analytics": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysen"
           }
         }
       }
@@ -191,6 +211,16 @@
         }
       }
     },
+    "Close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schließen"
+          }
+        }
+      }
+    },
     "Color": {
       "localizations": {
         "de": {
@@ -251,12 +281,32 @@
         }
       }
     },
+    "Custom": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frei"
+          }
+        }
+      }
+    },
     "Date": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Datum"
+          }
+        }
+      }
+    },
+    "Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag"
           }
         }
       }
@@ -341,12 +391,72 @@
         }
       }
     },
+    "Export": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportieren"
+          }
+        }
+      }
+    },
+    "Export as CSV …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als CSV exportieren …"
+          }
+        }
+      }
+    },
+    "Export as JSON …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als JSON exportieren …"
+          }
+        }
+      }
+    },
+    "Focus blocks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fokusblöcke"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Voll"
+          }
+        }
+      }
+    },
+    "Group by": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gruppieren nach"
+          }
+        }
+      }
+    },
+    "Hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stunden"
           }
         }
       }
@@ -411,12 +521,32 @@
         }
       }
     },
+    "Month": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monat"
+          }
+        }
+      }
+    },
     "Move Entry": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eintrag verschieben"
+          }
+        }
+      }
+    },
+    "Multitasking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multitasking"
           }
         }
       }
@@ -497,6 +627,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keine Auswahl"
+          }
+        }
+      }
+    },
+    "No entries to show for this group.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diese Gruppe gibt es keine Einträge."
           }
         }
       }
@@ -597,6 +737,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pausen"
+          }
+        }
+      }
+    },
+    "Per day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pro Tag"
+          }
+        }
+      }
+    },
+    "Per entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je Eintrag"
+          }
+        }
+      }
+    },
+    "Period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitraum"
           }
         }
       }
@@ -831,6 +1001,16 @@
         }
       }
     },
+    "Switches per day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechsel pro Tag"
+          }
+        }
+      }
+    },
     "Symbol": {
       "localizations": {
         "de": {
@@ -891,12 +1071,32 @@
         }
       }
     },
+    "The evaluation could not be loaded.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Auswertung konnte nicht geladen werden."
+          }
+        }
+      }
+    },
     "Time": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Zeit"
+          }
+        }
+      }
+    },
+    "Time of day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tageszeit"
           }
         }
       }
@@ -981,6 +1181,26 @@
         }
       }
     },
+    "Weekday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochentag"
+          }
+        }
+      }
+    },
+    "Weekday × hour": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wochentag × Stunde"
+          }
+        }
+      }
+    },
     "Weight": {
       "localizations": {
         "de": {
@@ -997,6 +1217,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Woran arbeitest du?"
+          }
+        }
+      }
+    },
+    "Without": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne"
+          }
+        }
+      }
+    },
+    "Work item": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work Item"
           }
         }
       }
