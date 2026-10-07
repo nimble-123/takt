@@ -126,13 +126,15 @@ public enum DatabaseArchive {
         }
     }
 
-    /// All tables that hold app data, i.e. not SQLite's or GRDB's own.
+    /// All tables that hold app data, i.e. not SQLite's or GRDB's own and not the full-text index,
+    /// which its triggers rebuild while the rows are imported.
     private static func dataTables(_ db: Database) throws -> [String] {
         try String.fetchAll(
             db,
             sql: """
                 SELECT name FROM sqlite_master
                 WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name != 'grdb_migrations'
+                  AND name NOT LIKE 'search_index%'
                 ORDER BY name
                 """
         )

@@ -88,6 +88,28 @@ public struct EntryQueries: Sendable {
         }
     }
 
+    /// Non-deleted entries with all their segments, in the order of `ids`; unknown IDs are skipped.
+    public func entries(_ ids: [EntryID]) async throws -> [EntryWithSegments] {
+        guard !ids.isEmpty else { return [] }
+        return try await database.writer.read { db in
+            let strings = ids.map(\.uuidString)
+            let marks = databaseQuestionMarks(count: strings.count)
+            let entries = try Row.fetchAll(
+                db, sql: "SELECT * FROM time_entry WHERE deleted_at IS NULL AND id IN (\(marks))",
+                arguments: StatementArguments(strings)
+            ).map(TimeEntry.init(row:))
+            let segments = try Row.fetchAll(
+                db, sql: "SELECT * FROM segment WHERE entry_id IN (\(marks)) ORDER BY start_at",
+                arguments: StatementArguments(strings)
+            ).map(Segment.init(row:))
+            let byEntry = Dictionary(grouping: segments, by: \.entryID)
+            let byID = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0) })
+            return ids.compactMap { id in
+                byID[id].map { EntryWithSegments(entry: $0, segments: byEntry[id] ?? []) }
+            }
+        }
+    }
+
     private static func idleEvents(_ db: Database, _ arguments: StatementArguments) throws -> [IdleEvent] {
         try Row.fetchAll(
             db,

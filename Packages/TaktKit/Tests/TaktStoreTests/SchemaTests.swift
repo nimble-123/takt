@@ -14,7 +14,10 @@ struct SchemaTests {
         let tables = try database.writer.read { db in
             try String.fetchAll(
                 db,
-                sql: "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+                sql: """
+                    SELECT name FROM sqlite_master
+                    WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'search_index%' ORDER BY name
+                    """
             )
         }
         #expect(
@@ -27,7 +30,7 @@ struct SchemaTests {
 
     @Test func migrationsAreRecorded() throws {
         let applied = try database.writer.read { db in try AppDatabase.migrator.appliedMigrations(db) }
-        #expect(applied == ["v1", "v2-work-item-details"])
+        #expect(applied == ["v1", "v2-work-item-details", "v3-search"])
     }
 
     @Test func segmentMustEndAfterItStarts() throws {

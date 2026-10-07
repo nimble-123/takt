@@ -741,6 +741,16 @@
         }
       }
     },
+    "Entries, notes, projects, work items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge, Notizen, Projekte, Work Items"
+          }
+        }
+      }
+    },
     "Entries, projects and settings stored in Takt are replaced. This cannot be undone.": {
       "localizations": {
         "de": {
@@ -1941,6 +1951,16 @@
         }
       }
     },
+    "Tasks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasks"
+          }
+        }
+      }
+    },
     "The action failed.": {
       "localizations": {
         "de": {
@@ -2247,6 +2267,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Work Item"
+          }
+        }
+      }
+    },
+    "Work items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Work Items"
           }
         }
       }

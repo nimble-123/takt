@@ -143,3 +143,38 @@ struct MainWindowModelTests {
         #expect(model.dayRange.lowerBound == start.adding(seconds: -6 * 24 * 3600))
     }
 }
+
+@MainActor
+struct MainWindowSearchTests {
+    let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
+
+    @Test func searchFindsEntriesAndRevealJumpsToTheirDay() async throws {
+        let database = try AppDatabase.inMemory()
+        let engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+        let model = MainWindowModel(
+            engine: engine, queries: EntryQueries(database: database),
+            catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+            search: SearchIndex(database: database), clock: clock
+        )
+        let (entry, changes) = try EntryEdits.create(
+            EntryDraft(title: "Release vorbereiten", note: "Changelog prüfen"),
+            from: clock.now().adding(seconds: -10 * 86_400), to: clock.now().adding(seconds: -10 * 86_400 + 3600),
+            now: clock.now()
+        )
+        try await engine.apply(changes)
+
+        model.searchText = "changelog"
+        for _ in 0..<100 where model.searchResults.entries.isEmpty {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        let hit = try #require(model.searchResults.entries.first)
+        #expect(hit.entry.id == entry.id)
+        #expect(hit.snippet == "**Changelog** prüfen")
+
+        model.reveal(hit.entry)
+        #expect(model.section == .today)
+        #expect(model.selection == [entry.id])
+        #expect(model.dayRange.contains(clock.now().adding(seconds: -10 * 86_400)))
+        #expect(model.searchText.isEmpty)
+    }
+}
