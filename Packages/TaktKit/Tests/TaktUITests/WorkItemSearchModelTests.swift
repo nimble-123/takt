@@ -57,10 +57,17 @@ struct WorkItemSearchModelTests {
         )
     }
 
-    /// Waits until the debounced search has finished.
-    private func settle(_ model: MenuBarModel) async throws {
-        try await Task.sleep(for: MenuBarModel.searchDelay + .milliseconds(150))
-        for _ in 0..<50 where model.isSearchingWorkItems { await Task.yield() }
+    /// Polls until `condition` holds; a busy CI runner may need far longer than the debounce.
+    private func wait(until condition: () -> Bool, timeout: Duration = .seconds(5)) async throws {
+        let deadline = ContinuousClock.now + timeout
+        while !condition(), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    /// Waits until the debounced remote search has run and its results are shown.
+    private func settle(_ model: MenuBarModel, _ source: FakeWorkItems, searches: Int = 1) async throws {
+        try await wait { source.remoteSearches >= searches && !model.isSearchingWorkItems }
     }
 
     @Test func cachedHitsAppearAtOnceAndFreshOnesAfterTheDelay() async throws {
@@ -72,7 +79,8 @@ struct WorkItemSearchModelTests {
         #expect(model.workItemResults.map(\.workItemID) == [1])
         #expect(source.remoteSearches == 0)
 
-        try await settle(model)
+        try await settle(model, source)
+        try await wait { model.workItemResults.count == 2 }
         #expect(model.workItemResults.map(\.workItemID) == [2, 1])
         #expect(source.remoteSearches == 1)
         #expect(model.suggestions.first?.group == .azureDevOps)
@@ -82,7 +90,9 @@ struct WorkItemSearchModelTests {
         let source = FakeWorkItems(remote: [item(1, "Login")])
         let model = model(source)
         for text in ["l", "lo", "log", "logi", "login"] { model.query = text }
-        try await settle(model)
+        try await settle(model, source)
+        // Give a wrongly scheduled second search time to show up.
+        try await Task.sleep(for: MenuBarModel.searchDelay * 2)
         #expect(source.remoteSearches == 1)
     }
 
@@ -100,9 +110,11 @@ struct WorkItemSearchModelTests {
     }
 
     @Test func spacePreviewsOnlyASelectedWorkItem() async throws {
-        let model = model(FakeWorkItems(remote: [item(1, "Login")]))
+        let source = FakeWorkItems(remote: [item(1, "Login")])
+        let model = model(source)
         model.query = "login"
-        try await settle(model)
+        try await settle(model, source)
+        try await wait { !model.workItemResults.isEmpty }
 
         #expect(!model.togglePreview())  // nothing selected: Space types a space
         model.moveSelection(by: 1)
