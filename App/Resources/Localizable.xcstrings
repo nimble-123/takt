@@ -11,6 +11,16 @@
         }
       }
     },
+    "Open Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt öffnen"
+          }
+        }
+      }
+    },
     "Quit Takt": {
       "localizations": {
         "de": {

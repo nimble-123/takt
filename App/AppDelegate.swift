@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var composition: Composition?
     private var statusItem: NSStatusItem?
     private var panel: PopoverPanel?
+    private var mainWindow: MainWindowController?
     private var titleTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -21,6 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.composition = composition
         panel = PopoverPanel(rootView: PopoverView(model: composition.menuBar))
         statusItem = makeStatusItem()
+        mainWindow = MainWindowController(model: composition.mainWindow)
+        composition.menuBar.openMainWindow = { [weak self] in self?.showMainWindow() }
         composition.onIdleNeedsDecision = { [weak self] in self?.showPanel() }
         composition.launch()
 
@@ -34,10 +37,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         scheduleTitleUpdates()
 
         #if DEBUG
-            // `-openPopover YES` shows the popover at launch, `-appearance dark|light` forces an
+            // `-openPopover YES` / `-openMainWindow YES` show the popover or main window at launch, `-appearance dark|light` forces an
             // appearance; both for screenshots and UI tests.
             if let appearance = UserDefaults.standard.string(forKey: "appearance") {
                 NSApp.appearance = NSAppearance(named: appearance == "dark" ? .darkAqua : .aqua)
+            }
+            if UserDefaults.standard.bool(forKey: "openMainWindow") {
+                if let section = UserDefaults.standard.string(forKey: "mainSection")
+                    .flatMap(MainWindowModel.Section.init(rawValue:))
+                {
+                    composition.mainWindow.section = section
+                }
+                showMainWindow()
+                if UserDefaults.standard.bool(forKey: "selectFirstEntry") {
+                    Task {
+                        await composition.mainWindow.reload()
+                        composition.mainWindow.selection = Set(composition.mainWindow.data.entries.suffix(1).map(\.id))
+                    }
+                }
             }
             if UserDefaults.standard.bool(forKey: "openPopover") {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { self.togglePanel() }
@@ -68,6 +85,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showMenu() {
         let menu = NSMenu()
         menu.addItem(
+            withTitle: String(localized: "Open Takt"),
+            action: #selector(openMainWindowFromMenu),
+            keyEquivalent: "0"
+        ).target = self
+        menu.addItem(.separator())
+        menu.addItem(
             withTitle: String(localized: "Quit Takt"),
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
@@ -75,6 +98,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem?.menu = menu
         statusItem?.button?.performClick(nil)
         statusItem?.menu = nil
+    }
+
+    @objc private func openMainWindowFromMenu() {
+        showMainWindow()
+    }
+
+    private func showMainWindow() {
+        panel?.orderOut(nil)
+        mainWindow?.show()
     }
 
     private func togglePanel() {

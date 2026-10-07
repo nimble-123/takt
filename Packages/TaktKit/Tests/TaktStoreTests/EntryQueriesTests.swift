@@ -58,3 +58,36 @@ struct EntryQueriesTests {
         #expect(result.values.reduce(0, +) == 600)
     }
 }
+
+extension EntryQueriesTests {
+    @Test func timelineReturnsEntriesOfTheRangeWithAllSegments() async throws {
+        let start = clock.now()
+        let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+        clock.advance(seconds: 600)
+        try await engine.pause(id)
+        clock.advance(seconds: 3600)
+        try await engine.resume(id, mode: .switchTo)
+        clock.advance(seconds: 60)
+        let deleted = try await track("Deleted", seconds: 60)
+        let entry = try #require(try await queries.entry(deleted))
+        try await engine.apply(EntryEdits.delete(entry, openSegment: nil, now: clock.now()))
+
+        let data = try await queries.timeline(in: start..<start.adding(seconds: 300), now: clock.now())
+
+        #expect(data.entries.map(\.entry.title) == ["A"])
+        #expect(data.entries.first?.segments.count == 2)
+    }
+
+    @Test func timelineShowsIdleTimeThatWasNotKept() async throws {
+        let start = clock.now()
+        _ = try await engine.start(EntryDraft(title: "A"), mode: .switchTo)
+        clock.advance(seconds: 3600)
+        let event = try #require(try await engine.recordIdle(from: start.adding(seconds: 600), to: clock.now()))
+        try await engine.resolveIdle(event.id, .keep)
+        // The kept inactivity is work time; a later, undecided one is shown.
+        let other = try #require(try await engine.recordIdle(from: clock.now(), to: clock.now().adding(seconds: 1)))
+
+        let data = try await queries.timeline(in: start..<clock.now().adding(seconds: 60), now: clock.now())
+        #expect(data.idleEvents.map(\.id) == [other.id])
+    }
+}

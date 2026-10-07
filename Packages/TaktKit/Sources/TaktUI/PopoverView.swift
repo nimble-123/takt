@@ -109,6 +109,15 @@ public struct PopoverView: View {
                 Task { await model.stopAll() }
             }
             .disabled(model.snapshot.entries.isEmpty)
+            Button {
+                model.openMainWindow?()
+            } label: {
+                Image(systemName: "macwindow")
+                    .frame(width: 28, height: 28)
+            }
+            .keyboardShortcut("0", modifiers: .command)
+            .accessibilityLabel(Text("Open main window", bundle: .module))
+            .help(Text("Open main window", bundle: .module))
         }
         .buttonStyle(.borderless)
         .font(.system(size: 12))

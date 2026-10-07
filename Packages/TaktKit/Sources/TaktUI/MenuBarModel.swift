@@ -23,6 +23,8 @@ public final class MenuBarModel {
     public var dailyGoal: TimeInterval
     public private(set) var toast: Toast?
     public private(set) var errorMessage: String?
+    /// Opens the main window; set by the app.
+    @ObservationIgnored public var openMainWindow: (() -> Void)?
     /// Increments whenever the popover opens, so the view can focus the search field.
     public private(set) var openCount = 0
 
