@@ -111,6 +111,16 @@
         }
       }
     },
+    "Add Folder …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner hinzufügen …"
+          }
+        }
+      }
+    },
     "Add the entry's note to the comment": {
       "localizations": {
         "de": {
@@ -961,6 +971,16 @@
         }
       }
     },
+    "From branch %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Branch %@"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "de": {
@@ -987,6 +1007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Allgemein"
+          }
+        }
+      }
+    },
+    "Git branches": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Git-Branches"
           }
         }
       }
@@ -1711,6 +1741,16 @@
         }
       }
     },
+    "Remove": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        }
+      }
+    },
     "Remove condition": {
       "localizations": {
         "de": {
@@ -2277,6 +2317,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Übernommen"
+          }
+        }
+      }
+    },
+    "Takt reads the checked-out branch of these repositories and of their direct subfolders. A branch like “feature/1234-login” suggests work item 1234.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt liest den ausgecheckten Branch dieser Repositories und ihrer direkten Unterordner. Ein Branch wie „feature/1234-login“ schlägt Work Item 1234 vor."
           }
         }
       }

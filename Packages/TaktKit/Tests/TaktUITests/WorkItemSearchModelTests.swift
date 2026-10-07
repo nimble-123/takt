@@ -3,6 +3,7 @@ import Synchronization
 import TaktADO
 import TaktCore
 import TaktStore
+import TaktSystem
 import Testing
 
 @testable import TaktUI
@@ -126,6 +127,43 @@ struct WorkItemSearchModelTests {
 
     @Test func suggestionsAreLoadedOnOpenAndNotRepeatedWithinFiveMinutes() async throws {
         let model = model(FakeWorkItems(suggested: [item(7, "Aktuelle Iteration")]))
+        await model.loadSuggestedWorkItems()
+        #expect(model.suggestedWorkItems.map(\.workItemID) == [7])
+    }
+}
+
+extension WorkItemSearchModelTests {
+    private func model(_ source: FakeWorkItems, branches: [GitBranch]) -> MenuBarModel {
+        MenuBarModel(
+            engine: TimerEngine(store: GRDBTimerStore(database: database), clock: clock),
+            queries: EntryQueries(database: database), catalog: catalog, clock: clock,
+            settings: AppSettings(defaults: UserDefaults(suiteName: "takt-git-\(UUID().uuidString)") ?? .standard),
+            workItems: source, gitBranches: { branches }
+        )
+    }
+
+    @Test func recentlyCheckedOutBranchIsSuggestedFirst() async throws {
+        let fromBranch = item(1234, "Login")
+        let source = FakeWorkItems(remote: [fromBranch], suggested: [item(7, "Iteration")])
+        let branch = GitBranch(
+            repository: URL(filePath: "/tmp/portal"), name: "feature/1234-login",
+            switchedAt: clock.now().adding(seconds: -600)
+        )
+        let model = model(source, branches: [branch])
+
+        await model.loadSuggestedWorkItems()
+
+        #expect(model.suggestedWorkItems.map(\.workItemID) == [1234, 7])
+        #expect(model.suggestionReasons[fromBranch.id] == "From branch feature/1234-login")
+    }
+
+    @Test func oldBranchSwitchesAreIgnored() async throws {
+        let branch = GitBranch(
+            repository: URL(filePath: "/tmp/portal"), name: "feature/1234-login",
+            switchedAt: clock.now().adding(seconds: -13 * 3600)
+        )
+        let model = model(
+            FakeWorkItems(remote: [item(1234, "Login")], suggested: [item(7, "Iteration")]), branches: [branch])
         await model.loadSuggestedWorkItems()
         #expect(model.suggestedWorkItems.map(\.workItemID) == [7])
     }

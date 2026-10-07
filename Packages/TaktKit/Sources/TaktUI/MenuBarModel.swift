@@ -3,6 +3,7 @@ import Observation
 import TaktADO
 import TaktCore
 import TaktStore
+import TaktSystem
 import os
 
 /// State and actions of the menu bar popover. Receives timer state from `TimerEngine.updates()`
@@ -66,6 +67,8 @@ public final class MenuBarModel {
     public private(set) var isSearchingWorkItems = false
     /// Suggested work items while the search field is empty (PRD "Vorgeschlagene Items").
     public private(set) var suggestedWorkItems: [WorkItemLink] = []
+    /// Why a suggested work item is shown, e.g. the branch it came from.
+    public private(set) var suggestionReasons: [WorkItemLinkID: String] = [:]
     /// The work item whose detail preview is open (Space, DO-13).
     public private(set) var previewedItem: WorkItemLink?
     /// Highlighted suggestion; `nil` means Enter starts the typed text.
@@ -79,6 +82,7 @@ public final class MenuBarModel {
     private let calendar: Calendar
     private let workItems: (any WorkItemSource)?
     private let rules: RulesModel?
+    private let gitBranches: (@Sendable () -> [GitBranch])?
     private var searchTask: Task<Void, Never>?
     private var suggestionsLoadedAt: Timestamp?
     private var undoStack: [TimerUndo] = []
@@ -96,8 +100,10 @@ public final class MenuBarModel {
         settings: AppSettings,
         workItems: (any WorkItemSource)? = nil,
         rules: RulesModel? = nil,
+        gitBranches: (@Sendable () -> [GitBranch])? = nil,
         calendar: Calendar = .current
     ) {
+        self.gitBranches = gitBranches
         self.workItems = workItems
         self.rules = rules
         self.engine = engine
@@ -196,10 +202,28 @@ public final class MenuBarModel {
     public func loadSuggestedWorkItems(force: Bool = false) async {
         guard let workItems else { return }
         let now = clock.now()
-        if !force, let loaded = suggestionsLoadedAt, now.seconds(since: loaded) < 300 { return }
+        // Branches switched within the last 12 hours, newest first (PRD "Vorgeschlagene Items" 4).
+        let branches = (gitBranches?() ?? []).filter { now.seconds(since: $0.switchedAt) < 12 * 3600 }
+        let switchedSinceLoad = branches.first.map { branch in
+            suggestionsLoadedAt.map { branch.switchedAt > $0 } ?? true
+        }
+        if !force, switchedSinceLoad != true, let loaded = suggestionsLoadedAt, now.seconds(since: loaded) < 300 {
+            return
+        }
         suggestionsLoadedAt = now
+        var fromBranches: [WorkItemLink] = []
+        var reasons: [WorkItemLinkID: String] = [:]
+        for branch in branches {
+            guard let id = BranchName.workItemID(in: branch.name),
+                let item = (try? await workItems.search("#\(id)"))?.first,
+                !fromBranches.contains(where: { $0.id == item.id })
+            else { continue }
+            fromBranches.append(item)
+            reasons[item.id] = String(localized: "From branch \(branch.name)", bundle: .module)
+        }
+        suggestionReasons = reasons
         let recentlyUsed = (try? await workItems.recentlyUsed()) ?? []
-        suggestedWorkItems = recentlyUsed
+        suggestedWorkItems = Self.merge(fromBranches, recentlyUsed)
         var projects: [String: [String]] = [:]
         for project in catalog.activeProjects where project.source == .ado {
             if let organization = project.adoOrganization, let name = project.adoProject {
@@ -208,13 +232,17 @@ public final class MenuBarModel {
         }
         do {
             let suggested = try await workItems.suggestions(projects: projects)
-            let keys = Set(suggested.map { "\($0.organization)#\($0.workItemID)" })
-            // Current iteration first, then recently used in the app (PRD order 1, 2, 3).
-            let used = recentlyUsed.filter { !keys.contains("\($0.organization)#\($0.workItemID)") }
-            suggestedWorkItems = Array((suggested + used).prefix(5))
+            // The branch just checked out first, then the current iteration and recently used items.
+            suggestedWorkItems = Array(Self.merge(fromBranches, suggested, recentlyUsed).prefix(5))
         } catch {
             logger.info("Work item suggestions failed: \(String(describing: error), privacy: .public)")
         }
+    }
+
+    /// Concatenates lists, keeping the first of each work item.
+    static func merge(_ lists: [WorkItemLink]...) -> [WorkItemLink] {
+        var seen: Set<String> = []
+        return lists.flatMap { $0 }.filter { seen.insert("\($0.organization)#\($0.workItemID)").inserted }
     }
 
     /// A timer for a work item: its title, linked, in the taken-over project (DO-10).

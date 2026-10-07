@@ -10,7 +10,7 @@ public final class AppSettings {
     public enum Key: String, CaseIterable, Sendable {
         case startMode, countingMode, idleThresholdMinutes, lockCountsAsPause, roundingMinutes
         case bookingMode, dailyGoalHours, showElapsedInMenuBar, onboardingCompleted
-        case reduceRemainingWork, bookingIncludesNote, weeklyHours, workDays
+        case reduceRemainingWork, bookingIncludesNote, weeklyHours, workDays, gitFolders
     }
 
     /// When booked time goes to Azure DevOps (DO-21).
@@ -58,6 +58,10 @@ public final class AppSettings {
     public var workDays: Set<Int> {
         didSet { write(.workDays, workDays.sorted()) }
     }
+    /// Folders whose Git repositories suggest work items by branch name.
+    public var gitFolders: [String] {
+        didSet { write(.gitFolders, gitFolders) }
+    }
     /// DO-22: reduce Remaining Work by the booked time (never below 0).
     public var reduceRemainingWork: Bool {
         didSet { write(.reduceRemainingWork, reduceRemainingWork) }
@@ -84,6 +88,7 @@ public final class AppSettings {
         bookingIncludesNote = defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true
         weeklyHours = defaults.object(forKey: Key.weeklyHours.rawValue) as? Double ?? 40
         workDays = Set(defaults.array(forKey: Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
+        gitFolders = defaults.stringArray(forKey: Key.gitFolders.rawValue) ?? []
     }
 
     /// Whether a configuration profile sets this value.
