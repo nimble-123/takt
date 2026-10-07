@@ -56,4 +56,21 @@ struct TimelineLayoutTests {
         let layout = TimelineLayout(entries: [entry([(-5, -4), (9, 10)])], day: day, now: t(11))
         #expect(layout.items.filter(\.isPause).isEmpty)
     }
+
+    @Test func todayScrollsToOneHourBeforeNow() {
+        #expect(TimelineLayout.initialScrollRow(day: day, now: t(14.5)) == 13)
+    }
+
+    @Test func otherDaysScrollToTheDefaultRow() {
+        #expect(TimelineLayout.initialScrollRow(day: day, now: t(30)) == 8)
+        #expect(TimelineLayout.initialScrollRow(day: day, now: t(-5)) == 8)
+    }
+
+    @Test func scrollRowStaysInsideTheDay() {
+        #expect(TimelineLayout.initialScrollRow(day: day, now: t(0.25)) == 0)
+        #expect(TimelineLayout.initialScrollRow(day: day, now: t(23.9)) == 22)
+        let short = t(0)..<t(23)  // spring DST day
+        #expect(TimelineLayout.initialScrollRow(day: short, now: t(22.9)) == 21)
+        #expect(TimelineLayout.initialScrollRow(day: t(0)..<t(5), now: t(30)) == 4)
+    }
 }

@@ -100,3 +100,15 @@ public struct TimelineLayout: Equatable, Sendable {
         return result
     }
 }
+
+extension TimelineLayout {
+    /// The hour row a timeline scrolls to when it opens: one hour before `now` on the day that
+    /// contains it, so the "now" line sits near the top with some context; `defaultRow` otherwise.
+    /// Rows count hours from the start of `day`, which keeps DST days (23 or 25 rows) correct.
+    static func initialScrollRow(day: Range<Timestamp>, now: Timestamp, defaultRow: Int = 8) -> Int {
+        let rows = max(1, Int((day.upperBound.seconds(since: day.lowerBound) / 3600).rounded(.up)))
+        guard day.contains(now) else { return min(defaultRow, rows - 1) }
+        let row = Int(now.seconds(since: day.lowerBound) / 3600) - 1
+        return min(max(row, 0), rows - 1)
+    }
+}
