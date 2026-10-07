@@ -13,12 +13,12 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/en/v1.0.0/)
 [![Last commit](https://img.shields.io/github/last-commit/nimble-123/takt)](https://github.com/nimble-123/takt/commits/main)
 
-[Features](#features) · [Architecture](#architecture) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
+[Features](#features) · [Architecture](#architecture) · [Install](#install) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
 
 </div>
 
 > [!NOTE]
-> Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. There is no downloadable build yet, so for now you build it from source.
+> Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. Releases ship an unsigned Apple Silicon build; see [Install](#install).
 
 <div align="center">
 
@@ -89,9 +89,16 @@ A few rules shape the codebase:
 
 The full picture is in the [technical concept](docs/TECHNICAL_CONCEPT.md).
 
+## Install
+
+Download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
+
+> [!IMPORTANT]
+> These builds are not signed or notarized yet, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Takt.app`. After each update macOS asks again for access to the Keychain.
+
 ## Getting started
 
-Requirements: macOS 26, Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+Build from source. Requirements: macOS 26, Xcode 26 and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
 brew install xcodegen

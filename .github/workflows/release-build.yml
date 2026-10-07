@@ -1,0 +1,90 @@
+name: Release-Build
+
+# Baut die unsignierte Apple-Silicon-App (scripts/package-unsigned.sh).
+# - Release-PRs von release-please: nur bauen und packen, als Check vor dem Release.
+# - Veröffentlichtes Release: bauen, packen und DMG/ZIP an das Release hängen.
+#   Startet nur, wenn release-please mit RELEASE_PLEASE_TOKEN arbeitet (siehe docs/RELEASING.md).
+# - Manuell: für ein bestehendes Tag neu bauen und hochladen.
+
+on:
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag des Releases, z. B. v0.1.0
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-build-${{ github.event.release.tag_name || inputs.tag || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Release-Build (Apple Silicon)
+    # Auf normalen PRs übersprungen; ein übersprungener Job gilt als bestandener Pflicht-Check.
+    if: github.event_name != 'pull_request' || startsWith(github.head_ref, 'release-please--')
+    runs-on: macos-26
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG || github.ref }}
+          fetch-depth: 0 # build number = commit count
+
+      - name: Xcode wählen
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: XcodeGen installieren
+        run: brew install xcodegen
+
+      - name: Version bestimmen
+        id: version
+        run: |
+          if [ -n "${TAG}" ]; then
+            version="${TAG#v}"
+          else
+            # Release-PR: release-please hat die neue Version schon in project.yml eingetragen.
+            version="$(sed -n 's/.*MARKETING_VERSION: *\([0-9][0-9.]*\).*/\1/p' project.yml)"
+          fi
+          [ -n "${version}" ] || { echo "Version nicht gefunden" >&2; exit 1; }
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Bauen und packen
+        run: scripts/package-unsigned.sh "${{ steps.version.outputs.version }}"
+
+      - name: Artefakt ablegen
+        uses: actions/upload-artifact@v7
+        with:
+          name: Takt-${{ steps.version.outputs.version }}-arm64
+          path: build/unsigned/dist/
+          retention-days: 14
+
+      - name: An das Release hängen
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${TAG}" build/unsigned/dist/* --clobber
+          notes="$(gh release view "${TAG}" --json body --jq .body)"
+          if ! grep -q "takt-unsigned-note" <<< "${notes}"; then
+            cat > note.md <<'EOF'
+          <!-- takt-unsigned-note -->
+          ### Installation (Apple Silicon, unsigniert)
+
+          `Takt-*-arm64.dmg` öffnen und Takt nach „Programme“ ziehen. Der Build ist nicht signiert und nicht notarisiert, deshalb blockiert macOS den ersten Start: unter **Systemeinstellungen → Datenschutz & Sicherheit** auf **Trotzdem öffnen** klicken oder `xattr -dr com.apple.quarantine /Applications/Takt.app` ausführen. Nach jedem Update fragt macOS erneut nach dem Zugriff auf den Schlüsselbund.
+          EOF
+            printf '%s\n\n%s\n' "${notes}" "$(cat note.md)" > notes.md
+            gh release edit "${TAG}" --notes-file notes.md
+          fi
