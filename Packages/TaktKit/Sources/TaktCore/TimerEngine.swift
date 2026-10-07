@@ -1,3 +1,5 @@
+import Foundation
+
 /// The changes that revert one command. Register it with an `UndoManager`; applying it yields the redo.
 public struct TimerUndo: Hashable, Sendable {
     public var changes: [TimerChange]
@@ -95,7 +97,7 @@ public actor TimerEngine {
         let now = clock.now()
         return try await perform { snapshot in
             let active = try Self.active(id, in: snapshot)
-            return TimerUpdate(changes: Self.closeChanges([active], state: .stopped, at: now))
+            return TimerUpdate(changes: Self.closeChanges([active], state: .stopped, at: now, updatedAt: now))
         }.undo
     }
 
@@ -137,6 +139,30 @@ public actor TimerEngine {
                 changes: Self.resumeChanges(toResume, at: now) + [.globalPause(before: open, after: closed)]
             )
         }.undo
+    }
+
+    /// Records a sign of life. The app calls this once a minute while the engine runs.
+    public func heartbeat() async throws {
+        try await store.recordHeartbeat(clock.now())
+    }
+
+    /// Call once at launch (TM-07). If timers were running and the last heartbeat is older than
+    /// `idleThreshold`, the app was gone: the open segments end at the heartbeat, the entries are
+    /// paused and the gap becomes an idle event for the user to decide on.
+    @discardableResult
+    public func recoverAfterLaunch(idleThreshold: TimeInterval) async throws -> IdleEvent? {
+        let now = clock.now()
+        let event = try await perform { snapshot -> TimerUpdate<IdleEvent?> in
+            let running = snapshot.running
+            guard let beat = snapshot.lastHeartbeat, now.seconds(since: beat) > idleThreshold, !running.isEmpty
+            else { return TimerUpdate(changes: [], result: nil) }
+            let event = IdleEvent(start: beat, end: now, entryIDs: running.map(\.id))
+            var changes = Self.closeChanges(running, state: .paused, at: beat, updatedAt: now)
+            changes.append(.idleEvent(before: nil, after: event))
+            return TimerUpdate(changes: changes, result: event)
+        }.value
+        try await store.recordHeartbeat(now)
+        return event
     }
 
     /// Reverts a command. Returns the undo of the undo, i.e. the redo.
@@ -193,20 +219,20 @@ public actor TimerEngine {
     }
 
     private static func pauseChanges(_ entries: [ActiveEntry], at now: Timestamp) -> [TimerChange] {
-        closeChanges(entries.filter { $0.entry.state == .running }, state: .paused, at: now)
+        closeChanges(entries.filter { $0.entry.state == .running }, state: .paused, at: now, updatedAt: now)
     }
 
-    /// Closes open segments at `now` and sets `state`. A segment that would have no length
+    /// Closes open segments at `end` and sets `state`. A segment that would have no length
     /// is removed, since the schema requires `end_at > start_at`.
     private static func closeChanges(
-        _ entries: [ActiveEntry], state: EntryState, at now: Timestamp
+        _ entries: [ActiveEntry], state: EntryState, at end: Timestamp, updatedAt now: Timestamp
     ) -> [TimerChange] {
         entries.flatMap { active -> [TimerChange] in
             var changes: [TimerChange] = []
             if let open = active.openSegment {
-                if now > open.start {
+                if end > open.start {
                     var closed = open
-                    closed.end = now
+                    closed.end = end
                     changes.append(.segment(before: open, after: closed))
                 } else {
                     changes.append(.segment(before: open, after: nil))

@@ -3,6 +3,8 @@ public struct TimerTables: Hashable, Sendable {
     public var entries: [EntryID: TimeEntry] = [:]
     public var segments: [SegmentID: Segment] = [:]
     public var globalPauses: [GlobalPauseID: GlobalPause] = [:]
+    public var idleEvents: [IdleEventID: IdleEvent] = [:]
+    public var heartbeat: Timestamp?
 
     public init() {}
 
@@ -24,6 +26,8 @@ public struct TimerTables: Hashable, Sendable {
                 try Self.apply(before, after, to: &copy.segments)
             case .globalPause(let before, let after):
                 try Self.apply(before, after, to: &copy.globalPauses)
+            case .idleEvent(let before, let after):
+                try Self.apply(before, after, to: &copy.idleEvents)
             }
         }
         self = copy
@@ -54,7 +58,15 @@ public struct TimerTables: Hashable, Sendable {
         let openPause = globalPauses.values
             .filter { $0.resumedAt == nil }
             .max { $0.pausedAt < $1.pausedAt }
-        return TimerSnapshot(entries: activeEntries, globalPause: openPause)
+        let pending = idleEvents.values
+            .filter { $0.resolution == nil }
+            .sorted { $0.start < $1.start }
+        return TimerSnapshot(
+            entries: activeEntries,
+            globalPause: openPause,
+            pendingIdleEvents: pending,
+            lastHeartbeat: heartbeat
+        )
     }
 }
 
@@ -76,5 +88,9 @@ public actor InMemoryTimerStore: TimerStore {
         let update = try body(tables.snapshot())
         try tables.apply(update.changes)
         return update.result
+    }
+
+    public func recordHeartbeat(_ timestamp: Timestamp) {
+        tables.heartbeat = timestamp
     }
 }
