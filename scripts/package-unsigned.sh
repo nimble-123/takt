@@ -13,8 +13,8 @@ APP="${BUILD}/DerivedData/Build/Products/Release/Takt.app"
 NAME="Takt-${VERSION}-arm64"
 cd "${ROOT}"
 
-for tool in xcodegen xcodebuild hdiutil ditto; do
-  command -v "${tool}" >/dev/null || { echo "Missing tool: ${tool}" >&2; exit 1; }
+for tool in xcodegen xcodebuild hdiutil ditto dmgbuild; do
+  command -v "${tool}" >/dev/null || { echo "Missing tool: ${tool} (dmgbuild: pipx install dmgbuild)" >&2; exit 1; }
 done
 
 BUILD_NUMBER="$(git rev-list --count HEAD)"
@@ -50,11 +50,14 @@ lipo -archs "${APP}/Contents/MacOS/Takt" | grep -qx arm64 || { echo "Expected an
 echo "==> Packaging"
 ditto -c -k --keepParent "${APP}" "${DIST}/${NAME}.zip"
 
-STAGING="${BUILD}/dmg"
-mkdir -p "${STAGING}"
-ditto "${APP}" "${STAGING}/Takt.app"
-ln -s /Applications "${STAGING}/Applications"
-hdiutil create -volname Takt -srcfolder "${STAGING}" -ov -format UDZO "${DIST}/${NAME}.dmg" -quiet
+# Styled window: background, icon layout and volume icon come from scripts/dmg/settings.py.
+dmgbuild \
+  -s "${ROOT}/scripts/dmg/settings.py" \
+  -D app="${APP}" \
+  -D background="${ROOT}/scripts/dmg/background.png" \
+  -D icon="${APP}/Contents/Resources/AppIcon.icns" \
+  Takt "${DIST}/${NAME}.dmg"
+hdiutil verify -quiet "${DIST}/${NAME}.dmg"
 
 (cd "${DIST}" && shasum -a 256 "${NAME}.dmg" "${NAME}.zip" > "${NAME}.sha256")
 
