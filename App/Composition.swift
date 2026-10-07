@@ -13,6 +13,7 @@ final class Composition {
     let database: AppDatabase
     let clock: any TaktClock = SystemClock()
     let engine: TimerEngine
+    let settings = AppSettings()
     let catalog: CatalogModel
     let menuBar: MenuBarModel
     let mainWindow: MainWindowModel
@@ -36,10 +37,11 @@ final class Composition {
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         let queries = EntryQueries(database: database)
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
-        menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock)
+        menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings)
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,
-            analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock), clock: clock
+            analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
+            settings: settings, database: database, clock: clock
         )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()

@@ -255,6 +255,14 @@ public actor TimerEngine {
         try await store.snapshot()
     }
 
+    /// Sends the current snapshot to all observers, e.g. after data was replaced by an import.
+    public func publish() async throws {
+        let snapshot = try await store.snapshot()
+        for continuation in subscribers.values {
+            continuation.yield(snapshot)
+        }
+    }
+
     /// The current snapshot, then one after every command.
     public func updates() async throws -> AsyncStream<TimerSnapshot> {
         let (stream, continuation) = AsyncStream.makeStream(

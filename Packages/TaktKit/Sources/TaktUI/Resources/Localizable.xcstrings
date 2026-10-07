@@ -71,6 +71,16 @@
         }
       }
     },
+    "Ask about inactivity after": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Inaktivität fragen nach"
+          }
+        }
+      }
+    },
     "Assign to another task": {
       "localizations": {
         "de": {
@@ -91,6 +101,16 @@
         }
       }
     },
+    "Automatically when stopping": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch beim Stoppen"
+          }
+        }
+      }
+    },
     "Away from %@ to %@ (%@).": {
       "localizations": {
         "de": {
@@ -107,6 +127,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Azure DevOps"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurück"
+          }
+        }
+      }
+    },
+    "Backup imported.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung importiert."
+          }
+        }
+      }
+    },
+    "Backup saved.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung gespeichert."
+          }
+        }
+      }
+    },
+    "Booking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buchung"
           }
         }
       }
@@ -241,12 +301,42 @@
         }
       }
     },
+    "Connect Azure DevOps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps verbinden"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weiter"
+          }
+        }
+      }
+    },
     "Convert Pause to Work": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Pause in Arbeitszeit umwandeln"
+          }
+        }
+      }
+    },
+    "Count a locked screen as a pause without asking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesperrten Bildschirm ohne Rückfrage als Pause werten"
           }
         }
       }
@@ -287,6 +377,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Frei"
+          }
+        }
+      }
+    },
+    "Daily backups are kept automatically for 14 days.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tägliche Sicherungen werden automatisch 14 Tage aufbewahrt."
+          }
+        }
+      }
+    },
+    "Daily goal": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesziel"
+          }
+        }
+      }
+    },
+    "Daily review": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesabschluss"
+          }
+        }
+      }
+    },
+    "Data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daten"
           }
         }
       }
@@ -381,6 +511,16 @@
         }
       }
     },
+    "Each timer counts the full time: 90 min in total for 60 min of work.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeder Timer zählt die volle Zeit: 90 min insgesamt für 60 min Arbeit."
+          }
+        }
+      }
+    },
     "Entries": {
       "localizations": {
         "de": {
@@ -391,12 +531,32 @@
         }
       }
     },
+    "Entries, projects and settings stored in Takt are replaced. This cannot be undone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge, Projekte und in Takt gespeicherte Einstellungen werden ersetzt. Das lässt sich nicht rückgängig machen."
+          }
+        }
+      }
+    },
     "Export": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Exportieren"
+          }
+        }
+      }
+    },
+    "Export and Azure DevOps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export und Azure DevOps"
           }
         }
       }
@@ -441,6 +601,26 @@
         }
       }
     },
+    "Full: each timer counts all of it": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voll: jeder Timer zählt die ganze Zeit"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allgemein"
+          }
+        }
+      }
+    },
     "Group by": {
       "localizations": {
         "de": {
@@ -457,6 +637,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stunden"
+          }
+        }
+      }
+    },
+    "How Takt counts": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wie Takt zählt"
+          }
+        }
+      }
+    },
+    "Import Backup …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung importieren …"
+          }
+        }
+      }
+    },
+    "In parallel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallel"
+          }
+        }
+      }
+    },
+    "In parallel: both keep running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallel: beide laufen weiter"
           }
         }
       }
@@ -501,12 +721,32 @@
         }
       }
     },
+    "Link work items and book your time to them. You can do this later in the settings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verknüpfe Work Items und buche deine Zeit darauf. Das geht auch später in den Einstellungen."
+          }
+        }
+      }
+    },
     "Local tasks": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Lokale Tasks"
+          }
+        }
+      }
+    },
+    "Manually per entry": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manuell pro Eintrag"
           }
         }
       }
@@ -661,12 +901,52 @@
         }
       }
     },
+    "Open Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt öffnen"
+          }
+        }
+      }
+    },
+    "Open Takt at login": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt bei der Anmeldung öffnen"
+          }
+        }
+      }
+    },
+    "Open at login": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei der Anmeldung öffnen"
+          }
+        }
+      }
+    },
     "Open main window": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Hauptfenster öffnen"
+          }
+        }
+      }
+    },
+    "Open the popover": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popover öffnen"
           }
         }
       }
@@ -687,6 +967,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parallele Zeit"
+          }
+        }
+      }
+    },
+    "Parallel time is split: 60 min in total, as on the clock.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallele Zeit wird geteilt: 60 min insgesamt, wie auf der Uhr."
           }
         }
       }
@@ -717,6 +1007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle pausieren"
+          }
+        }
+      }
+    },
+    "Pause or resume all": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle pausieren oder fortsetzen"
           }
         }
       }
@@ -771,6 +1071,16 @@
         }
       }
     },
+    "Press it in any app to open Takt, type two letters and hit Return.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drück es in jeder App, um Takt zu öffnen, tipp zwei Buchstaben und drück Return."
+          }
+        }
+      }
+    },
     "Previous": {
       "localizations": {
         "de": {
@@ -811,6 +1121,16 @@
         }
       }
     },
+    "Raw data stays exact to the second; rounding applies to export and bookings only.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rohdaten bleiben sekundengenau; gerundet wird nur für Export und Buchungen."
+          }
+        }
+      }
+    },
     "Recent": {
       "localizations": {
         "de": {
@@ -827,6 +1147,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Umbenennen"
+          }
+        }
+      }
+    },
+    "Replace All Data": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Daten ersetzen"
+          }
+        }
+      }
+    },
+    "Replace all data with the backup?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Daten durch die Sicherung ersetzen?"
           }
         }
       }
@@ -871,12 +1211,32 @@
         }
       }
     },
+    "Rounding": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rundung"
+          }
+        }
+      }
+    },
     "Running": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Läuft"
+          }
+        }
+      }
+    },
+    "Save Backup as JSON …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung als JSON speichern …"
           }
         }
       }
@@ -911,6 +1271,26 @@
         }
       }
     },
+    "Set by your organization": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von deiner Organisation vorgegeben"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einstellungen"
+          }
+        }
+      }
+    },
     "Shared": {
       "localizations": {
         "de": {
@@ -921,12 +1301,52 @@
         }
       }
     },
+    "Shared: split by weight": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geteilt: nach Gewicht verteilt"
+          }
+        }
+      }
+    },
+    "Shortcuts": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehle"
+          }
+        }
+      }
+    },
     "Show Archived": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Archivierte anzeigen"
+          }
+        }
+      }
+    },
+    "Show running time in the menu bar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laufzeit in der Menüleiste zeigen"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überspringen"
           }
         }
       }
@@ -957,6 +1377,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Teilen um"
+          }
+        }
+      }
+    },
+    "Start using Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los geht’s"
+          }
+        }
+      }
+    },
+    "Starting a timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer starten"
+          }
+        }
+      }
+    },
+    "Step %lld of 3": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schritt %lld von 3"
           }
         }
       }
@@ -997,6 +1447,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Support"
+          }
+        }
+      }
+    },
+    "Switch (pauses running timers)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechseln (pausiert laufende Timer)"
+          }
+        }
+      }
+    },
+    "Switch: the new timer pauses the running one": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechseln: der neue Timer pausiert den laufenden"
           }
         }
       }
@@ -1061,6 +1531,16 @@
         }
       }
     },
+    "The backup could not be imported. Nothing was changed.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Sicherung konnte nicht importiert werden. Nichts wurde geändert."
+          }
+        }
+      }
+    },
     "The entry was changed in the meantime.": {
       "localizations": {
         "de": {
@@ -1081,6 +1561,16 @@
         }
       }
     },
+    "Ticket": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket"
+          }
+        }
+      }
+    },
     "Time": {
       "localizations": {
         "de": {
@@ -1097,6 +1587,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tageszeit"
+          }
+        }
+      }
+    },
+    "Timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer"
           }
         }
       }
@@ -1147,6 +1647,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erfasst"
+          }
+        }
+      }
+    },
+    "Try it now.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probier es jetzt aus."
           }
         }
       }
@@ -1241,6 +1751,36 @@
         }
       }
     },
+    "Works. Takt is one keystroke away.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klappt. Takt ist nur einen Tastendruck entfernt."
+          }
+        }
+      }
+    },
+    "You can change this at any time, also per entry.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du kannst das jederzeit ändern, auch pro Eintrag."
+          }
+        }
+      }
+    },
+    "Your shortcut": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Kurzbefehl"
+          }
+        }
+      }
+    },
     "calendar": {
       "localizations": {
         "de": {
@@ -1277,6 +1817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "live"
+          }
+        }
+      }
+    },
+    "macOS did not allow opening Takt at login.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS hat das Öffnen bei der Anmeldung nicht erlaubt."
           }
         }
       }

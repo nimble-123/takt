@@ -20,6 +20,7 @@ struct MenuBarModelTests {
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
         model = MenuBarModel(
             engine: engine, queries: EntryQueries(database: database), catalog: catalog, clock: clock,
+            settings: AppSettings(defaults: UserDefaults(suiteName: "takt-tests-\(UUID().uuidString)") ?? .standard),
             calendar: calendar
         )
     }
@@ -40,10 +41,10 @@ struct MenuBarModelTests {
 
     @Test func enterStartsTypedTitleAndSwitches() async throws {
         model.query = "Review"
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         clock.advance(seconds: 60)
         model.query = "Ticket"
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         try await sync()
 
         #expect(model.snapshot.running.map(\.entry.title) == ["Ticket"])
@@ -53,9 +54,9 @@ struct MenuBarModelTests {
 
     @Test func optionEnterStartsInParallel() async throws {
         model.query = "Meeting"
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         model.query = "Ticket"
-        await model.submit(parallel: true)
+        await model.submit(alternate: true)
         try await sync()
 
         #expect(Set(model.snapshot.running.map(\.entry.title)) == ["Meeting", "Ticket"])
@@ -63,7 +64,7 @@ struct MenuBarModelTests {
 
     @Test func emptyQueryDoesNotStart() async throws {
         model.query = "   "
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         try await sync()
         #expect(model.snapshot.entries.isEmpty)
     }
@@ -77,7 +78,7 @@ struct MenuBarModelTests {
         #expect(model.suggestions.map(\.draft.title) == ["Bug 1234 Token"])
         model.moveSelection(by: 1)
         #expect(model.selection == 0)
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         try await sync()
         #expect(model.snapshot.running.map(\.entry.title) == ["Bug 1234 Token"])
     }
@@ -242,7 +243,7 @@ extension MenuBarModelTests {
         #expect(suggestion.subtitle == "Kundenportal")
 
         model.moveSelection(by: 1)
-        await model.submit(parallel: false)
+        await model.submit(alternate: false)
         try await sync()
         let running = try #require(model.snapshot.running.first?.entry)
         #expect(running.title == "Login-Refactoring")
@@ -261,5 +262,22 @@ extension MenuBarModelTests {
 
         #expect(model.todayByCategory.map(\.categoryID) == [development.id, nil])
         #expect(model.todayByCategory.map(\.seconds) == [1800, 600])
+    }
+}
+
+extension MenuBarModelTests {
+    @Test func enterUsesTheConfiguredStartMode() async throws {
+        model.settings.startMode = .parallel
+        model.query = "A"
+        await model.submit(alternate: false)
+        model.query = "B"
+        await model.submit(alternate: false)
+        try await sync()
+        #expect(model.snapshot.running.count == 2)
+
+        model.query = "C"
+        await model.submit(alternate: true)
+        try await sync()
+        #expect(model.snapshot.running.map(\.entry.title) == ["C"])
     }
 }

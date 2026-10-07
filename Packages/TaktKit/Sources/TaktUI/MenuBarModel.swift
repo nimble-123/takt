@@ -39,7 +39,7 @@ public final class MenuBarModel {
     public private(set) var todayTotal: TimeInterval = 0
     /// Today's time per category, largest first (DESIGN: "Tagesfortschritt nach Kategorie").
     public private(set) var todayByCategory: [CategoryShare] = []
-    public var dailyGoal: TimeInterval
+    public var dailyGoal: TimeInterval { settings.dailyGoal }
     public private(set) var toast: Toast?
     public private(set) var errorMessage: String?
     /// Opens the main window; set by the app.
@@ -55,6 +55,7 @@ public final class MenuBarModel {
 
     private let engine: TimerEngine
     public let catalog: CatalogModel
+    public let settings: AppSettings
     let queries: EntryQueries
     private let clock: any TaktClock
     private let calendar: Calendar
@@ -70,15 +71,15 @@ public final class MenuBarModel {
         queries: EntryQueries,
         catalog: CatalogModel,
         clock: any TaktClock,
-        calendar: Calendar = .current,
-        dailyGoal: TimeInterval = 8 * 3600
+        settings: AppSettings,
+        calendar: Calendar = .current
     ) {
         self.engine = engine
         self.catalog = catalog
         self.queries = queries
         self.clock = clock
         self.calendar = calendar
-        self.dailyGoal = dailyGoal
+        self.settings = settings
     }
 
     /// Follows the engine until the task is cancelled.
@@ -173,8 +174,9 @@ public final class MenuBarModel {
         selection = next < 0 || next >= count ? nil : next
     }
 
-    /// Enter starts the highlighted suggestion or the typed text; ⌥↩ starts in parallel (TM-05).
-    public func submit(parallel: Bool) async {
+    /// Enter starts the highlighted suggestion or the typed text in the configured start mode;
+    /// ⌥↩ (`alternate`) uses the other mode (TM-05).
+    public func submit(alternate: Bool) async {
         let draft: EntryDraft
         if let selection, suggestions.indices.contains(selection) {
             draft = suggestions[selection].draft
@@ -184,14 +186,15 @@ public final class MenuBarModel {
             draft = EntryDraft(title: title)
         }
         query = ""
-        await start(draft, parallel: parallel)
+        let parallel = settings.startMode == .parallel
+        await start(draft, parallel: alternate ? !parallel : parallel)
     }
 
     /// ⌘1–⌘4 (MB-05).
-    public func startRecent(at index: Int, parallel: Bool = false) async {
+    public func startRecent(at index: Int) async {
         let recent = Array(recents.prefix(Self.recentCount))
         guard recent.indices.contains(index) else { return }
-        await start(recent[index], parallel: parallel)
+        await start(recent[index], parallel: settings.startMode == .parallel)
     }
 
     public func start(_ draft: EntryDraft, parallel: Bool) async {
