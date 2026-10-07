@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.composition = composition
         panel = PopoverPanel(rootView: PopoverView(model: composition.menuBar))
         statusItem = makeStatusItem()
+        composition.onIdleNeedsDecision = { [weak self] in self?.showPanel() }
         composition.launch()
 
         GlobalShortcut.togglePopover.onKeyUp { [weak self] in
@@ -77,13 +78,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func togglePanel() {
-        guard let panel, let button = statusItem?.button else { return }
-        if panel.isVisible {
-            panel.orderOut(nil)
+        if panel?.isVisible == true {
+            panel?.orderOut(nil)
         } else {
-            composition?.menuBar.popoverDidOpen()
-            panel.show(below: button)
+            showPanel()
         }
+    }
+
+    private func showPanel() {
+        guard let panel, let button = statusItem?.button, !panel.isVisible else { return }
+        composition?.menuBar.popoverDidOpen()
+        panel.show(below: button)
     }
 
     /// Redraws the status item whenever the timer state changes.

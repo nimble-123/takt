@@ -39,6 +39,12 @@ public enum DurationText {
         return "\(minutes / 60):\(pad(minutes % 60))"
     }
 
+    /// `24 min`, `1 h 05 min` – spans in sentences.
+    public static func span(_ seconds: TimeInterval) -> String {
+        let minutes = Int((max(0, seconds) / 60).rounded())
+        return minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h \(pad(minutes % 60)) min"
+    }
+
     /// `0:07:09`, `12:05:00` – live time in the popover.
     public static func clock(_ seconds: TimeInterval) -> String {
         let total = Int(max(0, seconds))

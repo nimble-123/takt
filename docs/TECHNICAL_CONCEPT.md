@@ -209,7 +209,8 @@ public actor TimerEngine {
     public func stop(_ id: EntryID) async throws -> TimerUndo
     public func pauseAll() async throws -> CommandResult<GlobalPauseID?>
     public func resumeAll(_ pause: GlobalPauseID) async throws -> TimerUndo
-    public func resolveIdle(_ event: IdleEvent, _ resolution: IdleResolution) async throws -> TimerUndo
+    public func recordIdle(from start: Timestamp, to end: Timestamp) async throws -> IdleEvent?
+    public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> TimerUndo
     public func undo(_ undo: TimerUndo) async throws -> TimerUndo   // liefert das Redo
     public func updates() async throws -> AsyncStream<TimerSnapshot>
 }
@@ -258,7 +259,7 @@ Der Sweep läuft in O(n log n) über die Segmente des Zeitraums. Rundung (z. B. 
 
 | Signal | Quelle | Verhalten |
 | --- | --- | --- |
-| Leerlauf | `CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType: .null)`, alle 30 s abgefragt, nur wenn ein Timer läuft | Ab Schwelle (Default 10 min) Beginn der Inaktivität = letzte Eingabe; Dialog erst bei Rückkehr |
+| Leerlauf | `CGEventSource.secondsSinceLastEventType(.hidSystemState, eventType:)` mit `kCGAnyInputEventType` (`~0`), alle 30 s abgefragt, nur wenn ein Timer läuft | Ab Schwelle (Default 10 min) Beginn der Inaktivität = letzte Eingabe; Dialog erst bei Rückkehr |
 | Ruhezustand | `NSWorkspace.willSleepNotification` / `didWakeNotification` | Wie Leerlauf, Beginn = Einschlafzeitpunkt |
 | Bildschirmsperre | `DistributedNotificationCenter`: `com.apple.screenIsLocked` / `com.apple.screenIsUnlocked` | Wie Leerlauf; optional automatisch als Pause werten |
 | Uhrzeit- oder Zeitzonenwechsel | `NSSystemClockDidChange`, `NSSystemTimeZoneDidChange` | Anzeige neu berechnen; gespeicherte UTC-Zeiten bleiben gültig |
@@ -266,6 +267,17 @@ Der Sweep läuft in O(n log n) über die Segmente des Zeitraums. Rundung (z. B. 
 | Hinweise | `UserNotifications` mit Aktions-Buttons | Inaktivität, Langläufer (> 10 h), Tagesabschluss, später Terminbeginn |
 
 Kurze Unterbrechungen unter der Schwelle zählen weiter als Arbeitszeit.
+
+Der `IdleMonitor` merkt sich den Beginn der Abwesenheit und schreibt erst bei der Rückkehr: `recordIdle` schließt die laufenden Segmente beim Beginn und pausiert die Einträge, das offene `idle_event` wartet auf den Dialog. Die Entscheidungen:
+
+| Entscheidung | Wirkung |
+| --- | --- |
+| Als Arbeitszeit behalten | Segment `idle` über die Abwesenheit, weiter ab Rückkehr |
+| Als Pause werten (Default) | Einträge bleiben pausiert |
+| Verwerfen | Lücke, weiter ab Rückkehr |
+| Anderem Task zuordnen | Neuer gestoppter Eintrag mit Segment `idle`, die anderen laufen ab Rückkehr weiter |
+
+Schwelle (`idleThresholdMinutes`) und „Sperre als Pause“ (`lockCountsAsPause`) liegen in `UserDefaults`, damit ein MDM-Profil sie vorgeben kann.
 
 ## Menüleiste und UI-Architektur
 

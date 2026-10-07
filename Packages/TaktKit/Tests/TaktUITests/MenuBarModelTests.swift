@@ -206,5 +206,23 @@ struct MenuBarStatusTests {
         #expect(DurationText.clock(3 * 3600 + 7 * 60 + 9) == "3:07:09")
         #expect(DurationText.hoursMinutes(59) == "0:00")
         #expect(DurationText.hoursMinutes(-5) == "0:00")
+        #expect(DurationText.span(24 * 60) == "24 min")
+        #expect(DurationText.span(65 * 60) == "1 h 05 min")
+    }
+}
+
+extension MenuBarModelTests {
+    @Test func pendingIdleIsShownAndResolved() async throws {
+        await model.start(EntryDraft(title: "A"), parallel: false)
+        let start = clock.now().adding(seconds: 600)
+        clock.advance(seconds: 3000)
+        _ = try await engine.recordIdle(from: start, to: clock.now())
+        try await sync()
+        #expect(model.pendingIdle?.start == start)
+
+        await model.resolveIdle(.discard)
+        try await sync()
+        #expect(model.pendingIdle == nil)
+        #expect(model.snapshot.running.map(\.entry.title) == ["A"])
     }
 }

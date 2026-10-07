@@ -26,11 +26,25 @@ public struct CommandResult<Value: Sendable>: Sendable {
     public var undo: TimerUndo
 }
 
+/// What the user decided about inactivity (TM-06).
+public enum IdleDecision: Hashable, Sendable {
+    /// The time counts as work; the entries continue from the return.
+    case keep
+    /// The time is a pause; the entries stay paused.
+    case pause
+    /// The time is dropped; the entries continue from the return.
+    case discard
+    /// The time belongs to a new entry; the entries continue from the return.
+    case reassign(EntryDraft)
+}
+
 public enum TimerError: Error, Equatable {
     /// The entry is not running or paused (stopped, deleted or unknown).
     case entryNotActive(EntryID)
     /// The global pause is not the open one.
     case globalPauseNotOpen(GlobalPauseID)
+    /// The idle event is unknown or already decided.
+    case idleEventNotPending(IdleEventID)
 }
 
 /// Serialises all timer commands. Each command is exactly one `TimerStore.update` transaction:
@@ -60,19 +74,7 @@ public actor TimerEngine {
         let now = clock.now()
         return try await perform { snapshot in
             var changes = mode == .switchTo ? Self.pauseChanges(snapshot.running, at: now) : []
-            let entry = TimeEntry(
-                title: draft.title,
-                projectID: draft.projectID,
-                taskID: draft.taskID,
-                categoryID: draft.categoryID,
-                workItemLinkID: draft.workItemLinkID,
-                note: draft.note,
-                countingMode: draft.countingMode,
-                weight: draft.weight,
-                state: .running,
-                createdAt: now,
-                updatedAt: now
-            )
+            let entry = Self.entry(from: draft, state: .running, at: now)
             changes.append(.entry(before: nil, after: entry))
             changes.append(.segment(before: nil, after: Segment(entryID: entry.id, start: now)))
             return TimerUpdate(changes: changes, result: entry.id)
@@ -96,7 +98,7 @@ public actor TimerEngine {
             guard active.entry.state == .paused else { return TimerUpdate(changes: []) }
             let others = snapshot.running.filter { $0.id != id }
             var changes = mode == .switchTo ? Self.pauseChanges(others, at: now) : []
-            changes += Self.resumeChanges([active], at: now)
+            changes += Self.resumeChanges([active], at: now, updatedAt: now)
             return TimerUpdate(changes: changes)
         }.undo
     }
@@ -145,7 +147,9 @@ public actor TimerEngine {
             var closed = open
             closed.resumedAt = now
             return TimerUpdate(
-                changes: Self.resumeChanges(toResume, at: now) + [.globalPause(before: open, after: closed)]
+                changes: Self.resumeChanges(toResume, at: now, updatedAt: now) + [
+                    .globalPause(before: open, after: closed)
+                ]
             )
         }.undo
     }
@@ -174,6 +178,64 @@ public actor TimerEngine {
         return event
     }
 
+    /// Records inactivity from `start` to `end` (TM-06, TM-07). The running entries are paused at
+    /// `start`; the user decides with `resolveIdle`. Returns `nil` if nothing was running.
+    @discardableResult
+    public func recordIdle(from start: Timestamp, to end: Timestamp) async throws -> IdleEvent? {
+        let now = clock.now()
+        return try await perform { snapshot -> TimerUpdate<IdleEvent?> in
+            let running = snapshot.running
+            guard !running.isEmpty, end > start else { return TimerUpdate(changes: [], result: nil) }
+            let event = IdleEvent(start: start, end: end, entryIDs: running.map(\.id))
+            var changes = Self.closeChanges(running, state: .paused, at: start, updatedAt: now)
+            changes.append(.idleEvent(before: nil, after: event))
+            return TimerUpdate(changes: changes, result: event)
+        }.value
+    }
+
+    /// Applies the user's decision on an idle event. Entries that were resumed or stopped
+    /// in the meantime stay as they are.
+    @discardableResult
+    public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> TimerUndo {
+        let now = clock.now()
+        return try await perform { snapshot in
+            guard let event = snapshot.pendingIdleEvents.first(where: { $0.id == id }) else {
+                throw TimerError.idleEventNotPending(id)
+            }
+            let paused = snapshot.paused.filter { event.entryIDs.contains($0.id) }
+            var resolved = event
+            var changes: [TimerChange] = []
+            switch decision {
+            case .keep:
+                resolved.resolution = .kept
+                for active in paused {
+                    let idle = Segment(entryID: active.id, start: event.start, end: event.end, source: .idle)
+                    changes.append(.segment(before: nil, after: idle))
+                }
+                changes += Self.resumeChanges(paused, at: event.end, updatedAt: now)
+            case .pause:
+                resolved.resolution = .pause
+            case .discard:
+                resolved.resolution = .discarded
+                changes += Self.resumeChanges(paused, at: event.end, updatedAt: now)
+            case .reassign(let draft):
+                resolved.resolution = .reassigned
+                let target = Self.entry(from: draft, state: .stopped, at: now)
+                resolved.targetEntryID = target.id
+                changes.append(.entry(before: nil, after: target))
+                changes.append(
+                    .segment(
+                        before: nil,
+                        after: Segment(entryID: target.id, start: event.start, end: event.end, source: .idle)
+                    )
+                )
+                changes += Self.resumeChanges(paused, at: event.end, updatedAt: now)
+            }
+            changes.append(.idleEvent(before: event, after: resolved))
+            return TimerUpdate(changes: changes)
+        }.undo
+    }
+
     /// Writes edits made outside the timer commands, e.g. a note or a corrected segment.
     /// Each change must state the row as currently stored; otherwise nothing is written.
     @discardableResult
@@ -188,6 +250,10 @@ public actor TimerEngine {
     }
 
     // MARK: Observation
+
+    public func snapshot() async throws -> TimerSnapshot {
+        try await store.snapshot()
+    }
 
     /// The current snapshot, then one after every command.
     public func updates() async throws -> AsyncStream<TimerSnapshot> {
@@ -229,6 +295,22 @@ public actor TimerEngine {
         return result
     }
 
+    private static func entry(from draft: EntryDraft, state: EntryState, at now: Timestamp) -> TimeEntry {
+        TimeEntry(
+            title: draft.title,
+            projectID: draft.projectID,
+            taskID: draft.taskID,
+            categoryID: draft.categoryID,
+            workItemLinkID: draft.workItemLinkID,
+            note: draft.note,
+            countingMode: draft.countingMode,
+            weight: draft.weight,
+            state: state,
+            createdAt: now,
+            updatedAt: now
+        )
+    }
+
     private static func active(_ id: EntryID, in snapshot: TimerSnapshot) throws -> ActiveEntry {
         guard let active = snapshot.entry(id) else { throw TimerError.entryNotActive(id) }
         return active
@@ -262,14 +344,17 @@ public actor TimerEngine {
         }
     }
 
-    private static func resumeChanges(_ entries: [ActiveEntry], at now: Timestamp) -> [TimerChange] {
+    /// Resumes entries with a new open segment from `start`.
+    private static func resumeChanges(
+        _ entries: [ActiveEntry], at start: Timestamp, updatedAt now: Timestamp
+    ) -> [TimerChange] {
         entries.flatMap { active -> [TimerChange] in
             var entry = active.entry
             entry.state = .running
             entry.updatedAt = now
             return [
                 .entry(before: active.entry, after: entry),
-                .segment(before: nil, after: Segment(entryID: entry.id, start: now)),
+                .segment(before: nil, after: Segment(entryID: entry.id, start: start)),
             ]
         }
     }
