@@ -15,7 +15,15 @@ public struct PopoverView: View {
         VStack(alignment: .leading, spacing: 0) {
             searchField
                 .padding(12)
-            if !model.query.isEmpty {
+            let chips = model.tokens.chips
+            if !chips.isEmpty {
+                TokenChips(chips: chips)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+            }
+            if !model.completions.isEmpty {
+                CompletionList(model: model)
+            } else if !model.query.isEmpty {
                 SuggestionList(model: model)
             }
             Divider().overlay(Palette.separator)
@@ -83,6 +91,14 @@ public struct PopoverView: View {
                     let alternate = press.modifiers.contains(.option)
                     Task { await model.submit(alternate: alternate) }
                     return .handled
+                }
+                .onKeyPress(.tab) {
+                    // Tab takes the highlighted completion of a token (MB-09).
+                    model.acceptCompletion() ? .handled : .ignored
+                }
+                .onKeyPress(.escape) {
+                    // Esc closes the completions first; otherwise the popover handles it.
+                    model.dismissCompletions() ? .handled : .ignored
                 }
                 .onKeyPress(.space) {
                     // Space previews a selected work item; otherwise it types a space.
@@ -162,7 +178,7 @@ struct SuggestionList: View {
                         .padding(.top, index == 0 ? 0 : 6)
                 }
                 Button {
-                    Task { await model.start(suggestion.draft, parallel: model.settings.startMode == .parallel) }
+                    Task { await model.start(suggestion: suggestion, parallel: model.settings.startMode == .parallel) }
                 } label: {
                     if let item = suggestion.workItem {
                         WorkItemRow(item: item, query: model.query, selected: model.selection == index)
@@ -221,6 +237,115 @@ struct SuggestionList: View {
         .frame(minHeight: 28)
         .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
+    }
+}
+
+/// Tokens recognised in the search field (MB-09); unresolved ones in amber.
+struct TokenChips: View {
+    let chips: [StartTokens.Chip]
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(chips) { chip in
+                HStack(spacing: 3) {
+                    Image(systemName: chip.kind.symbol)
+                        .imageScale(.small)
+                        .accessibilityHidden(true)
+                    Text(chip.label)
+                        .lineLimit(1)
+                }
+                .font(.system(size: 11, weight: .medium))
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .foregroundStyle(chip.resolved ? Palette.accentText : Palette.warning)
+                .background(chip.resolved ? Palette.accentSurface : Palette.warningSurface, in: Capsule())
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(chip.accessibilityLabel)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+/// Completions while a token is typed after `@`, `/` or `#` (MB-09).
+struct CompletionList: View {
+    let model: MenuBarModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ForEach(Array(model.completions.enumerated()), id: \.element.id) { index, completion in
+                let selected = index == model.completionSelection
+                Button {
+                    model.completionSelection = index
+                    model.acceptCompletion()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: completion.kind.symbol)
+                            .foregroundStyle(Palette.textSecondary)
+                            .frame(width: 16)
+                            .accessibilityHidden(true)
+                        Text(completion.title).lineLimit(1)
+                        if let subtitle = completion.subtitle {
+                            Text(subtitle)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Palette.textSecondary)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        if selected {
+                            Text("⇥").foregroundStyle(Palette.textSecondary)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .frame(minHeight: 28)
+                    .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 6))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            Text("⇥ Complete  Esc Close", bundle: .module)
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
+    }
+}
+
+extension StartTokens.Chip.Kind {
+    var symbol: String {
+        switch self {
+        case .category: "square.stack"
+        case .project: "folder"
+        case .task: "checklist"
+        case .tag: "number"
+        }
+    }
+}
+
+extension StartTokens.Chip {
+    var accessibilityLabel: String {
+        let name: String
+        switch kind {
+        case .category: name = String(localized: "Category \(label)", bundle: .module)
+        case .project: name = String(localized: "Project \(label)", bundle: .module)
+        case .task: name = String(localized: "Task \(label)", bundle: .module)
+        case .tag: name = String(localized: "Tag \(label)", bundle: .module)
+        }
+        return resolved ? name : String(localized: "\(name), not found", bundle: .module)
+    }
+}
+
+extension StartTokens.Completion {
+    var kind: StartTokens.Chip.Kind {
+        switch token {
+        case .category: .category
+        case .project(_, task: nil): .project
+        case .project: .task
+        case .tag: .tag
+        }
     }
 }
 

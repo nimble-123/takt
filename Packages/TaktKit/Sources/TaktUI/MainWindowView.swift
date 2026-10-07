@@ -223,12 +223,17 @@ struct DayScreen: View {
                         .padding(.vertical, 12)
                         .padding(.trailing, 12)
                 }
-                .onAppear {
-                    // After the first layout pass, otherwise the rows have no position yet.
-                    DispatchQueue.main.async { proxy.scrollTo(8, anchor: .top) }
-                }
+                .onAppear { scrollToNow(proxy) }
+                .onChange(of: model.dayRange) { scrollToNow(proxy) }
             }
         }
+    }
+
+    /// Today opens at the current hour, other days at 8:00.
+    private func scrollToNow(_ proxy: ScrollViewProxy) {
+        let row = TimelineLayout.initialScrollRow(day: model.dayRange, now: model.now)
+        // After the first layout pass, otherwise the rows have no position yet.
+        DispatchQueue.main.async { proxy.scrollTo(row, anchor: .top) }
     }
 }
 
@@ -294,12 +299,19 @@ struct WeekScreen: View {
                     .padding(.vertical, 12)
                     .padding(.trailing, 8)
                 }
-                .onAppear {
-                    // After the first layout pass, otherwise the rows have no position yet.
-                    DispatchQueue.main.async { proxy.scrollTo(8, anchor: .top) }
-                }
+                .onAppear { scrollToNow(proxy) }
+                .onChange(of: model.weekRange) { scrollToNow(proxy) }
             }
         }
+    }
+
+    /// The current week opens at the current hour, other weeks at 8:00.
+    private func scrollToNow(_ proxy: ScrollViewProxy) {
+        let now = model.now
+        let today = model.weekDays.first { $0.contains(now) }
+        let row = today.map { TimelineLayout.initialScrollRow(day: $0, now: now) } ?? 8
+        // After the first layout pass, otherwise the rows have no position yet.
+        DispatchQueue.main.async { proxy.scrollTo(row, anchor: .top) }
     }
 }
 

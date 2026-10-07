@@ -61,6 +61,16 @@
         }
       }
     },
+    "%@, not found": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, nicht gefunden"
+          }
+        }
+      }
+    },
     "%lld entries selected": {
       "localizations": {
         "de": {
@@ -417,6 +427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kategorie"
+          }
+        }
+      }
+    },
+    "Category %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kategorie %@"
           }
         }
       }
@@ -1321,6 +1341,16 @@
         }
       }
     },
+    "New tag": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Tag"
+          }
+        }
+      }
+    },
     "New task": {
       "localizations": {
         "de": {
@@ -1687,6 +1717,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Projekt"
+          }
+        }
+      }
+    },
+    "Project %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekt %@"
           }
         }
       }
@@ -2271,6 +2311,16 @@
         }
       }
     },
+    "Tag %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag %@"
+          }
+        }
+      }
+    },
     "Tags": {
       "localizations": {
         "de": {
@@ -2347,6 +2397,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Task"
+          }
+        }
+      }
+    },
+    "Task %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task %@"
           }
         }
       }
@@ -2887,6 +2947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "↩ Starten"
+          }
+        }
+      }
+    },
+    "⇥ Complete  Esc Close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⇥ Übernehmen  Esc Schließen"
           }
         }
       }
