@@ -36,7 +36,7 @@ struct StartTokensTests {
         let task = try #require(await catalog.addTask(named: "API-Dokumentation", to: project.id))
 
         model.query = "Doku überarbeiten @codereview /kunden/api #release #Q3 "
-        #expect(model.tokens.chips.allSatisfy(\.resolved))
+        #expect(model.tokens.chips.allSatisfy { $0.resolved })
         await model.submit(alternate: false)
         try await sync()
 
