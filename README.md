@@ -17,7 +17,7 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/en/v1.0.0/)
 [![Last commit](https://img.shields.io/github/last-commit/nimble-123/takt)](https://github.com/nimble-123/takt/commits/main)
 
-[Features](#features) · [Architecture](#architecture) · [Install](#install) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
+[Website](https://nimble-123.github.io/takt/) · [Features](#features) · [Architecture](#architecture) · [Install](#install) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
 
 </div>
 
