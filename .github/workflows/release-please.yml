@@ -12,7 +12,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           # Optionales Secret: PRs mit dem Standard-Token starten keine weiteren Workflows (siehe docs/RELEASING.md).
           token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}
