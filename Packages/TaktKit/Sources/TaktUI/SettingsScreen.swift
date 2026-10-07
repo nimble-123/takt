@@ -18,6 +18,31 @@ struct SettingsScreen: View {
             if let azureDevOps = model.azureDevOps {
                 AzureDevOpsSettings(model: azureDevOps)
             }
+            Section {
+                ForEach(settings.gitFolders, id: \.self) { folder in
+                    HStack {
+                        Label(folder, systemImage: "folder")
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        Spacer()
+                        Button(String(localized: "Remove", bundle: .module)) {
+                            settings.gitFolders.removeAll { $0 == folder }
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+                Button(String(localized: "Add Folder …", bundle: .module), action: addGitFolder)
+            } header: {
+                Text("Git branches", bundle: .module)
+            } footer: {
+                Text(
+                    "Takt reads the checked-out branch of these repositories and of their direct subfolders. A branch like “feature/1234-login” suggests work item 1234.",
+                    bundle: .module
+                )
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+            }
+
             Section(String(localized: "General", bundle: .module)) {
                 Toggle(String(localized: "Open at login", bundle: .module), isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { setLaunchAtLogin(launchAtLogin) }
@@ -149,6 +174,17 @@ struct SettingsScreen: View {
             }
         } message: {
             Text("Entries, projects and settings stored in Takt are replaced. This cannot be undone.", bundle: .module)
+        }
+    }
+
+    private func addGitFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = true
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls where !settings.gitFolders.contains(url.path) {
+            settings.gitFolders.append(url.path)
         }
     }
 

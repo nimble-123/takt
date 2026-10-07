@@ -339,6 +339,8 @@ Eine Buchung ist ein einziger JSON-Patch. Der Kommentar steht im selben Patch un
 
 **Suche und Cache (DO-10–DO-13).** `work_item_link` ist zugleich der lokale Work-Item-Cache: Jeder Treffer aus Suche und Vorschlägen wird mit den Feldern der Kompaktvorschau gespeichert (Migration `v2-work-item-details`), Einträge verweisen darauf. Beim Tippen erscheinen Cache-Treffer sofort; nach 250 ms Tipp-Pause fragt Takt alle verbundenen Organisationen, frische Treffer ersetzen gecachte. Eine ID (`#1234`, `1234`) wird direkt über `workitemsbatch` geholt. Ein Timer aus einem Work Item übernimmt den Titel, verknüpft das Item und ordnet das übernommene ADO-Projekt zu. Leertaste öffnet die Detailvorschau nur, wenn ein Treffer ausgewählt ist; sonst tippt sie ein Leerzeichen.
 
+**Vorschläge aus dem Git-Branch.** In den Einstellungen gewählte Ordner (`gitFolders`) und ihre direkten Unterordner gelten als Repositories. Takt liest `.git/HEAD` selbst (auch die `gitdir:`-Datei von Worktrees), ruft also kein `git` auf; der Zeitpunkt des Wechsels ist das Änderungsdatum von `HEAD`. `TaktCore.BranchName` erkennt `AB#1234`, `#1234` und Pfadsegmente, die mit einer mindestens zweistelligen Zahl beginnen (`feature/1234-login`). Ein in den letzten 12 Stunden gewechselter Branch steht ganz oben unter „Vorgeschlagen“; ein neuer Wechsel lädt die Vorschläge sofort neu.
+
 **Zur Laufzeit erkannt, nicht konfiguriert**
 
 - **Suche:** Takt prüft einmal pro Organisation, ob die Work-Item-Suche verfügbar ist. Ja: Volltextsuche über Titel und Beschreibung. Nein: WIQL mit `CONTAINS` auf den Titel.

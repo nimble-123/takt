@@ -62,7 +62,11 @@ final class Composition {
         let workItems = AzureDevOpsWorkItems(accounts: accounts, cache: cache, clock: clock)
         menuBar = MenuBarModel(
             engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings,
-            workItems: workItems, rules: rules
+            workItems: workItems, rules: rules,
+            gitBranches: {
+                let folders = UserDefaults.standard.stringArray(forKey: "gitFolders") ?? []
+                return GitBranches(folders: folders.map { URL(filePath: $0) }).current()
+            }
         )
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,

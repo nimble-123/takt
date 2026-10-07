@@ -235,7 +235,15 @@ struct SuggestedWorkItems: View {
                 Button {
                     Task { await model.start(model.draft(for: item), parallel: model.settings.startMode == .parallel) }
                 } label: {
-                    WorkItemRow(item: item, query: "", selected: false, compact: true)
+                    VStack(alignment: .leading, spacing: 0) {
+                        WorkItemRow(item: item, query: "", selected: false, compact: true)
+                        if let reason = model.suggestionReasons[item.id] {
+                            Label(reason, systemImage: "arrow.triangle.branch")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Palette.textSecondary)
+                                .padding(.leading, 36)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
             }
