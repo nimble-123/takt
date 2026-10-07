@@ -78,6 +78,7 @@ public final class MenuBarModel {
     private let clock: any TaktClock
     private let calendar: Calendar
     private let workItems: (any WorkItemSource)?
+    private let rules: RulesModel?
     private var searchTask: Task<Void, Never>?
     private var suggestionsLoadedAt: Timestamp?
     private var undoStack: [TimerUndo] = []
@@ -94,9 +95,11 @@ public final class MenuBarModel {
         clock: any TaktClock,
         settings: AppSettings,
         workItems: (any WorkItemSource)? = nil,
+        rules: RulesModel? = nil,
         calendar: Calendar = .current
     ) {
         self.workItems = workItems
+        self.rules = rules
         self.engine = engine
         self.catalog = catalog
         self.queries = queries
@@ -313,8 +316,25 @@ public final class MenuBarModel {
         await start(recent[index], parallel: settings.startMode == .parallel)
     }
 
+    /// The cached work item of a draft, for the rules.
+    private func linkedWorkItem(of draft: EntryDraft) async -> WorkItemLink? {
+        guard let id = draft.workItemLinkID, let workItems else { return nil }
+        return try? await workItems.link(id)
+    }
+
     public func start(_ draft: EntryDraft, parallel: Bool) async {
-        await perform { try await $0.start(draft, mode: parallel ? .parallel : .switchTo).undo }
+        let workItem = await linkedWorkItem(of: draft)
+        let (ruled, tags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
+        var started: EntryID?
+        await perform { engine in
+            let result = try await engine.start(ruled, mode: parallel ? .parallel : .switchTo)
+            started = result.value
+            return result.undo
+        }
+        // Tags from rules (ST-05); the entry is new, so it has none yet.
+        if let started, !tags.isEmpty {
+            await catalog.setTags(named: tags, on: [started])
+        }
     }
 
     // MARK: Timer actions

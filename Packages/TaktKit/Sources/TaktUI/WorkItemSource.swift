@@ -13,6 +13,8 @@ public protocol WorkItemSource: Sendable {
     func suggestions(projects: [String: [String]]) async throws -> [WorkItemLink]
     /// Work items of recently used entries.
     func recentlyUsed() async throws -> [WorkItemLink]
+    /// A cached work item, e.g. to evaluate rules for a linked entry.
+    func link(_ id: WorkItemLinkID) async throws -> WorkItemLink?
 }
 
 /// Searches every connected organization and keeps what it finds in the `WorkItemCache`.
@@ -53,6 +55,10 @@ public actor AzureDevOpsWorkItems: WorkItemSource {
 
     public func recentlyUsed() async throws -> [WorkItemLink] {
         try await cache.recentlyUsed()
+    }
+
+    public func link(_ id: WorkItemLinkID) async throws -> WorkItemLink? {
+        try await cache.link(id)
     }
 
     private func searchesForConnections() throws -> [WorkItemSearch] {

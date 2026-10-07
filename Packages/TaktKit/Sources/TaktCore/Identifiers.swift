@@ -80,3 +80,8 @@ public struct SyncRecordID: UUIDIdentifier {
     public let rawValue: UUID
     public init(rawValue: UUID) { self.rawValue = rawValue }
 }
+
+public struct RuleID: UUIDIdentifier {
+    public let rawValue: UUID
+    public init(rawValue: UUID) { self.rawValue = rawValue }
+}

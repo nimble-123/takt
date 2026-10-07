@@ -16,6 +16,7 @@ final class Composition {
     let engine: TimerEngine
     let settings = AppSettings()
     let catalog: CatalogModel
+    let rules: RulesModel
     let azureDevOps: AzureDevOpsModel
     let booking: BookingCoordinator
     let menuBar: MenuBarModel
@@ -40,6 +41,7 @@ final class Composition {
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         let queries = EntryQueries(database: database)
         catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
+        rules = RulesModel(store: RuleStore(database: database))
         let accounts = ADOAccounts()
         azureDevOps = AzureDevOpsModel(accounts: accounts, catalog: catalog, clock: clock)
         let cache = WorkItemCache(database: database)
@@ -60,13 +62,13 @@ final class Composition {
         let workItems = AzureDevOpsWorkItems(accounts: accounts, cache: cache, clock: clock)
         menuBar = MenuBarModel(
             engine: engine, queries: queries, catalog: catalog, clock: clock, settings: settings,
-            workItems: workItems
+            workItems: workItems, rules: rules
         )
         mainWindow = MainWindowModel(
             engine: engine, queries: queries, catalog: catalog,
             analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
             settings: settings, azureDevOps: azureDevOps, booking: booking, workItems: workItems,
-            search: SearchIndex(database: database),
+            search: SearchIndex(database: database), rules: rules,
             database: database, clock: clock
         )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
@@ -96,6 +98,7 @@ final class Composition {
                     logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
                 }
                 await catalog.seedDefaults()
+                await rules.reload()
                 // Bookings left pending by a crash or while offline (TECHNICAL_CONCEPT step 6).
                 await booking.processPending(force: true)
                 menuBar.onStopped = { [weak self] ids in self?.bookAutomatically(ids) }

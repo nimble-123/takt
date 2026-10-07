@@ -31,6 +31,7 @@ final class FakeWorkItems: WorkItemSource {
 
     func suggestions(projects: [String: [String]]) async throws -> [WorkItemLink] { suggested }
     func recentlyUsed() async throws -> [WorkItemLink] { [] }
+    func link(_ id: WorkItemLinkID) async throws -> WorkItemLink? { (local + remote + suggested).first { $0.id == id } }
 }
 
 @MainActor
