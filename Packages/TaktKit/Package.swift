@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift", from: "7.11.1"),
-        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "1.10.0"),
+        .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "3.1.0"),
     ],
     targets: [
         .target(name: "TaktCore"),
