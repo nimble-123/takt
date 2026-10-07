@@ -91,7 +91,13 @@ The full picture is in the [technical concept](docs/TECHNICAL_CONCEPT.md).
 
 ## Install
 
-Download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
+With [Homebrew](https://brew.sh):
+
+```bash
+brew install --cask nimble-123/tap/takt
+```
+
+Or download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
 
 > [!IMPORTANT]
 > These builds are not signed or notarized yet, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Takt.app`. After each update macOS asks again for access to the Keychain.

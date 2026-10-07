@@ -5,6 +5,7 @@ name: Release-Build
 # - Veröffentlichtes Release: bauen, packen und DMG/ZIP an das Release hängen.
 #   Startet nur, wenn release-please mit RELEASE_PLEASE_TOKEN arbeitet (siehe docs/RELEASING.md).
 # - Manuell: für ein bestehendes Tag neu bauen und hochladen.
+# Nach dem Upload aktualisiert der Job „Homebrew-Tap“ den Cask in nimble-123/homebrew-tap.
 
 on:
   pull_request:
@@ -88,3 +89,60 @@ jobs:
             printf '%s\n\n%s\n' "${notes}" "$(cat note.md)" > notes.md
             gh release edit "${TAG}" --notes-file notes.md
           fi
+
+  homebrew:
+    name: Homebrew-Tap
+    needs: build
+    # Nur für veröffentlichte Releases, nie auf PRs.
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      # Ohne Token warnen statt scheitern: ein fehlendes Secret ist eine Einstellung,
+      # kein kaputtes Release (siehe docs/RELEASING.md).
+      - name: Tap-Token vorhanden?
+        id: token
+        env:
+          TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -z "${TOKEN}" ]; then
+            echo "::warning::HOMEBREW_TAP_TOKEN fehlt - der Cask in nimble-123/homebrew-tap zeigt weiter auf das vorige Release."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v7
+        if: steps.token.outputs.present == 'true'
+        with:
+          repository: nimble-123/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+
+      # Nur die beiden Zeilen, die sich pro Release ändern, werden neu geschrieben.
+      - name: Cask auf die neue DMG zeigen lassen
+        if: steps.token.outputs.present == 'true'
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          version="${TAG#v}"
+          dmg="Takt-${version}-arm64.dmg"
+          curl -fsSL --retry 5 --retry-delay 10 --retry-all-errors \
+            -o "${dmg}" "https://github.com/${REPO}/releases/download/${TAG}/${dmg}"
+          sha="$(sha256sum "${dmg}" | cut -d' ' -f1)"
+          rm "${dmg}"
+          sed -i "s|^  version \".*\"$|  version \"${version}\"|" Casks/takt.rb
+          sed -i "s|^  sha256 \".*\"$|  sha256 \"${sha}\"|" Casks/takt.rb
+          # Ein sed ohne Treffer ließe den Cask still auf dem alten Build; deshalb zurücklesen.
+          grep -qxF "  version \"${version}\"" Casks/takt.rb
+          grep -qxF "  sha256 \"${sha}\"" Casks/takt.rb
+
+      - name: Committen, falls sich etwas geändert hat
+        if: steps.token.outputs.present == 'true'
+        run: |
+          git diff --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: takt ${TAG}" Casks/takt.rb
+          git push
