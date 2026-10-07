@@ -59,6 +59,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     composition.mainWindow.section = section
                 }
                 showMainWindow()
+                if let text = UserDefaults.standard.string(forKey: "searchText") {
+                    composition.mainWindow.searchText = text
+                }
                 if UserDefaults.standard.bool(forKey: "selectFirstEntry") {
                     Task {
                         await composition.mainWindow.reload()

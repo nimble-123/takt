@@ -39,6 +39,14 @@ public final class MainWindowModel {
     public let booking: BookingCoordinator?
     /// Work item search for linking entries.
     public let workItems: (any WorkItemSource)?
+    /// Full-text search (HW-06); `nil` hides the search field.
+    public let search: SearchIndex?
+    /// Text in the window's search field; results replace the screen while it is not empty.
+    public var searchText = "" {
+        didSet { runSearch() }
+    }
+    public private(set) var searchResults = SearchResults()
+    @ObservationIgnored private var searchTask: Task<Void, Never>?
     /// Linked work items of the shown entries.
     public private(set) var workItemLinks: [WorkItemLinkID: WorkItemLink] = [:]
     /// For backup and import in the settings.
@@ -57,6 +65,7 @@ public final class MainWindowModel {
         azureDevOps: AzureDevOpsModel? = nil,
         booking: BookingCoordinator? = nil,
         workItems: (any WorkItemSource)? = nil,
+        search: SearchIndex? = nil,
         database: AppDatabase? = nil,
         clock: any TaktClock,
         calendar: Calendar = .current
@@ -69,6 +78,7 @@ public final class MainWindowModel {
         self.azureDevOps = azureDevOps
         self.booking = booking
         self.workItems = workItems
+        self.search = search
         self.database = database
         self.clock = clock
         self.calendar = calendar
@@ -238,6 +248,59 @@ public final class MainWindowModel {
         if await apply(changes, name: String(localized: "Delete", bundle: .module)) {
             selection.subtract(ids)
         }
+    }
+
+    // MARK: Search (HW-06)
+
+    public struct EntryHit: Hashable, Identifiable {
+        public var entry: EntryWithSegments
+        /// The note excerpt with `**` around the hits.
+        public var snippet: String?
+        public var id: EntryID { entry.id }
+    }
+
+    /// Hits grouped for display; entries carry their segments for date and duration.
+    public struct SearchResults: Hashable {
+        public var entries: [EntryHit] = []
+        public var others: [SearchHit] = []
+
+        public var isEmpty: Bool { entries.isEmpty && others.isEmpty }
+    }
+
+    private func runSearch() {
+        searchTask?.cancel()
+        let text = searchText
+        guard let search, !text.trimmingCharacters(in: .whitespaces).isEmpty else {
+            searchResults = SearchResults()
+            return
+        }
+        searchTask = Task { [weak self] in
+            // Short pause while typing; the index answers in milliseconds.
+            try? await Task.sleep(for: .milliseconds(120))
+            guard !Task.isCancelled, let self else { return }
+            do {
+                let hits = try await search.search(text)
+                let entryHits = hits.filter { $0.kind == .entry }
+                let snippets = Dictionary(
+                    entryHits.map { ($0.ref, $0.snippet) }, uniquingKeysWith: { first, _ in first })
+                let entries = try await self.queries.entries(entryHits.compactMap { EntryID(uuidString: $0.ref) })
+                guard !Task.isCancelled else { return }
+                self.searchResults = SearchResults(
+                    entries: entries.map { EntryHit(entry: $0, snippet: snippets[$0.id.uuidString] ?? nil) },
+                    others: hits.filter { $0.kind != .entry }
+                )
+            } catch {
+                self.show(error)
+            }
+        }
+    }
+
+    /// Opens the day of a found entry in the timeline and selects it.
+    public func reveal(_ entry: EntryWithSegments) {
+        if let start = entry.segments.first?.start { day = start }
+        section = .today
+        selection = [entry.id]
+        searchText = ""
     }
 
     /// Links entries to a work item, or removes the link (DO-10).

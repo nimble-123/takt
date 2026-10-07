@@ -29,17 +29,10 @@ public struct MainWindowView: View {
                         .padding(.vertical, 6)
                         .background(Palette.warningSurface)
                 }
-                switch model.section {
-                case .today: DayScreen(model: model)
-                case .dayClose:
-                    if let booking = model.booking { DayCloseScreen(model: model, booking: booking) }
-                case .week: WeekScreen(model: model)
-                case .entries: EntryListScreen(model: model)
-                case .analytics:
-                    if let analytics = model.analytics { AnalyticsScreen(model: analytics) }
-                case .projects: CatalogScreen(catalog: model.catalog)
-                case .settings:
-                    if let settings = model.settings { SettingsScreen(settings: settings, model: model) }
+                if !model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    SearchResultsScreen(model: model)
+                } else {
+                    sectionContent
                 }
             }
             .inspector(isPresented: inspectorBinding) {
@@ -47,6 +40,7 @@ public struct MainWindowView: View {
                     .inspectorColumnWidth(min: 260, ideal: 300)
             }
         }
+        .modifier(SearchField(model: model))
         .navigationTitle(title)
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
@@ -87,10 +81,26 @@ public struct MainWindowView: View {
         .frame(minWidth: 820, minHeight: 520)
     }
 
-    /// The inspector edits entries; only the timeline, week and list screens show it.
+    @ViewBuilder
+    private var sectionContent: some View {
+        switch model.section {
+        case .today: DayScreen(model: model)
+        case .dayClose:
+            if let booking = model.booking { DayCloseScreen(model: model, booking: booking) }
+        case .week: WeekScreen(model: model)
+        case .entries: EntryListScreen(model: model)
+        case .analytics:
+            if let analytics = model.analytics { AnalyticsScreen(model: analytics) }
+        case .projects: CatalogScreen(catalog: model.catalog)
+        case .settings:
+            if let settings = model.settings { SettingsScreen(settings: settings, model: model) }
+        }
+    }
+
+    /// The inspector edits entries; only the timeline, week and list screens show it, not search results.
     private var inspectorBinding: Binding<Bool> {
         Binding(
-            get: { showInspector && [.today, .week, .entries].contains(model.section) },
+            get: { showInspector && model.searchText.isEmpty && [.today, .week, .entries].contains(model.section) },
             set: { showInspector = $0 }
         )
     }
@@ -124,6 +134,22 @@ public struct MainWindowView: View {
         let end = day.contains(now) ? DayTimeline.snapped(now) : day.lowerBound.adding(seconds: 9.5 * 3600)
         let start = max(day.lowerBound, end.adding(seconds: -30 * 60))
         await model.createEntry(from: start, to: min(end, now))
+    }
+}
+
+/// The window's search field (HW-06), only when a search index is available.
+private struct SearchField: ViewModifier {
+    @Bindable var model: MainWindowModel
+
+    func body(content: Content) -> some View {
+        if model.search != nil {
+            content.searchable(
+                text: $model.searchText, placement: .toolbar,
+                prompt: Text("Entries, notes, projects, work items", bundle: .module)
+            )
+        } else {
+            content
+        }
     }
 }
 

@@ -66,6 +66,7 @@ final class Composition {
             engine: engine, queries: queries, catalog: catalog,
             analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
             settings: settings, azureDevOps: azureDevOps, booking: booking, workItems: workItems,
+            search: SearchIndex(database: database),
             database: database, clock: clock
         )
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
