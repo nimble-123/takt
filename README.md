@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" alt="" width="112" height="112">
+<img src="docs/assets/logo.png" alt="" width="112" height="112">
 
 # Takt
 
