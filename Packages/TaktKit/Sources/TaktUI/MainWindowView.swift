@@ -33,9 +33,10 @@ public struct MainWindowView: View {
                 case .today: DayScreen(model: model)
                 case .week: WeekScreen(model: model)
                 case .entries: EntryListScreen(model: model)
+                case .projects: CatalogScreen(catalog: model.catalog)
                 }
             }
-            .inspector(isPresented: $showInspector) {
+            .inspector(isPresented: inspectorBinding) {
                 EntryInspector(model: model)
                     .inspectorColumnWidth(min: 260, ideal: 300)
             }
@@ -80,6 +81,11 @@ public struct MainWindowView: View {
         .frame(minWidth: 820, minHeight: 520)
     }
 
+    /// The inspector edits entries; the projects screen has none.
+    private var inspectorBinding: Binding<Bool> {
+        Binding(get: { showInspector && model.section != .projects }, set: { showInspector = $0 })
+    }
+
     private var sectionBinding: Binding<MainWindowModel.Section?> {
         Binding(get: { model.section }, set: { if let section = $0 { model.section = section } })
     }
@@ -88,6 +94,8 @@ public struct MainWindowView: View {
         switch model.section {
         case .today:
             model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
+        case .projects:
+            String(localized: "Projects", bundle: .module)
         case .week, .entries:
             String(
                 localized: "Week \(model.weekRange.lowerBound.date.formatted(.dateTime.week()))",
@@ -112,6 +120,7 @@ extension MainWindowModel.Section {
         case .today: String(localized: "Today", bundle: .module)
         case .week: String(localized: "Week", bundle: .module)
         case .entries: String(localized: "Entries", bundle: .module)
+        case .projects: String(localized: "Projects", bundle: .module)
         }
     }
 
@@ -120,6 +129,7 @@ extension MainWindowModel.Section {
         case .today: "sun.max"
         case .week: "calendar"
         case .entries: "list.bullet"
+        case .projects: "folder"
         }
     }
 }
@@ -265,6 +275,22 @@ struct EntryListScreen: View {
                 InlineTitle(model: model, entry: entry.entry)
             }
             .width(min: 160, ideal: 280)
+            TableColumn(String(localized: "Project", bundle: .module)) { entry in
+                Text(projectLabel(entry.entry))
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            .width(min: 90, ideal: 140)
+            TableColumn(String(localized: "Category", bundle: .module)) { entry in
+                if let category = model.catalog.catalog.category(entry.entry.categoryID) {
+                    Label {
+                        Text(category.name)
+                    } icon: {
+                        Image(systemName: category.icon ?? "circle.fill")
+                            .foregroundStyle(CategoryColors.color(category.color))
+                    }
+                }
+            }
+            .width(min: 90, ideal: 120)
             TableColumn(String(localized: "Time", bundle: .module)) { entry in
                 Text(timeRange(entry))
                     .monospacedDigit()
@@ -287,6 +313,12 @@ struct EntryListScreen: View {
                 Task { await model.delete(ids) }
             }
         }
+    }
+
+    private func projectLabel(_ entry: TimeEntry) -> String {
+        let catalog = model.catalog.catalog
+        guard let project = catalog.project(entry.projectID) else { return "" }
+        return catalog.task(entry.taskID).map { "\(project.name) › \($0.name)" } ?? project.name
     }
 
     private func timeRange(_ entry: EntryWithSegments) -> String {

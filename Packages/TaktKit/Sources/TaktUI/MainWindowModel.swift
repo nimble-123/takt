@@ -9,7 +9,7 @@ import os
 @Observable
 public final class MainWindowModel {
     public enum Section: String, Hashable, CaseIterable, Identifiable {
-        case today, week, entries
+        case today, week, entries, projects
         public var id: Self { self }
     }
 
@@ -28,14 +28,22 @@ public final class MainWindowModel {
 
     let engine: TimerEngine
     let queries: EntryQueries
+    public let catalog: CatalogModel
     let clock: any TaktClock
     let calendar: Calendar
     @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
 
-    public init(engine: TimerEngine, queries: EntryQueries, clock: any TaktClock, calendar: Calendar = .current) {
+    public init(
+        engine: TimerEngine,
+        queries: EntryQueries,
+        catalog: CatalogModel,
+        clock: any TaktClock,
+        calendar: Calendar = .current
+    ) {
         self.engine = engine
         self.queries = queries
+        self.catalog = catalog
         self.clock = clock
         self.calendar = calendar
         self.day = clock.now()
@@ -86,6 +94,11 @@ public final class MainWindowModel {
 
     public func entry(_ id: EntryID) -> EntryWithSegments? {
         data.entries.first { $0.id == id }
+    }
+
+    /// Category color if set, otherwise the project's, otherwise the accent color.
+    public func colorHex(of entry: TimeEntry) -> String? {
+        catalog.catalog.category(entry.categoryID)?.color ?? catalog.catalog.project(entry.projectID)?.color
     }
 
     public func step(by days: Int) {

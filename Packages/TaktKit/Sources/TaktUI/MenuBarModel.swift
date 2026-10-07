@@ -9,6 +9,23 @@ import os
 @MainActor
 @Observable
 public final class MenuBarModel {
+    /// A start option in the search: a recent activity or a local task (DESIGN: "Lokale Tasks").
+    public struct Suggestion: Hashable, Identifiable {
+        public enum Group: Hashable { case recent, localTask }
+        public var draft: EntryDraft
+        public var group: Group
+        /// Project › task, shown below the title.
+        public var subtitle: String?
+        public var id: Int { hashValue }
+    }
+
+    /// Tracked time of one category today; `nil` means no category.
+    public struct CategoryShare: Hashable, Identifiable {
+        public var categoryID: CategoryID?
+        public var seconds: TimeInterval
+        public var id: String { categoryID?.uuidString ?? "none" }
+    }
+
     /// A stopped entry, shown as a toast with "Note" and "Undo" (TM-11).
     public struct Toast: Equatable, Identifiable {
         public var id: EntryID
@@ -20,6 +37,8 @@ public final class MenuBarModel {
     public private(set) var recents: [EntryDraft] = []
     /// Tracked time today; parallel time counts once (MB-08).
     public private(set) var todayTotal: TimeInterval = 0
+    /// Today's time per category, largest first (DESIGN: "Tagesfortschritt nach Kategorie").
+    public private(set) var todayByCategory: [CategoryShare] = []
     public var dailyGoal: TimeInterval
     public private(set) var toast: Toast?
     public private(set) var errorMessage: String?
@@ -35,6 +54,7 @@ public final class MenuBarModel {
     public var selection: Int?
 
     private let engine: TimerEngine
+    public let catalog: CatalogModel
     let queries: EntryQueries
     private let clock: any TaktClock
     private let calendar: Calendar
@@ -48,11 +68,13 @@ public final class MenuBarModel {
     public init(
         engine: TimerEngine,
         queries: EntryQueries,
+        catalog: CatalogModel,
         clock: any TaktClock,
         calendar: Calendar = .current,
         dailyGoal: TimeInterval = 8 * 3600
     ) {
         self.engine = engine
+        self.catalog = catalog
         self.queries = queries
         self.clock = clock
         self.calendar = calendar
@@ -81,9 +103,19 @@ public final class MenuBarModel {
             recents = try await queries.recentDrafts(limit: Self.searchPoolSize)
             let now = clock.now()
             let today = now.localDay(in: calendar)
-            let inputs = try await queries.allocationInputs(in: today, now: now, defaultMode: .split)
+            let entries = try await queries.timeline(in: today, now: now).entries
+            let inputs = entries.flatMap { entry in
+                entry.segments.map {
+                    Allocation.Input(entryID: entry.id, start: $0.start, end: $0.end ?? now, mode: .split, weight: 1)
+                }
+            }
             // In split mode the shares of parallel entries add up to wall-clock time.
-            todayTotal = Allocation.allocate(inputs, in: today).values.reduce(0, +)
+            let allocated = Allocation.allocate(inputs, in: today)
+            todayTotal = allocated.values.reduce(0, +)
+            let categories = Dictionary(uniqueKeysWithValues: entries.map { ($0.id, $0.entry.categoryID) })
+            todayByCategory = Dictionary(grouping: allocated, by: { categories[$0.key] ?? nil })
+                .map { CategoryShare(categoryID: $0.key, seconds: $0.value.reduce(0) { $0 + $1.value }) }
+                .sorted { $0.seconds > $1.seconds }
         } catch {
             show(error)
         }
@@ -97,11 +129,37 @@ public final class MenuBarModel {
 
     // MARK: Search and start
 
-    /// Recent activities if the query is empty, otherwise those whose title matches.
-    public var suggestions: [EntryDraft] {
+    /// Recent activities if the query is empty, otherwise matching recent activities and local tasks.
+    public var suggestions: [Suggestion] {
         let text = query.trimmingCharacters(in: .whitespaces)
-        if text.isEmpty { return Array(recents.prefix(Self.recentCount)) }
-        return Array(recents.filter { $0.title.localizedStandardContains(text) }.prefix(8))
+        if text.isEmpty {
+            return recents.prefix(Self.recentCount).map {
+                Suggestion(draft: $0, group: .recent, subtitle: subtitle($0))
+            }
+        }
+        let recent = recents.filter { $0.title.localizedStandardContains(text) }.prefix(5)
+            .map { Suggestion(draft: $0, group: .recent, subtitle: subtitle($0)) }
+        let tasks = catalog.activeProjects.flatMap { project in
+            catalog.activeTasks(of: project.id)
+                .filter { $0.name.localizedStandardContains(text) || project.name.localizedStandardContains(text) }
+                .map { task in
+                    Suggestion(
+                        draft: EntryDraft(title: task.name, projectID: project.id, taskID: task.id),
+                        group: .localTask,
+                        subtitle: project.name
+                    )
+                }
+        }
+        .filter { task in
+            !recent.contains { $0.draft.taskID == task.draft.taskID && $0.draft.title == task.draft.title }
+        }
+        .prefix(5)
+        return Array(recent) + Array(tasks)
+    }
+
+    private func subtitle(_ draft: EntryDraft) -> String? {
+        guard let project = catalog.catalog.project(draft.projectID) else { return nil }
+        return catalog.catalog.task(draft.taskID).map { "\(project.name) › \($0.name)" } ?? project.name
     }
 
     public func moveSelection(by offset: Int) {
@@ -119,7 +177,7 @@ public final class MenuBarModel {
     public func submit(parallel: Bool) async {
         let draft: EntryDraft
         if let selection, suggestions.indices.contains(selection) {
-            draft = suggestions[selection]
+            draft = suggestions[selection].draft
         } else {
             let title = query.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !title.isEmpty else { return }

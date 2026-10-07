@@ -70,3 +70,8 @@ public struct IdleEventID: UUIDIdentifier {
     public let rawValue: UUID
     public init(rawValue: UUID) { self.rawValue = rawValue }
 }
+
+public struct TagID: UUIDIdentifier {
+    public let rawValue: UUID
+    public init(rawValue: UUID) { self.rawValue = rawValue }
+}

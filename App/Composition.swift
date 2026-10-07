@@ -12,6 +12,7 @@ final class Composition {
     let database: AppDatabase
     let clock: any TaktClock = SystemClock()
     let engine: TimerEngine
+    let catalog: CatalogModel
     let menuBar: MenuBarModel
     let mainWindow: MainWindowModel
     let idleMonitor: IdleMonitor
@@ -33,8 +34,9 @@ final class Composition {
         backup = DatabaseBackup(directory: url.deletingLastPathComponent().appending(path: "Backups"))
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         let queries = EntryQueries(database: database)
-        menuBar = MenuBarModel(engine: engine, queries: queries, clock: clock)
-        mainWindow = MainWindowModel(engine: engine, queries: queries, clock: clock)
+        catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
+        menuBar = MenuBarModel(engine: engine, queries: queries, catalog: catalog, clock: clock)
+        mainWindow = MainWindowModel(engine: engine, queries: queries, catalog: catalog, clock: clock)
         idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
             Self.idleSettings()
         }
@@ -61,6 +63,7 @@ final class Composition {
                 } catch {
                     logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
                 }
+                await catalog.seedDefaults()
                 tasks.append(Task { await menuBar.run() })
                 tasks.append(Task { await mainWindow.run() })
                 tasks.append(Task { await runChores() })

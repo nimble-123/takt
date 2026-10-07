@@ -11,6 +11,16 @@
         }
       }
     },
+    "A name is required.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Name ist erforderlich."
+          }
+        }
+      }
+    },
     "An entry must end after it starts and cannot end in the future.": {
       "localizations": {
         "de": {
@@ -31,6 +41,16 @@
         }
       }
     },
+    "Archive": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivieren"
+          }
+        }
+      }
+    },
     "Assign to another task": {
       "localizations": {
         "de": {
@@ -41,12 +61,62 @@
         }
       }
     },
+    "Assignment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuordnung"
+          }
+        }
+      }
+    },
     "Away from %@ to %@ (%@).": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Abwesend von %1$@ bis %2$@ (%3$@)."
+          }
+        }
+      }
+    },
+    "Azure DevOps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azure DevOps"
+          }
+        }
+      }
+    },
+    "Categories": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kategorien"
+          }
+        }
+      }
+    },
+    "Category": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kategorie"
+          }
+        }
+      }
+    },
+    "Change Category": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kategorie ändern"
           }
         }
       }
@@ -67,6 +137,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notiz ändern"
+          }
+        }
+      }
+    },
+    "Change Project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekt ändern"
+          }
+        }
+      }
+    },
+    "Change Task": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task ändern"
           }
         }
       }
@@ -97,6 +187,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wähle eine Zeit innerhalb des Eintrags, um ihn zu teilen."
+          }
+        }
+      }
+    },
+    "Color": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe"
+          }
+        }
+      }
+    },
+    "Color and symbol": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbe und Symbol"
           }
         }
       }
@@ -191,6 +301,16 @@
         }
       }
     },
+    "Development": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwicklung"
+          }
+        }
+      }
+    },
     "Discard": {
       "localizations": {
         "de": {
@@ -271,12 +391,42 @@
         }
       }
     },
+    "Local tasks": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Tasks"
+          }
+        }
+      }
+    },
+    "Meeting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting"
+          }
+        }
+      }
+    },
     "Move Entry": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Eintrag verschieben"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
           }
         }
       }
@@ -291,12 +441,42 @@
         }
       }
     },
+    "New category": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neue Kategorie"
+          }
+        }
+      }
+    },
     "New entry": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Neuer Eintrag"
+          }
+        }
+      }
+    },
+    "New project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neues Projekt"
+          }
+        }
+      }
+    },
+    "New task": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neuer Task"
           }
         }
       }
@@ -321,6 +501,16 @@
         }
       }
     },
+    "None": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine"
+          }
+        }
+      }
+    },
     "Note": {
       "localizations": {
         "de": {
@@ -337,6 +527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hauptfenster öffnen"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonstiges"
           }
         }
       }
@@ -421,6 +621,26 @@
         }
       }
     },
+    "Project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekt"
+          }
+        }
+      }
+    },
+    "Projects": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projekte"
+          }
+        }
+      }
+    },
     "Recent": {
       "localizations": {
         "de": {
@@ -441,6 +661,16 @@
         }
       }
     },
+    "Restore": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederherstellen"
+          }
+        }
+      }
+    },
     "Resume": {
       "localizations": {
         "de": {
@@ -457,6 +687,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle fortsetzen"
+          }
+        }
+      }
+    },
+    "Review": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review"
           }
         }
       }
@@ -507,6 +747,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Geteilt"
+          }
+        }
+      }
+    },
+    "Show Archived": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivierte anzeigen"
           }
         }
       }
@@ -567,6 +817,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gestoppt: %@"
+          }
+        }
+      }
+    },
+    "Support": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        }
+      }
+    },
+    "Symbol": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Symbol"
+          }
+        }
+      }
+    },
+    "Tags": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags"
+          }
+        }
+      }
+    },
+    "Tags are created when you add them to an entry.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags entstehen, wenn du sie einem Eintrag hinzufügst."
           }
         }
       }
@@ -717,6 +1007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kalender"
+          }
+        }
+      }
+    },
+    "comma separated": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "durch Kommas getrennt"
           }
         }
       }

@@ -151,6 +151,7 @@ struct DayTimeline: View {
             let running = segment.isOpen
             BlockView(
                 title: entry?.entry.title ?? "",
+                colorHex: entry.flatMap { model.colorHex(of: $0.entry) },
                 start: item.start,
                 end: item.end,
                 running: running,
@@ -287,6 +288,7 @@ struct DayTimeline: View {
 /// One segment in the timeline.
 struct BlockView: View {
     let title: String
+    let colorHex: String?
     let start: Timestamp
     let end: Timestamp
     let running: Bool
@@ -297,7 +299,7 @@ struct BlockView: View {
         let tall = end.seconds(since: start) >= 25 * 60
         HStack(spacing: 0) {
             Rectangle()
-                .fill(Palette.accent)
+                .fill(tint)
                 .frame(width: 3)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
@@ -317,16 +319,19 @@ struct BlockView: View {
             Spacer(minLength: 0)
         }
         .frame(maxHeight: .infinity, alignment: .top)
-        .background(running ? Palette.accentSurface : Palette.accentSurface.opacity(0.75))
+        .background(running ? surface : surface.opacity(0.75))
         .clipShape(RoundedRectangle(cornerRadius: 5))
         .overlay(
             RoundedRectangle(cornerRadius: 5)
-                .strokeBorder(selected ? Palette.accent : Palette.separator, lineWidth: selected ? 2 : 0.5)
+                .strokeBorder(selected ? tint : Palette.separator, lineWidth: selected ? 2 : 0.5)
         )
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
     }
+
+    private var tint: Color { colorHex.map(CategoryColors.color) ?? Palette.accent }
+    private var surface: Color { colorHex.map(CategoryColors.surface) ?? Palette.accentSurface }
 }
 
 /// Diagonal stripes for pauses and inactivity – never an empty gap (docs/DESIGN.md).

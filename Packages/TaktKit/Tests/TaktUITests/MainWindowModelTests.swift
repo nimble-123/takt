@@ -19,7 +19,9 @@ struct MainWindowModelTests {
         calendar.firstWeekday = 2
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
         model = MainWindowModel(
-            engine: engine, queries: EntryQueries(database: database), clock: clock, calendar: calendar
+            engine: engine, queries: EntryQueries(database: database),
+            catalog: CatalogModel(store: CatalogStore(database: database), clock: clock), clock: clock,
+            calendar: calendar
         )
         // Tests open undo groups themselves; in the app the event loop does it.
         undoManager.groupsByEvent = false

@@ -195,6 +195,8 @@ CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
 
+**Katalog.** Projekte, Tasks, Kategorien und Tags heißen im Code `Project`, `ProjectTask`, `EntryCategory` und `Tag` (`Task` und `Category` kollidieren mit Swift Concurrency bzw. der Objective-C-Laufzeit). Projekte, Tasks und Kategorien werden archiviert, nie gelöscht. Die Standardkategorien legt die App beim ersten Start in ihrer Sprache an (Merker `catalog.defaultCategoriesSeeded` in `setting`), damit archivierte Standardkategorien nicht wiederkommen. Farben sind Hex-Werte; die Palette in `TaktUI.CategoryColors` liefert dazu die Dunkel- und Flächenvarianten aus [DESIGN.md](DESIGN.md).
+
 ## Timer-Engine
 
 Die Timer-Engine ist ein `actor` in `TaktCore`. Jeder Befehl läuft als genau eine Datenbank-Transaktion: Der Store liest den aktuellen Timer-Zustand, die Engine berechnet daraus die Änderungen, der Store schreibt sie – alles in derselben Transaktion. So gibt es keinen flüchtigen Zustand und keine Rennen durch Actor-Reentrancy.
