@@ -293,6 +293,7 @@ Die App läuft als Menüleisten-App ohne Dock-Symbol (`LSUIElement`); das Dock-S
 - **Zustand:** pro Bildschirm ein `@Observable`-ViewModel auf dem `@MainActor`. Es abonniert Daten über GRDB-`ValueObservation` bzw. `TimerEngine.updates()` und schickt Befehle an die Engine.
 - **Suche:** ein `SearchCoordinator` fragt lokale Tasks, den Work-Item-Cache und die ADO-Suche parallel ab. Eingaben werden mit 250 ms entprellt; lokale Treffer erscheinen sofort, ADO-Treffer werden nachgeladen.
 - **Erscheinungsbild:** Farben als Asset-Katalog mit Hell- und Dunkel-Variante (siehe [DESIGN.md](DESIGN.md)), Systemschrift und Systemmaterialien.
+- **Command Palette (HW-05):** ⌘K im Hauptfenster öffnet ein Sheet mit allen Aktionen (Timer, Ansichten, Blättern, Export, Tag buchen). Eine unscharfe Suche (Zeichen in Reihenfolge, Wortanfänge und zusammenhängende Treffer zählen mehr) sortiert die Aktionen; darunter stehen „Timer „…“ starten“ mit dem getippten Text, Treffer der Volltextsuche und gecachte Work Items. Timer-Befehle aus dem Hauptfenster landen im Undo des Fensters.
 - **Testbetrieb:** `TAKT_DATA_DIR` legt die Datenbank in ein anderes Verzeichnis. In Debug-Builds öffnet `-openPopover YES` das Popover beim Start und `-appearance dark|light` erzwingt das Erscheinungsbild – für Screenshots und UI-Tests.
 - **Start bei Anmeldung:** `SMAppService.mainApp`, im Onboarding vorausgewählt.
 

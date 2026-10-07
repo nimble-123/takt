@@ -271,6 +271,16 @@
         }
       }
     },
+    "Book the Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag buchen"
+          }
+        }
+      }
+    },
     "Booked": {
       "localizations": {
         "de": {
@@ -427,6 +437,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Farbe und Symbol"
+          }
+        }
+      }
+    },
+    "Command palette": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehlspalette"
           }
         }
       }
@@ -851,6 +871,16 @@
         }
       }
     },
+    "Go to Today": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu heute"
+          }
+        }
+      }
+    },
     "Group by": {
       "localizations": {
         "de": {
@@ -1121,6 +1151,16 @@
         }
       }
     },
+    "Next Day or Week": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nächster Tag oder Woche"
+          }
+        }
+      }
+    },
     "No Selection": {
       "localizations": {
         "de": {
@@ -1301,12 +1341,32 @@
         }
       }
     },
+    "Pause All": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle pausieren"
+          }
+        }
+      }
+    },
     "Pause all": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle pausieren"
+          }
+        }
+      }
+    },
+    "Pause or Resume All": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle pausieren oder fortsetzen"
           }
         }
       }
@@ -1397,6 +1457,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zurück"
+          }
+        }
+      }
+    },
+    "Previous Day or Week": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorheriger Tag oder Woche"
           }
         }
       }
@@ -1691,6 +1761,16 @@
         }
       }
     },
+    "Show %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ zeigen"
+          }
+        }
+      }
+    },
     "Show Archived": {
       "localizations": {
         "de": {
@@ -1761,6 +1841,36 @@
         }
       }
     },
+    "Start Timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer starten"
+          }
+        }
+      }
+    },
+    "Start Timer “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer „%@“ starten"
+          }
+        }
+      }
+    },
+    "Start timer for #%@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer für #%@ starten"
+          }
+        }
+      }
+    },
     "Start using Takt": {
       "localizations": {
         "de": {
@@ -1797,6 +1907,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stoppen"
+          }
+        }
+      }
+    },
+    "Stop All": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle stoppen"
+          }
+        }
+      }
+    },
+    "Stop All Timers": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Timer stoppen"
           }
         }
       }
@@ -2157,6 +2287,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Probier es jetzt aus."
+          }
+        }
+      }
+    },
+    "Type a command or search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehl oder Suche eingeben"
           }
         }
       }
