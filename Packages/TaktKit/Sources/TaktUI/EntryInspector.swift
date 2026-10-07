@@ -45,6 +45,8 @@ private struct SingleEntryInspector: View {
                     .onSubmit { save(String(localized: "Change Note", bundle: .module)) { $0.note = note.nilIfBlank } }
             }
 
+            AssignmentSection(model: model, ids: [entry.id])
+
             Section(String(localized: "Counting", bundle: .module)) {
                 CountingModePicker(mode: entry.entry.countingMode) { mode in
                     save(String(localized: "Change Counting", bundle: .module)) { $0.countingMode = mode }
@@ -194,6 +196,7 @@ private struct MultiEntryInspector: View {
                     .monospacedDigit()
                 }
             }
+            AssignmentSection(model: model, ids: ids)
             Section(String(localized: "Counting", bundle: .module)) {
                 CountingModePicker(mode: commonMode) { mode in
                     Task {
@@ -218,6 +221,107 @@ private struct MultiEntryInspector: View {
     private var commonMode: CountingMode? {
         let modes = Set(ids.compactMap(model.entry).map(\.entry.countingMode))
         return modes.count == 1 ? modes.first ?? nil : nil
+    }
+}
+
+/// Project, task, category and tags of one or more entries (ST-01, HW-04 bulk assignment).
+private struct AssignmentSection: View {
+    let model: MainWindowModel
+    let ids: Set<EntryID>
+    @State private var tags = ""
+
+    private var entries: [TimeEntry] { ids.compactMap(model.entry).map(\.entry) }
+    private var catalog: CatalogModel { model.catalog }
+
+    /// The value all entries share, or `nil` if they differ.
+    private func common<Value: Hashable>(_ value: (TimeEntry) -> Value) -> Value? {
+        let values = Set(entries.map(value))
+        return values.count == 1 ? values.first : nil
+    }
+
+    var body: some View {
+        Section(String(localized: "Assignment", bundle: .module)) {
+            Picker(String(localized: "Project", bundle: .module), selection: projectBinding) {
+                Text("None", bundle: .module).tag(ProjectID?.none)
+                ForEach(projects) { project in
+                    Text(project.name).tag(ProjectID?.some(project.id))
+                }
+            }
+            if let projectID = common(\.projectID) ?? nil {
+                Picker(String(localized: "Task", bundle: .module), selection: taskBinding) {
+                    Text("None", bundle: .module).tag(TaskID?.none)
+                    ForEach(catalog.activeTasks(of: projectID)) { task in
+                        Text(task.name).tag(TaskID?.some(task.id))
+                    }
+                }
+            }
+            Picker(String(localized: "Category", bundle: .module), selection: categoryBinding) {
+                Text("None", bundle: .module).tag(CategoryID?.none)
+                ForEach(categories) { category in
+                    Label {
+                        Text(category.name)
+                    } icon: {
+                        Image(systemName: category.icon ?? "circle.fill")
+                    }
+                    .tag(CategoryID?.some(category.id))
+                }
+            }
+            TextField(
+                String(localized: "Tags", bundle: .module), text: $tags,
+                prompt: Text("comma separated", bundle: .module)
+            )
+            .onSubmit {
+                let names = tags.split(separator: ",").map { String($0).trimmed }
+                Task { await catalog.setTags(named: names, on: ids) }
+            }
+        }
+        .task(id: ids) {
+            let byEntry = await catalog.tags(of: Array(ids))
+            let names = Set(byEntry.values.flatMap { $0.map(\.name) })
+            tags = names.sorted().joined(separator: ", ")
+        }
+    }
+
+    /// Active projects plus archived ones still assigned, so the picker shows them.
+    private var projects: [Project] {
+        catalog.catalog.projects.filter { project in
+            !project.archived || entries.contains { $0.projectID == project.id }
+        }
+    }
+
+    private var categories: [EntryCategory] {
+        catalog.catalog.categories.filter { category in
+            !category.archived || entries.contains { $0.categoryID == category.id }
+        }
+    }
+
+    private var projectBinding: Binding<ProjectID?> {
+        Binding(get: { common(\.projectID) ?? nil }) { project in
+            Task {
+                await model.update(ids, name: String(localized: "Change Project", bundle: .module)) { entry in
+                    if entry.projectID != project { entry.taskID = nil }
+                    entry.projectID = project
+                }
+            }
+        }
+    }
+
+    private var taskBinding: Binding<TaskID?> {
+        Binding(get: { common(\.taskID) ?? nil }) { task in
+            Task {
+                await model.update(ids, name: String(localized: "Change Task", bundle: .module)) { $0.taskID = task }
+            }
+        }
+    }
+
+    private var categoryBinding: Binding<CategoryID?> {
+        Binding(get: { common(\.categoryID) ?? nil }) { category in
+            Task {
+                await model.update(ids, name: String(localized: "Change Category", bundle: .module)) {
+                    $0.categoryID = category
+                }
+            }
+        }
     }
 }
 

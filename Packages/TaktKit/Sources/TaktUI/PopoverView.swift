@@ -29,7 +29,7 @@ public struct PopoverView: View {
                 if model.query.isEmpty, !model.suggestions.isEmpty {
                     RecentList(model: model)
                 }
-                DayProgress(total: model.todayTotal, goal: model.dailyGoal)
+                DayProgress(model: model)
                 if let message = model.errorMessage {
                     Text(message)
                         .font(.system(size: 12))
@@ -142,19 +142,32 @@ struct SuggestionList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, draft in
+            ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, suggestion in
+                if index == 0 || model.suggestions[index - 1].group != suggestion.group {
+                    SectionTitle(text: suggestion.group.title)
+                        .padding(.horizontal, 10)
+                        .padding(.top, index == 0 ? 0 : 6)
+                }
                 Button {
-                    Task { await model.start(draft, parallel: false) }
+                    Task { await model.start(suggestion.draft, parallel: false) }
                 } label: {
                     HStack {
-                        Text(draft.title).lineLimit(1)
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(suggestion.draft.title).lineLimit(1)
+                            if let subtitle = suggestion.subtitle {
+                                Text(subtitle)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Palette.textSecondary)
+                                    .lineLimit(1)
+                            }
+                        }
                         Spacer()
                         if model.selection == index {
                             Text("↩").foregroundStyle(Palette.textSecondary)
                         }
                     }
                     .padding(.horizontal, 10)
-                    .frame(height: 28)
+                    .frame(minHeight: 28)
                     .background(
                         model.selection == index ? Palette.accentSurface : .clear,
                         in: RoundedRectangle(cornerRadius: 6)
@@ -174,6 +187,15 @@ struct SuggestionList: View {
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
+    }
+}
+
+extension MenuBarModel.Suggestion.Group {
+    var title: String {
+        switch self {
+        case .recent: String(localized: "Recent", bundle: .module)
+        case .localTask: String(localized: "Local tasks", bundle: .module)
+        }
     }
 }
 
@@ -259,7 +281,7 @@ struct RecentList: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             SectionTitle(text: String(localized: "Recent", bundle: .module))
-            ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, draft in
+            ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, suggestion in
                 Button {
                     Task { await model.startRecent(at: index) }
                 } label: {
@@ -267,7 +289,13 @@ struct RecentList: View {
                         Image(systemName: "play.circle")
                             .foregroundStyle(Palette.accent)
                             .accessibilityHidden(true)
-                        Text(draft.title).lineLimit(1)
+                        Text(suggestion.draft.title).lineLimit(1)
+                        if let subtitle = suggestion.subtitle {
+                            Text(subtitle)
+                                .font(.system(size: 11))
+                                .foregroundStyle(Palette.textSecondary)
+                                .lineLimit(1)
+                        }
                         Spacer()
                         Text("⌘\(index + 1)")
                             .font(.system(size: 12))
@@ -283,33 +311,64 @@ struct RecentList: View {
     }
 }
 
+/// Today's total against the daily goal, split by category (MB-08).
 struct DayProgress: View {
-    let total: TimeInterval
-    let goal: TimeInterval
+    let model: MenuBarModel
+
+    private var total: TimeInterval { model.todayTotal }
+    private var goal: TimeInterval { max(model.dailyGoal, 1) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 SectionTitle(text: String(localized: "Today", bundle: .module))
                 Spacer()
-                Text("\(DurationText.hoursMinutes(total)) / \(DurationText.hoursMinutes(goal)) h")
+                Text("\(DurationText.hoursMinutes(total)) / \(DurationText.hoursMinutes(model.dailyGoal)) h")
                     .font(.system(size: 12))
                     .monospacedDigit()
                     .foregroundStyle(Palette.textSecondary)
             }
             GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Palette.separator)
-                    Capsule()
-                        .fill(Palette.accent)
-                        .frame(width: proxy.size.width * min(1, total / max(goal, 1)))
+                let scale = proxy.size.width / max(goal, total)
+                HStack(spacing: 1) {
+                    ForEach(model.todayByCategory) { share in
+                        Rectangle()
+                            .fill(color(share.categoryID))
+                            .frame(width: max(0, share.seconds * scale - 1))
+                    }
+                    Spacer(minLength: 0)
                 }
+                .background(Palette.separator)
+                .clipShape(Capsule())
             }
             .frame(height: 6)
             .accessibilityElement()
             .accessibilityLabel(Text("Progress towards the daily goal", bundle: .module))
             .accessibilityValue(Text(DurationText.hoursMinutes(total)))
+            if model.todayByCategory.contains(where: { $0.categoryID != nil }) {
+                HStack(spacing: 10) {
+                    ForEach(model.todayByCategory.prefix(4)) { share in
+                        HStack(spacing: 4) {
+                            Circle().fill(color(share.categoryID)).frame(width: 6, height: 6)
+                            Text(name(share.categoryID))
+                            Text(DurationText.hoursMinutes(share.seconds))
+                                .monospacedDigit()
+                                .foregroundStyle(Palette.textSecondary)
+                        }
+                    }
+                }
+                .font(.system(size: 11))
+                .lineLimit(1)
+            }
         }
+    }
+
+    private func color(_ id: CategoryID?) -> Color {
+        model.catalog.catalog.category(id).map { CategoryColors.color($0.color) } ?? Palette.accent
+    }
+
+    private func name(_ id: CategoryID?) -> String {
+        model.catalog.catalog.category(id)?.name ?? String(localized: "Other", bundle: .module)
     }
 }
 

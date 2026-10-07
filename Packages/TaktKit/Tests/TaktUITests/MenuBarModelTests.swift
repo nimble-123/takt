@@ -10,14 +10,18 @@ struct MenuBarModelTests {
     let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))  // 2026-10-07 10:00 Berlin
     let engine: TimerEngine
     let model: MenuBarModel
+    let catalog: CatalogModel
 
     init() throws {
         let database = try AppDatabase.inMemory()
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
         engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+        catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
         model = MenuBarModel(
-            engine: engine, queries: EntryQueries(database: database), clock: clock, calendar: calendar)
+            engine: engine, queries: EntryQueries(database: database), catalog: catalog, clock: clock,
+            calendar: calendar
+        )
     }
 
     /// Lets the model see the engine's state, as `run()` does in the app.
@@ -70,7 +74,7 @@ struct MenuBarModelTests {
         try await sync()
 
         model.query = "token"
-        #expect(model.suggestions.map(\.title) == ["Bug 1234 Token"])
+        #expect(model.suggestions.map(\.draft.title) == ["Bug 1234 Token"])
         model.moveSelection(by: 1)
         #expect(model.selection == 0)
         await model.submit(parallel: false)
@@ -93,7 +97,7 @@ struct MenuBarModelTests {
         for title in ["A", "B", "C", "D", "E"] { try await track(title, minutes: 1) }
         try await sync()
 
-        #expect(model.suggestions.map(\.title) == ["E", "D", "C", "B"])
+        #expect(model.suggestions.map(\.draft.title) == ["E", "D", "C", "B"])
         await model.startRecent(at: 1)
         try await sync()
         #expect(model.snapshot.running.map(\.entry.title) == ["D"])
@@ -224,5 +228,38 @@ extension MenuBarModelTests {
         try await sync()
         #expect(model.pendingIdle == nil)
         #expect(model.snapshot.running.map(\.entry.title) == ["A"])
+    }
+}
+
+extension MenuBarModelTests {
+    @Test func searchFindsLocalTasksWithProjectSubtitle() async throws {
+        let project = try #require(await catalog.addProject(named: "Kundenportal"))
+        _ = await catalog.addTask(named: "Login-Refactoring", to: project.id)
+
+        model.query = "login"
+        let suggestion = try #require(model.suggestions.first)
+        #expect(suggestion.group == .localTask)
+        #expect(suggestion.subtitle == "Kundenportal")
+
+        model.moveSelection(by: 1)
+        await model.submit(parallel: false)
+        try await sync()
+        let running = try #require(model.snapshot.running.first?.entry)
+        #expect(running.title == "Login-Refactoring")
+        #expect(running.projectID == project.id)
+        #expect(running.taskID != nil)
+    }
+
+    @Test func todayIsSplitByCategory() async throws {
+        await catalog.seedDefaults()
+        let development = try #require(catalog.catalog.categories.first)
+        await model.start(EntryDraft(title: "A", categoryID: development.id), parallel: false)
+        clock.advance(seconds: 1800)
+        await model.start(EntryDraft(title: "B"), parallel: false)
+        clock.advance(seconds: 600)
+        try await sync()
+
+        #expect(model.todayByCategory.map(\.categoryID) == [development.id, nil])
+        #expect(model.todayByCategory.map(\.seconds) == [1800, 600])
     }
 }
