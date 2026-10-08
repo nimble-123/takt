@@ -18,19 +18,7 @@ public enum EntryEdits {
     now: Timestamp,
   ) throws -> (entry: TimeEntry, changes: [TimerChange]) {
     guard end > start, end <= now else { throw EditError.invalidRange }
-    let entry = TimeEntry(
-      title: draft.title,
-      projectID: draft.projectID,
-      taskID: draft.taskID,
-      categoryID: draft.categoryID,
-      workItemLinkID: draft.workItemLinkID,
-      note: draft.note,
-      countingMode: draft.countingMode,
-      weight: draft.weight,
-      state: .stopped,
-      createdAt: now,
-      updatedAt: now,
-    )
+    let entry = TimeEntry(draft: draft, state: .stopped, at: now)
     let segment = Segment(entryID: entry.id, start: start, end: end, source: .manual)
     return (entry, [.entry(before: nil, after: entry), .segment(before: nil, after: segment)])
   }

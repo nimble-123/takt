@@ -58,12 +58,9 @@ struct EntryEditsTests {
   func runningSegmentOnlyMovesItsStart() throws {
     let segment = Segment(entryID: EntryID(), start: t(60))
     let changes = try EntryEdits.setBounds(of: segment, start: t(30), end: t(90), now: t(100))
-    guard case .segment(_, let after?) = changes.first else {
-      Issue.record("expected a segment update")
-      return
-    }
-    #expect(after.start == t(30))
-    #expect(after.isOpen)
+    var moved = segment
+    moved.start = t(30)
+    #expect(changes == [.segment(before: segment, after: moved)])
   }
 
   @Test

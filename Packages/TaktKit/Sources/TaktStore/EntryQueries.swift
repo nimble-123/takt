@@ -195,11 +195,17 @@ public struct EntryQueries: Sendable {
     }
   }
 
-  // MARK: Internal
-
-  let database: AppDatabase
+  /// All linked work items by ID; the table holds one row per work item.
+  public func workItemLinks() async throws -> [WorkItemLinkID: WorkItemLink] {
+    try await database.writer.read { db in
+      let links = try Row.fetchAll(db, sql: "SELECT * FROM work_item_link").map(WorkItemLink.init(row:))
+      return Dictionary(uniqueKeysWithValues: links.map { ($0.id, $0) })
+    }
+  }
 
   // MARK: Private
+
+  private let database: AppDatabase
 
   private static func idleEvents(_ db: Database, _ arguments: StatementArguments) throws -> [IdleEvent] {
     try Row.fetchAll(
