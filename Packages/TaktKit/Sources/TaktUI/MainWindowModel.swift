@@ -8,7 +8,7 @@ import os
 @MainActor
 @Observable
 public final class MainWindowModel {
-    public enum Section: String, Hashable, CaseIterable, Identifiable {
+    public enum Section: String, Hashable, CaseIterable, Identifiable, Sendable {
         case today, dayClose, week, entries, analytics, projects, settings
         public var id: Self { self }
     }
@@ -22,6 +22,8 @@ public final class MainWindowModel {
     }
     public private(set) var data = TimelineData()
     public var selection: Set<EntryID> = []
+    /// The user's choice from the toolbar; `showsInspector` decides where it actually appears.
+    public var isInspectorShown = true
     public private(set) var errorMessage: String?
     /// Set by the window so edits land in its Edit menu.
     public var undoManager: UndoManager?
@@ -369,6 +371,17 @@ public final class MainWindowModel {
         section = .today
         selection = [entry.id]
         searchText = ""
+    }
+
+    /// The inspector edits entries; only screens that show entries have it, and not over search results.
+    public var showsInspector: Bool {
+        isInspectorShown && searchText.isEmpty && [.today, .dayClose, .week, .entries].contains(section)
+    }
+
+    /// Double-click on an entry: select only it and show the inspector (#79).
+    public func openInspector(for id: EntryID) {
+        selection = [id]
+        isInspectorShown = true
     }
 
     /// Links entries to a work item, or removes the link (DO-10).

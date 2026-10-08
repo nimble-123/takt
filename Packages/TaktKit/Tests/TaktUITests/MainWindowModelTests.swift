@@ -142,6 +142,33 @@ struct MainWindowModelTests {
         model.step(by: -1)
         #expect(model.dayRange.lowerBound == start.adding(seconds: -6 * 24 * 3600))
     }
+
+    @Test func openingAnEntryShowsTheInspectorWithOnlyThatEntry() async throws {
+        let first = try await engine.start(EntryDraft(title: "A"), mode: .parallel).value
+        let second = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
+        model.selection = [first, second]
+        model.isInspectorShown = false
+
+        model.openInspector(for: second)
+
+        #expect(model.selection == [second])
+        #expect(model.isInspectorShown)
+        #expect(model.showsInspector)
+    }
+
+    @Test(arguments: [MainWindowModel.Section.today, .dayClose, .week, .entries])
+    func inspectorIsAvailableOnEntryScreens(section: MainWindowModel.Section) {
+        model.section = section
+        #expect(model.showsInspector)
+        model.isInspectorShown = false
+        #expect(!model.showsInspector)
+    }
+
+    @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
+    func inspectorIsHiddenOnOtherScreens(section: MainWindowModel.Section) {
+        model.section = section
+        #expect(!model.showsInspector)
+    }
 }
 
 @MainActor
