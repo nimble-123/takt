@@ -59,8 +59,10 @@ public enum TimerError: Error, Equatable {
 
 // MARK: - TimerEngine
 
-/// Serialises all timer commands. Each command is exactly one `TimerStore.update` transaction:
-/// the store reads the snapshot, the engine decides the changes, the store writes them.
+/// Runs the timer commands. Each command is exactly one `TimerStore.update` transaction: the store
+/// reads the snapshot, the engine decides the changes, the store writes them and returns the new
+/// state. The transaction serialises the commands; the actor is reentrant at every `await`, so
+/// subscribers get snapshots by commit sequence and drop any that arrive late.
 public actor TimerEngine {
 
   // MARK: Lifecycle
@@ -120,6 +122,18 @@ public actor TimerEngine {
       let active = try Self.active(id, in: snapshot)
       return TimerUpdate(changes: Self.closeChanges([active], state: .stopped, at: now, updatedAt: now))
     }.undo
+  }
+
+  /// Stops every running and paused entry in one transaction. Returns their IDs.
+  @discardableResult
+  public func stopAll() async throws -> CommandResult<[EntryID]> {
+    let now = clock.now()
+    return try await perform { snapshot in
+      TimerUpdate(
+        changes: Self.closeChanges(snapshot.entries, state: .stopped, at: now, updatedAt: now),
+        result: snapshot.entries.map(\.id),
+      )
+    }
   }
 
   /// Pauses all running entries and remembers them. Returns `nil` if nothing was running.
@@ -268,9 +282,9 @@ public actor TimerEngine {
 
   /// Sends the current snapshot to all observers, e.g. after data was replaced by an import.
   public func publish() async throws {
-    let snapshot = try await store.snapshot()
-    for continuation in subscribers.values {
-      continuation.yield(snapshot)
+    let latest = try await store.latest()
+    for key in subscribers.keys {
+      deliver(latest.snapshot, sequence: latest.sequence, to: key)
     }
   }
 
@@ -282,19 +296,27 @@ public actor TimerEngine {
     )
     let key = nextSubscriber
     nextSubscriber += 1
-    subscribers[key] = continuation
+    subscribers[key] = Subscriber(continuation: continuation)
     continuation.onTermination = { [weak self] _ in
       Task { await self?.removeSubscriber(key) }
     }
-    continuation.yield(try await store.snapshot())
+    // A command may finish while this read is suspended; its newer snapshot then wins.
+    let latest = try await store.latest()
+    deliver(latest.snapshot, sequence: latest.sequence, to: key)
     return stream
   }
 
   // MARK: Private
 
+  private struct Subscriber {
+    var continuation: AsyncStream<TimerSnapshot>.Continuation
+    /// Commit sequence of the last snapshot yielded.
+    var sequence = Int.min
+  }
+
   private let store: any TimerStore
   private let clock: any TaktClock
-  private var subscribers = [Int: AsyncStream<TimerSnapshot>.Continuation]()
+  private var subscribers = [Int: Subscriber]()
   private var nextSubscriber = 0
 
   private static func entry(from draft: EntryDraft, state: EntryState, at now: Timestamp) -> TimeEntry {
@@ -373,20 +395,28 @@ public actor TimerEngine {
   private func perform<T: Sendable>(
     _ body: @escaping @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
   ) async throws -> CommandResult<T> {
-    let result = try await store.update { snapshot in
+    let commit = try await store.update { snapshot in
       let update = try body(snapshot)
       return TimerUpdate(
         changes: update.changes,
         result: CommandResult(value: update.result, undo: TimerUndo(reverting: update.changes)),
       )
     }
-    if !result.undo.isEmpty, !subscribers.isEmpty {
-      let snapshot = try await store.snapshot()
-      for continuation in subscribers.values {
-        continuation.yield(snapshot)
+    if !commit.value.undo.isEmpty {
+      for key in subscribers.keys {
+        deliver(commit.snapshot, sequence: commit.sequence, to: key)
       }
     }
-    return result
+    return commit.value
+  }
+
+  /// Yields `snapshot` unless the subscriber already has a later one. Equal sequences are
+  /// delivered again, so `publish()` refreshes after the data was replaced outside the engine.
+  private func deliver(_ snapshot: TimerSnapshot, sequence: Int, to key: Int) {
+    guard var subscriber = subscribers[key], sequence >= subscriber.sequence else { return }
+    subscriber.sequence = sequence
+    subscribers[key] = subscriber
+    subscriber.continuation.yield(snapshot)
   }
 
 }

@@ -106,13 +106,23 @@ public actor InMemoryTimerStore: TimerStore {
 
   public func update<T: Sendable>(
     _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
-  ) throws -> T {
+  ) throws -> TimerCommit<T> {
     let update = try body(tables.snapshot())
     try tables.apply(update.changes)
-    return update.result
+    sequence += 1
+    return TimerCommit(value: update.result, snapshot: tables.snapshot(), sequence: sequence)
+  }
+
+  public func latest() -> TimerCommit<Void> {
+    TimerCommit(value: (), snapshot: tables.snapshot(), sequence: sequence)
   }
 
   public func recordHeartbeat(_ timestamp: Timestamp) {
     tables.heartbeat = timestamp
   }
+
+  // MARK: Private
+
+  private var sequence = 0
+
 }
