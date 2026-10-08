@@ -22,6 +22,28 @@ struct TimerTablesTests {
   }
 
   @Test
+  func segmentMustEndAfterItStarts() {
+    var tables = TimerTables()
+    let entry = TimeEntry(title: "A", createdAt: now, updatedAt: now)
+    // Mirrors the schema's CHECK (end_at > start_at), so tests on memory fail like the database.
+    #expect(throws: TimerStoreError.invalidValue) {
+      try tables.apply([
+        .entry(before: nil, after: entry),
+        .segment(before: nil, after: Segment(entryID: entry.id, start: now, end: now)),
+      ])
+    }
+  }
+
+  @Test
+  func weightMustBePositive() {
+    var tables = TimerTables()
+    let entry = TimeEntry(title: "A", weight: 0, createdAt: now, updatedAt: now)
+    #expect(throws: TimerStoreError.invalidValue) {
+      try tables.apply([.entry(before: nil, after: entry)])
+    }
+  }
+
+  @Test
   func segmentNeedsItsEntry() {
     var tables = TimerTables()
     #expect(throws: TimerStoreError.conflict) {

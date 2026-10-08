@@ -136,7 +136,7 @@ public struct Analyzer: Sendable {
     by grouping: Grouping,
     mode: CountingMode? = nil,
   ) -> Report {
-    let entries = Dictionary(uniqueKeysWithValues: data.entries.map { ($0.id, $0) })
+    let entries = Dictionary(data.entries.map { ($0.id, $0) }) { first, _ in first }
     let inputs = data.entries.flatMap { entry in
       entry.segments.map {
         Allocation.Input(

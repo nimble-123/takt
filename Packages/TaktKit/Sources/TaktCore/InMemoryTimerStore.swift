@@ -21,6 +21,8 @@ public struct TimerTables: Hashable, Sendable {
     for change in changes {
       switch change {
       case .entry(let before, let after):
+        // Mirrors CHECK (weight > 0) of time_entry.
+        if let after, after.weight <= 0 { throw TimerStoreError.invalidValue }
         try Self.apply(before, after, to: &copy.entries)
         if before != nil, after == nil, let id = before?.id {
           // Mirrors ON DELETE CASCADE of segment.entry_id.
@@ -31,6 +33,8 @@ public struct TimerTables: Hashable, Sendable {
         if let entryID = after?.entryID, copy.entries[entryID] == nil {
           throw TimerStoreError.conflict
         }
+        // Mirrors CHECK (end_at > start_at) of segment.
+        if let after, let end = after.end, end <= after.start { throw TimerStoreError.invalidValue }
         try Self.apply(before, after, to: &copy.segments)
 
       case .globalPause(let before, let after):

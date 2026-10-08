@@ -63,7 +63,10 @@ public enum EntryEdits {
   }
 
   /// "Pause in Arbeitszeit umwandeln": the gap between two segments of an entry becomes work.
-  public static func closeGap(between first: Segment, and second: Segment) -> [TimerChange] {
+  public static func closeGap(between first: Segment, and second: Segment) throws -> [TimerChange] {
+    guard first.entryID == second.entryID, let end = first.end, end <= second.start else {
+      throw EditError.invalidRange
+    }
     var merged = first
     merged.end = second.end
     return [.segment(before: second, after: nil), .segment(before: first, after: merged)]

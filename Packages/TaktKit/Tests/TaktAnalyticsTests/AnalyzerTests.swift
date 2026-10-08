@@ -176,6 +176,29 @@ struct AnalyzerTests {
 // MARK: - ExporterTests
 
 struct ExporterTests {
+  @Test(arguments: ["=SUM(A1)", "+1", "-2", "@cmd", "\tTab"])
+  func csvKeepsFormulaLikeTextAsText(title: String) {
+    let row = Exporter.Row(
+      date: "2026-10-05",
+      title: title,
+      project: nil,
+      task: nil,
+      category: nil,
+      tags: [],
+      workItem: nil,
+      note: nil,
+      countingMode: "split",
+      seconds: -1800,
+      hours: -0.5,
+      roundedHours: -0.5,
+    )
+
+    let line = Exporter.csv([row]).components(separatedBy: "\r\n")[1]
+
+    #expect(line.hasPrefix("2026-10-05,'\(title),"))
+    #expect(line.hasSuffix(",-1800,-0.5,-0.5")) // numbers stay numbers
+  }
+
   @Test
   func csvEscapesAndRoundsPerEntryAndDay() throws {
     var calendar = Calendar(identifier: .gregorian)

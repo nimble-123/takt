@@ -139,6 +139,8 @@ public struct TimerCommit<Value: Sendable>: Sendable {
 public enum TimerStoreError: Error, Equatable {
   /// The stored row no longer matches `before` of a change.
   case conflict
+  /// A row breaks a rule of the schema, e.g. a segment ending before it starts.
+  case invalidValue
 }
 
 // MARK: - TimerStore
