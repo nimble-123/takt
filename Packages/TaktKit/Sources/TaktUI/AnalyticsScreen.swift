@@ -63,10 +63,11 @@ struct AnalyticsScreen: View {
       .fixedSize()
 
       if model.period == .custom {
-        DatePicker("", selection: $model.customStart, displayedComponents: .date)
+        DatePicker(String(localized: "From", bundle: .module), selection: $model.customStart, displayedComponents: .date)
           .labelsHidden()
-        Text("–")
-        DatePicker("", selection: $model.customEnd, displayedComponents: .date)
+        Text(verbatim: "–")
+          .accessibilityHidden(true)
+        DatePicker(String(localized: "To", bundle: .module), selection: $model.customEnd, displayedComponents: .date)
           .labelsHidden()
         Button(String(localized: "Apply", bundle: .module)) { Task { await model.reload() } }
       } else {
@@ -394,7 +395,8 @@ private struct Heatmap: View {
                 .frame(height: 18)
                 .help(
                   Text(
-                    "\(weekdays[(day + 1) % 7]) \(hour):00 · \(DurationText.hoursMinutes(seconds))"
+                    verbatim:
+                    "\(weekdays[(day + 1) % 7]) \(calendar.hourLabel(hour)) · \(DurationText.hoursMinutes(seconds))"
                   )
                 )
             }
@@ -403,7 +405,7 @@ private struct Heatmap: View {
         GridRow {
           Color.clear.frame(width: 1, height: 1)
           ForEach(Self.hours, id: \.self) { hour in
-            Text(String(format: "%02d", hour))
+            Text(calendar.hourLabel(hour, style: .dateTime.hour(.defaultDigits(amPM: .omitted))))
               .font(.system(size: 10))
               .monospacedDigit()
               .foregroundStyle(Palette.textSecondary)
@@ -412,12 +414,30 @@ private struct Heatmap: View {
       }
       .accessibilityElement(children: .ignore)
       .accessibilityLabel(Text("Weekday × hour", bundle: .module))
+      .accessibilityValue(summary)
     }
   }
 
   // MARK: Private
 
   private static let hours = Array(6..<22)
+
+  private let calendar = Calendar.current
+
+  /// The cells are hidden from VoiceOver; it reads the weekday and hour with the most time instead (#110).
+  private var summary: Text {
+    let days = report.heatmap.map { $0.reduce(0, +) }
+    let hours = (0..<24).map { hour in report.heatmap.reduce(0) { $0 + $1[hour] } }
+    guard
+      let day = days.indices.max(by: { days[$0] < days[$1] }),
+      let hour = hours.indices.max(by: { hours[$0] < hours[$1] }),
+      days[day] > 0
+    else {
+      return Text("No tracked time", bundle: .module)
+    }
+    let weekday = calendar.weekdaySymbols[(day + 1) % 7]
+    return Text("Most time on \(weekday), around \(calendar.hourLabel(hour))", bundle: .module)
+  }
 
 }
 

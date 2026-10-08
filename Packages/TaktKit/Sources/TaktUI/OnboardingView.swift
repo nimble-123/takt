@@ -241,7 +241,10 @@ private struct CountingExample: View {
           .offset(x: proxy.size.width * from)
       }
       .frame(height: 10)
-      Text("\(Int(counted)) min").font(.system(size: 11)).monospacedDigit().frame(width: 48, alignment: .trailing)
+      Text("\(Int(counted)) min", bundle: .module)
+        .font(.system(size: 11))
+        .monospacedDigit()
+        .frame(width: 48, alignment: .trailing)
     }
   }
 }

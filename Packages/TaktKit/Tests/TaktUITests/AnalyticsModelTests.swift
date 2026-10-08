@@ -63,6 +63,26 @@ struct AnalyticsModelTests {
     #expect(model.exportFileName == "Takt 2026-10-07 – 2026-10-07")
   }
 
+  @Test
+  func hourLabelsFollowTheLocaleClock() {
+    var calendar = calendar
+    calendar.locale = Locale(identifier: "de_DE")
+    #expect(calendar.hourLabel(14) == "14:00")
+    calendar.locale = Locale(identifier: "en_US")
+    let label = calendar.hourLabel(14)
+    // The space before "PM" differs between ICU versions.
+    #expect(label.hasPrefix("2:00") && label.hasSuffix("PM"))
+  }
+
+  @Test
+  func hourGroupsUseTheCalendarsClock() {
+    var calendar = calendar
+    calendar.locale = Locale(identifier: "en_US")
+    let model = AnalyticsModel(source: AnalyticsSource(database: database), clock: clock, calendar: calendar)
+    #expect(model.label(.hour(9)) == calendar.hourLabel(9))
+    #expect(model.label(.hour(9)) != "09:00")
+  }
+
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000)) // Wed 2026-10-07 10:00 Berlin

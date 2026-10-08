@@ -39,6 +39,11 @@ struct DayCloseScreen: View {
                 BookingRow(line: line, outcome: outcomes[line.id])
                   .contentShape(Rectangle())
                   .onTapGesture(count: 2) { model.openInspector(for: line.entryID) }
+                  // Double-click only, so VoiceOver gets the same action (#110).
+                  .accessibilityElement(children: .combine)
+                  .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
+                    model.openInspector(for: line.entryID)
+                  }
                 Divider()
               }
             }
@@ -69,6 +74,10 @@ struct DayCloseScreen: View {
                 .padding(.vertical, 6)
                 .contentShape(Rectangle())
                 .onTapGesture(count: 2) { model.openInspector(for: entry.id) }
+                .accessibilityElement(children: .contain)
+                .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
+                  model.openInspector(for: entry.id)
+                }
                 Divider()
               }
             }
@@ -244,11 +253,15 @@ private struct BookingRow: View {
     if line.inFlight != 0 {
       Image(systemName: "clock").foregroundStyle(Palette.warning)
         .help(Text("Waiting to be sent", bundle: .module))
+        .accessibilityLabel(Text("Waiting to be sent", bundle: .module))
     } else if line.failure != nil {
       Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Palette.danger)
+        .help(Text("Booking failed", bundle: .module))
+        .accessibilityLabel(Text("Booking failed", bundle: .module))
     } else if line.difference == 0, line.booked != 0 || line.target != 0 {
       Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.accent)
         .help(Text("Booked", bundle: .module))
+        .accessibilityLabel(Text("Booked", bundle: .module))
     }
   }
 

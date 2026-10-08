@@ -334,7 +334,8 @@ struct AppearanceMenu: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text(swatch.hex))
+            .accessibilityLabel(Self.colorName(swatch.hex))
+            .accessibilityAddTraits(swatch.hex == hex ? .isSelected : [])
           }
         }
         Text("Symbol", bundle: .module).font(.system(size: 11, weight: .semibold))
@@ -352,7 +353,8 @@ struct AppearanceMenu: View {
                 .foregroundStyle(CategoryColors.color(hex))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text(symbol))
+            .accessibilityLabel(Self.symbolName(symbol))
+            .accessibilityAddTraits(symbol == icon ? .isSelected : [])
           }
         }
       }
@@ -363,5 +365,46 @@ struct AppearanceMenu: View {
   // MARK: Private
 
   @State private var open = false
+
+  /// Spoken names instead of hex values and SF Symbol names (#110).
+  private static func colorName(_ hex: String) -> String {
+    switch hex.uppercased() {
+    case "#2563EB": String(localized: "Blue", bundle: .module)
+    case "#C2410C": String(localized: "Orange", bundle: .module)
+    case "#7C3AED": String(localized: "Purple", bundle: .module)
+    case "#DB2777": String(localized: "Pink", bundle: .module)
+    case "#0F766E": String(localized: "Teal", bundle: .module)
+    case "#15803D": String(localized: "Green", bundle: .module)
+    case "#A16207": String(localized: "Ochre", bundle: .module)
+    case "#475569": String(localized: "Slate", bundle: .module)
+    default: hex
+    }
+  }
+
+  private static func symbolName(_ symbol: String) -> String {
+    switch symbol {
+    case "folder": String(localized: "Folder", bundle: .module)
+    case "tag": String(localized: "Tag", bundle: .module)
+    case "chevron.left.forwardslash.chevron.right": String(localized: "Code", bundle: .module)
+    case "person.2": String(localized: "People", bundle: .module)
+    case "eye": String(localized: "Eye", bundle: .module)
+    case "lifepreserver": String(localized: "Lifebuoy", bundle: .module)
+    case "hammer": String(localized: "Hammer", bundle: .module)
+    case "doc.text": String(localized: "Document", bundle: .module)
+    case "envelope": String(localized: "Envelope", bundle: .module)
+    case "phone": String(localized: "Phone", bundle: .module)
+    case "chart.bar": String(localized: "Chart", bundle: .module)
+    case "paintbrush": String(localized: "Brush", bundle: .module)
+    case "book": String(localized: "Book", bundle: .module)
+    case "graduationcap": String(localized: "Graduation cap", bundle: .module)
+    case "airplane": String(localized: "Airplane", bundle: .module)
+    case "cart": String(localized: "Cart", bundle: .module)
+    case "globe": String(localized: "Globe", bundle: .module)
+    case "building.2": String(localized: "Buildings", bundle: .module)
+    case "wrench.and.screwdriver": String(localized: "Tools", bundle: .module)
+    case "cup.and.saucer": String(localized: "Cup", bundle: .module)
+    default: symbol
+    }
+  }
 
 }

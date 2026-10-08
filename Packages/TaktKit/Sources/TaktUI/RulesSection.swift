@@ -17,7 +17,7 @@ struct RulesSection: View {
       ForEach(Array(rules.rules.enumerated()), id: \.element.id) { index, rule in
         HStack(spacing: 8) {
           Toggle(
-            String(localized: "Enabled", bundle: .module),
+            String(localized: "Rule “\(rule.name.isEmpty ? summary(rule) : rule.name)” enabled", bundle: .module),
             isOn: Binding(get: { rule.isEnabled }) { enabled in
               var changed = rule
               changed.isEnabled = enabled
@@ -159,7 +159,7 @@ extension Rule.Condition {
   }
 
   var summary: String {
-    "\(kind.title) „\(value)“"
+    String(localized: "\(kind.title) “\(value)”", bundle: .module)
   }
 }
 
@@ -182,13 +182,17 @@ private struct RuleEditor: View {
         // Rows are identified, not indexed: removing one never leaves a binding on a stale index.
         ForEach($conditions) { $condition in
           HStack {
-            Picker("", selection: $condition.kind) {
+            Picker(String(localized: "Condition", bundle: .module), selection: $condition.kind) {
               ForEach(Rule.Condition.Kind.allCases) { Text($0.title).tag($0) }
             }
             .labelsHidden()
             .fixedSize()
-            TextField("", text: $condition.value, prompt: Text(verbatim: prompt(for: condition.kind)))
-              .labelsHidden()
+            TextField(
+              String(localized: "Value", bundle: .module),
+              text: $condition.value,
+              prompt: Text(verbatim: prompt(for: condition.kind)),
+            )
+            .labelsHidden()
             Button {
               conditions.removeAll { $0.id == condition.id }
             } label: {
@@ -258,9 +262,9 @@ private struct RuleEditor: View {
   private func prompt(for kind: Rule.Condition.Kind) -> String {
     switch kind {
     case .workItemType: "Bug"
-    case .adoProject: "Kundenportal"
+    case .adoProject: String(localized: "Customer portal", bundle: .module, comment: "Example Azure DevOps project")
     case .titleContains: "Daily"
-    case .workItemTag: "Kunde"
+    case .workItemTag: String(localized: "Customer", bundle: .module, comment: "Example work item tag")
     }
   }
 }

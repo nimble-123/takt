@@ -18,7 +18,7 @@ struct ConnectForm: View {
       SecureField(String(localized: "Personal Access Token", bundle: .module), text: $token)
       HStack {
         Toggle(String(localized: "Expires on", bundle: .module), isOn: $hasExpiry)
-        DatePicker("", selection: $expires, displayedComponents: .date)
+        DatePicker(String(localized: "Expiry date", bundle: .module), selection: $expires, displayedComponents: .date)
           .labelsHidden()
           .disabled(!hasExpiry)
       }
