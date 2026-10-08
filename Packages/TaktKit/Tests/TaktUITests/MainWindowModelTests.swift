@@ -5,203 +5,238 @@ import Testing
 
 @testable import TaktUI
 
+// MARK: - MainWindowModelTests
+
 @MainActor
 struct MainWindowModelTests {
-    let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))  // Wed 2026-10-07 10:00 Berlin
-    let engine: TimerEngine
-    let model: MainWindowModel
-    let undoManager = UndoManager()
 
-    init() throws {
-        let database = try AppDatabase.inMemory()
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
-        calendar.firstWeekday = 2
-        engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
-        model = MainWindowModel(
-            engine: engine, queries: EntryQueries(database: database),
-            catalog: CatalogModel(store: CatalogStore(database: database), clock: clock), clock: clock,
-            calendar: calendar
-        )
-        // Tests open undo groups themselves; in the app the event loop does it.
-        undoManager.groupsByEvent = false
+  // MARK: Lifecycle
+
+  init() throws {
+    let database = try AppDatabase.inMemory()
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
+    calendar.firstWeekday = 2
+    engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+    model = MainWindowModel(
+      engine: engine,
+      queries: EntryQueries(database: database),
+      catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+      clock: clock,
+      calendar: calendar,
+    )
+    // Tests open undo groups themselves; in the app the event loop does it.
+    undoManager.groupsByEvent = false
+  }
+
+  // MARK: Internal
+
+  @Test
+  func drawnEntryIsCreatedAndSelected() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    #expect(model.selection == [id])
+    #expect(model.entry(id)?.segments.first?.source == .manual)
+    #expect(model.dayTotal == 3600)
+  }
+
+  @Test
+  func undoAndRedoGoThroughTheUndoManager() async {
+    await withUndoGroup { await model.createEntry(from: at(8), to: at(9)) }
+    #expect(model.data.entries.count == 1)
+    #expect(undoManager.undoActionName == "New Entry")
+
+    await step { undoManager.undo() }
+    #expect(model.data.entries.isEmpty)
+    #expect(undoManager.canRedo)
+
+    await step { undoManager.redo() }
+    #expect(model.data.entries.count == 1)
+  }
+
+  @Test
+  func moveAndUndoRestoresTheTime() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let segment = try #require(model.entry(id)?.segments.first)
+    await withUndoGroup { await model.move(segment, by: 1800) }
+    #expect(model.entry(id)?.segments.first?.start == at(8.5))
+
+    await step { undoManager.undo() }
+    #expect(model.entry(id)?.segments.first?.start == at(8))
+  }
+
+  @Test
+  func invalidEditShowsAMessageAndChangesNothing() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let segment = try #require(model.entry(id)?.segments.first)
+    await model.setBounds(of: segment, start: at(9), end: at(8))
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments.first == segment)
+  }
+
+  @Test
+  func deleteRemovesSelectedEntries() async throws {
+    let a = try #require(await model.createEntry(from: at(7), to: at(8)))
+    let b = try #require(await model.createEntry(from: at(8), to: at(9)))
+    model.selection = [a, b]
+    await model.delete(model.selection)
+
+    #expect(model.data.entries.isEmpty)
+    #expect(model.selection.isEmpty)
+  }
+
+  @Test
+  func bulkCountingModeChangesAllSelected() async throws {
+    let a = try #require(await model.createEntry(from: at(7), to: at(8)))
+    let b = try #require(await model.createEntry(from: at(8), to: at(9)))
+    await model.update([a, b], name: "Change Counting") { $0.countingMode = .full }
+
+    #expect(model.data.entries.allSatisfy { $0.entry.countingMode == .full })
+  }
+
+  @Test
+  func splitSelectsTheLaterPart() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(9)))
+    await model.split(id, at: at(8))
+
+    #expect(model.data.entries.count == 2)
+    #expect(model.selection.count == 1 && !model.selection.contains(id))
+  }
+
+  @Test
+  func pausesBetweenSegmentsAreSummedForTheDay() async throws {
+    clock.set(at(7))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(at(8))
+    try await engine.pause(id)
+    clock.set(at(8.5))
+    try await engine.resume(id, mode: .switchTo)
+    clock.set(at(9))
+    try await engine.stop(id)
+    await model.reload()
+
+    #expect(model.dayPauses == 1800)
+    #expect(model.dayTotal == 1.5 * 3600)
+  }
+
+  @Test
+  func weekHasSevenDaysStartingMonday() {
+    model.section = .week
+    #expect(model.weekDays.count == 7)
+    #expect(model.weekRange.lowerBound == at(-48))
+  }
+
+  @Test
+  func stepMovesByDayOrWeek() {
+    let start = model.dayRange.lowerBound
+    model.step(by: 1)
+    #expect(model.dayRange.lowerBound == start.adding(seconds: 24 * 3600))
+    model.section = .week
+    model.step(by: -1)
+    #expect(model.dayRange.lowerBound == start.adding(seconds: -6 * 24 * 3600))
+  }
+
+  @Test
+  func openingAnEntryShowsTheInspectorWithOnlyThatEntry() async throws {
+    let first = try await engine.start(EntryDraft(title: "A"), mode: .parallel).value
+    let second = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
+    model.selection = [first, second]
+    model.isInspectorShown = false
+
+    model.openInspector(for: second)
+
+    #expect(model.selection == [second])
+    #expect(model.isInspectorShown)
+    #expect(model.showsInspector)
+  }
+
+  @Test(arguments: [MainWindowModel.Section.today, .dayClose, .week, .entries])
+  func inspectorIsAvailableOnEntryScreens(section: MainWindowModel.Section) {
+    model.section = section
+    #expect(model.showsInspector)
+    model.isInspectorShown = false
+    #expect(!model.showsInspector)
+  }
+
+  @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
+  func inspectorIsHiddenOnOtherScreens(section: MainWindowModel.Section) {
+    model.section = section
+    #expect(!model.showsInspector)
+  }
+
+  // MARK: Private
+
+  private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000)) // Wed 2026-10-07 10:00 Berlin
+  private let engine: TimerEngine
+  private let model: MainWindowModel
+  private let undoManager = UndoManager()
+
+  private func at(_ hours: Double) -> Timestamp {
+    model.dayRange.lowerBound.adding(seconds: hours * 3600)
+  }
+
+  /// Runs one undo or redo step and waits until the engine has applied it.
+  private func step(_ action: () -> Void) async {
+    let before = model.data
+    action()
+    for _ in 0..<200 where model.data == before {
+      await Task.yield()
+      await model.reload()
     }
+  }
 
-    private func at(_ hours: Double) -> Timestamp {
-        model.dayRange.lowerBound.adding(seconds: hours * 3600)
-    }
+  private func withUndoGroup(_ body: () async -> Void) async {
+    model.undoManager = undoManager
+    undoManager.beginUndoGrouping()
+    await body()
+    undoManager.endUndoGrouping()
+  }
 
-    /// Runs one undo or redo step and waits until the engine has applied it.
-    private func step(_ action: () -> Void) async {
-        let before = model.data
-        action()
-        for _ in 0..<200 where model.data == before {
-            await Task.yield()
-            await model.reload()
-        }
-    }
-
-    private func withUndoGroup(_ body: () async -> Void) async {
-        model.undoManager = undoManager
-        undoManager.beginUndoGrouping()
-        await body()
-        undoManager.endUndoGrouping()
-    }
-
-    @Test func drawnEntryIsCreatedAndSelected() async throws {
-        let id = try #require(await model.createEntry(from: at(8), to: at(9)))
-        #expect(model.selection == [id])
-        #expect(model.entry(id)?.segments.first?.source == .manual)
-        #expect(model.dayTotal == 3600)
-    }
-
-    @Test func undoAndRedoGoThroughTheUndoManager() async throws {
-        await withUndoGroup { await model.createEntry(from: at(8), to: at(9)) }
-        #expect(model.data.entries.count == 1)
-        #expect(undoManager.undoActionName == "New Entry")
-
-        await step { undoManager.undo() }
-        #expect(model.data.entries.isEmpty)
-        #expect(undoManager.canRedo)
-
-        await step { undoManager.redo() }
-        #expect(model.data.entries.count == 1)
-    }
-
-    @Test func moveAndUndoRestoresTheTime() async throws {
-        let id = try #require(await model.createEntry(from: at(8), to: at(9)))
-        let segment = try #require(model.entry(id)?.segments.first)
-        await withUndoGroup { await model.move(segment, by: 1800) }
-        #expect(model.entry(id)?.segments.first?.start == at(8.5))
-
-        await step { undoManager.undo() }
-        #expect(model.entry(id)?.segments.first?.start == at(8))
-    }
-
-    @Test func invalidEditShowsAMessageAndChangesNothing() async throws {
-        let id = try #require(await model.createEntry(from: at(8), to: at(9)))
-        let segment = try #require(model.entry(id)?.segments.first)
-        await model.setBounds(of: segment, start: at(9), end: at(8))
-
-        #expect(model.errorMessage != nil)
-        #expect(model.entry(id)?.segments.first == segment)
-    }
-
-    @Test func deleteRemovesSelectedEntries() async throws {
-        let a = try #require(await model.createEntry(from: at(7), to: at(8)))
-        let b = try #require(await model.createEntry(from: at(8), to: at(9)))
-        model.selection = [a, b]
-        await model.delete(model.selection)
-
-        #expect(model.data.entries.isEmpty)
-        #expect(model.selection.isEmpty)
-    }
-
-    @Test func bulkCountingModeChangesAllSelected() async throws {
-        let a = try #require(await model.createEntry(from: at(7), to: at(8)))
-        let b = try #require(await model.createEntry(from: at(8), to: at(9)))
-        await model.update([a, b], name: "Change Counting") { $0.countingMode = .full }
-
-        #expect(model.data.entries.allSatisfy { $0.entry.countingMode == .full })
-    }
-
-    @Test func splitSelectsTheLaterPart() async throws {
-        let id = try #require(await model.createEntry(from: at(7), to: at(9)))
-        await model.split(id, at: at(8))
-
-        #expect(model.data.entries.count == 2)
-        #expect(model.selection.count == 1 && !model.selection.contains(id))
-    }
-
-    @Test func pausesBetweenSegmentsAreSummedForTheDay() async throws {
-        clock.set(at(7))
-        let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-        clock.set(at(8))
-        try await engine.pause(id)
-        clock.set(at(8.5))
-        try await engine.resume(id, mode: .switchTo)
-        clock.set(at(9))
-        try await engine.stop(id)
-        await model.reload()
-
-        #expect(model.dayPauses == 1800)
-        #expect(model.dayTotal == 1.5 * 3600)
-    }
-
-    @Test func weekHasSevenDaysStartingMonday() {
-        model.section = .week
-        #expect(model.weekDays.count == 7)
-        #expect(model.weekRange.lowerBound == at(-48))
-    }
-
-    @Test func stepMovesByDayOrWeek() {
-        let start = model.dayRange.lowerBound
-        model.step(by: 1)
-        #expect(model.dayRange.lowerBound == start.adding(seconds: 24 * 3600))
-        model.section = .week
-        model.step(by: -1)
-        #expect(model.dayRange.lowerBound == start.adding(seconds: -6 * 24 * 3600))
-    }
-
-    @Test func openingAnEntryShowsTheInspectorWithOnlyThatEntry() async throws {
-        let first = try await engine.start(EntryDraft(title: "A"), mode: .parallel).value
-        let second = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
-        model.selection = [first, second]
-        model.isInspectorShown = false
-
-        model.openInspector(for: second)
-
-        #expect(model.selection == [second])
-        #expect(model.isInspectorShown)
-        #expect(model.showsInspector)
-    }
-
-    @Test(arguments: [MainWindowModel.Section.today, .dayClose, .week, .entries])
-    func inspectorIsAvailableOnEntryScreens(section: MainWindowModel.Section) {
-        model.section = section
-        #expect(model.showsInspector)
-        model.isInspectorShown = false
-        #expect(!model.showsInspector)
-    }
-
-    @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
-    func inspectorIsHiddenOnOtherScreens(section: MainWindowModel.Section) {
-        model.section = section
-        #expect(!model.showsInspector)
-    }
 }
+
+// MARK: - MainWindowSearchTests
 
 @MainActor
 struct MainWindowSearchTests {
-    let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
 
-    @Test func searchFindsEntriesAndRevealJumpsToTheirDay() async throws {
-        let database = try AppDatabase.inMemory()
-        let engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
-        let model = MainWindowModel(
-            engine: engine, queries: EntryQueries(database: database),
-            catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
-            search: SearchIndex(database: database), clock: clock
-        )
-        let (entry, changes) = try EntryEdits.create(
-            EntryDraft(title: "Release vorbereiten", note: "Changelog prüfen"),
-            from: clock.now().adding(seconds: -10 * 86_400), to: clock.now().adding(seconds: -10 * 86_400 + 3600),
-            now: clock.now()
-        )
-        try await engine.apply(changes)
+  // MARK: Internal
 
-        model.searchText = "changelog"
-        for _ in 0..<100 where model.searchResults.entries.isEmpty {
-            try await Task.sleep(for: .milliseconds(20))
-        }
-        let hit = try #require(model.searchResults.entries.first)
-        #expect(hit.entry.id == entry.id)
-        #expect(hit.snippet == "**Changelog** prüfen")
+  @Test
+  func searchFindsEntriesAndRevealJumpsToTheirDay() async throws {
+    let database = try AppDatabase.inMemory()
+    let engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+    let model = MainWindowModel(
+      engine: engine,
+      queries: EntryQueries(database: database),
+      catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+      search: SearchIndex(database: database),
+      clock: clock,
+    )
+    let (entry, changes) = try EntryEdits.create(
+      EntryDraft(title: "Release vorbereiten", note: "Changelog prüfen"),
+      from: clock.now().adding(seconds: -10 * 86_400),
+      to: clock.now().adding(seconds: -10 * 86_400 + 3600),
+      now: clock.now(),
+    )
+    try await engine.apply(changes)
 
-        model.reveal(hit.entry)
-        #expect(model.section == .today)
-        #expect(model.selection == [entry.id])
-        #expect(model.dayRange.contains(clock.now().adding(seconds: -10 * 86_400)))
-        #expect(model.searchText.isEmpty)
+    model.searchText = "changelog"
+    for _ in 0..<100 where model.searchResults.entries.isEmpty {
+      try await Task.sleep(for: .milliseconds(20))
     }
+    let hit = try #require(model.searchResults.entries.first)
+    #expect(hit.entry.id == entry.id)
+    #expect(hit.snippet == "**Changelog** prüfen")
+
+    model.reveal(hit.entry)
+    #expect(model.section == .today)
+    #expect(model.selection == [entry.id])
+    #expect(model.dayRange.contains(clock.now().adding(seconds: -10 * 86_400)))
+    #expect(model.searchText.isEmpty)
+  }
+
+  // MARK: Private
+
+  private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
+
 }

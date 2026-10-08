@@ -8,35 +8,42 @@ import TaktCore
 /// action right away with the *pending* result of its own engine call.
 @MainActor
 final class EngineUndo {
-    private let engine: TimerEngine
-    private let onError: @MainActor (any Error) -> Void
 
-    init(engine: TimerEngine, onError: @escaping @MainActor (any Error) -> Void) {
-        self.engine = engine
-        self.onError = onError
-    }
+  // MARK: Lifecycle
 
-    func register(_ undo: TimerUndo, actionName: String, on manager: UndoManager?) {
-        guard let manager, !undo.isEmpty else { return }
-        register(pending: Task { undo }, actionName: actionName, on: manager)
-    }
+  init(engine: TimerEngine, onError: @escaping @MainActor (any Error) -> Void) {
+    self.engine = engine
+    self.onError = onError
+  }
 
-    private func register(pending: Task<TimerUndo?, Never>, actionName: String, on manager: UndoManager) {
-        manager.registerUndo(withTarget: self) { target in
-            MainActor.assumeIsolated {
-                let engine = target.engine
-                let next = Task { @MainActor () -> TimerUndo? in
-                    guard let undo = await pending.value else { return nil }
-                    do {
-                        return try await engine.undo(undo)
-                    } catch {
-                        target.onError(error)
-                        return nil
-                    }
-                }
-                target.register(pending: next, actionName: actionName, on: manager)
-            }
+  // MARK: Internal
+
+  func register(_ undo: TimerUndo, actionName: String, on manager: UndoManager?) {
+    guard let manager, !undo.isEmpty else { return }
+    register(pending: Task { undo }, actionName: actionName, on: manager)
+  }
+
+  // MARK: Private
+
+  private let engine: TimerEngine
+  private let onError: @MainActor (any Error) -> Void
+
+  private func register(pending: Task<TimerUndo?, Never>, actionName: String, on manager: UndoManager) {
+    manager.registerUndo(withTarget: self) { target in
+      MainActor.assumeIsolated {
+        let engine = target.engine
+        let next = Task { @MainActor () -> TimerUndo? in
+          guard let undo = await pending.value else { return nil }
+          do {
+            return try await engine.undo(undo)
+          } catch {
+            target.onError(error)
+            return nil
+          }
         }
-        manager.setActionName(actionName)
+        target.register(pending: next, actionName: actionName, on: manager)
+      }
     }
+    manager.setActionName(actionName)
+  }
 }

@@ -1,0 +1,9 @@
+# Project rules on top of the Airbnb style guide (see CLAUDE.md): no force unwrap or force try outside tests.
+only_rules:
+  - force_unwrapping
+  - force_try
+
+excluded:
+  - Packages/TaktKit/Tests
+  - Packages/TaktKit/.build
+  - BuildTools/.build

@@ -17,6 +17,15 @@ updates:
       include: scope
     labels: ["type: chore"]
 
+  - package-ecosystem: swift
+    directory: /BuildTools
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["type: chore"]
+
   - package-ecosystem: npm
     directory: /site
     schedule:
