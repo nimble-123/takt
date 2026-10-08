@@ -271,6 +271,18 @@ struct MenuBarStatusTests {
   }
 
   @Test
+  func accessibilityDescriptionFollowsState() {
+    let idle = MenuBarStatus(snapshot: TimerSnapshot(), now: now)
+    let running = MenuBarStatus(
+      snapshot: TimerSnapshot(entries: [active(.running, startedSecondsAgo: 65 * 60)]),
+      now: now,
+    )
+    let paused = MenuBarStatus(snapshot: TimerSnapshot(entries: [active(.paused, startedSecondsAgo: 60)]), now: now)
+    #expect(running.accessibilityDescription.contains("1:05"))
+    #expect(Set([idle, running, paused].map(\.accessibilityDescription)).count == 3)
+  }
+
+  @Test
   func durationFormats() {
     #expect(DurationText.clock(3 * 3600 + 7 * 60 + 9) == "3:07:09")
     #expect(DurationText.hoursMinutes(59) == "0:00")
