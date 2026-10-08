@@ -17,7 +17,7 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/en/v1.0.0/)
 [![Last commit](https://img.shields.io/github/last-commit/nimble-123/takt)](https://github.com/nimble-123/takt/commits/main)
 
-[Website](https://nimble-123.github.io/takt/) · [Features](#features) · [Architecture](#architecture) · [Install](#install) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
+[Website](https://nimble-123.github.io/takt/) · [Design](https://nimble-123.github.io/takt/design/) · [Features](#features) · [Architecture](#architecture) · [Install](#install) · [Getting started](#getting-started) · [Documentation](#documentation) · [Contributing](#contributing) · [License](#license)
 
 </div>
 
@@ -150,7 +150,8 @@ The project documentation is written in German.
 | --- | --- |
 | [PRD](docs/PRD.md) | Goals, requirements with IDs, release plan, decisions |
 | [Technical concept](docs/TECHNICAL_CONCEPT.md) | Modules, database schema, timer engine, Azure DevOps booking flow, tests |
-| [Design](docs/DESIGN.md) | Screens, colors, typography, interaction rules, link to the design canvas |
+| [Design](docs/DESIGN.md) | Screens, colors, typography, interaction rules |
+| [UI designs](https://nimble-123.github.io/takt/design/) | Read-only gallery of all screens; edited on the [design canvas](https://claude.ai/artifact/FeiQaPoKc5FuezMenGZ9Kh) |
 | [Releasing](docs/RELEASING.md) | Versioning, release PRs, signing and notarization |
 | [MDM](docs/MDM.md) | Managed settings and rollout with Intune or Jamf |
 | [CLAUDE.md](CLAUDE.md) | Working rules for Claude Code and everyone else |

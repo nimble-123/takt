@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Suche mit ADO-Vorschau</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+kbd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#555559;background:#FFFFFF;border:1px solid #D9D9DE;border-radius:5px;padding:1px 5px}
+button{font:inherit;color:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 420px; height: 640px; box-sizing: border-box; position: relative; overflow: hidden; background: #D8DCE3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px">
+<div style="height: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 12px; background: rgba(246,246,248,0.9); border-bottom: 1px solid #C6CAD1">
+<div style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px; background: rgba(0,0,0,0.12)">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1C1C1E" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 14.5h6L9.2 2H6.8z"></path><path d="M8 11.5l3-6"></path></svg>
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 600">1:24</span>
+</div>
+<span>Di. 6. Okt.  22:14</span>
+</div>
+<div style="position: absolute; top: 34px; right: 14px; width: 360px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 18px 50px rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.08); overflow: hidden">
+<div style="padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px 0 12px; border-radius: 10px; background: #F4F4F6; border: 2px solid #0F766E; box-sizing: border-box">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#6E6E73" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.8"></circle><path d="M10.6 10.6L14 14"></path></svg>
+<input type="text" aria-label="Task oder Work Item suchen" value="login" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; outline: none; color: #1C1C1E">
+<span style="font-size: 11px; color: #6E6E73">4 Treffer</span>
+</label>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6E6E73; padding: 2px 8px 4px">
+<span>Azure DevOps</span><span style="text-transform: none; letter-spacing: 0; font-weight: 400">Sprint 42 zuerst</span>
+</div>
+<sc-for list="{{ado}}" as="it" hint-placeholder-count="3">
+<button type="button" style="display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: 8px; background: {{it.bg}}; text-align: left; width: 100%">
+<span style="width: 16px; height: 16px; border-radius: 4px; background: {{it.typeColor}}; color: #FFFFFF; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">{{it.typeLetter}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #55555A">#{{it.id}}</span>  {{it.pre}}<strong>{{it.match}}</strong>{{it.post}}</span>
+<span style="font-size: 11px; color: #55555A">{{it.meta}}</span>
+</span>
+<span style="font-size: 11px; color: #55555A; flex: none">{{it.state}}</span>
+</button>
+</sc-for>
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #6E6E73; padding: 8px 8px 4px">Lokale Tasks</div>
+<button type="button" style="display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; text-align: left; width: 100%">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: #2563EB; margin: 0 4px; flex: none"></span>
+<span style="flex: 1"><strong>Login</strong>-Seite Styling  <span style="color: #6E6E73">Kundenportal</span></span>
+</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 12px; border: 1px solid #E5E5EA; background: #FBFBFC">
+<div style="display: flex; align-items: flex-start; gap: 10px">
+<span style="width: 20px; height: 20px; border-radius: 5px; background: #A16207; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">T</span>
+<div style="flex: 1; min-width: 0">
+<div style="font-weight: 600; font-size: 14px">Login-Flow refaktorieren</div>
+<div style="font-size: 12px; color: #55555A">Task #4821 · Parent: #4702 Login mit Passkeys</div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; font-size: 12px">
+<div><span style="color: #55555A">Status</span><br><span style="display: inline-flex; align-items: center; gap: 5px; font-weight: 500"><span style="width: 7px; height: 7px; border-radius: 50%; background: #1D4ED8"></span>Active</span></div>
+<div><span style="color: #55555A">Zugewiesen</span><br><span style="font-weight: 500">Dir</span></div>
+<div><span style="color: #55555A">Iteration</span><br><span style="font-weight: 500">Sprint 42 · endet Fr.</span></div>
+<div><span style="color: #55555A">Aufwand</span><br><span style="font-weight: 500">5,5 h erledigt · 3 h offen</span></div>
+</div>
+<div style="display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: #E5E5EA">
+<div style="width: 65%; background: #0F766E"></div>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<button type="button" style="height: 32px; padding: 0 12px; border: 0; border-radius: 8px; background: #0F766E; color: #FFFFFF; font-weight: 600; display: flex; align-items: center; gap: 8px">Starten <span style="font-size: 11px; opacity: 0.85">↩</span></button>
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; display: flex; align-items: center; gap: 8px">Parallel <kbd>⌥↩</kbd></button>
+<div style="flex: 1"></div>
+<a href="https://dev.azure.com/" style="font-size: 12px; text-decoration: none">In ADO öffnen</a>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; padding: 8px 14px; border-top: 1px solid #ECECF0; font-size: 11px; color: #55555A">
+<span><kbd>↑↓</kbd> auswählen</span><span><kbd>␣</kbd> Details</span><span><kbd>⌘↩</kbd> in ADO</span><span><kbd>esc</kbd> zurück</span>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      ado: [
+        { id: '4821', typeLetter: 'T', typeColor: '#A16207', pre: '', match: 'Login', post: '-Flow refaktorieren', meta: 'Task · dir zugewiesen · Sprint 42', state: 'Active', bg: '#E8F4F2' },
+        { id: '4790', typeLetter: 'B', typeColor: '#B91C1C', pre: 'SSO-', match: 'Login', post: ' schlägt bei Token-Ablauf fehl', meta: 'Bug · Sprint 42', state: 'New', bg: 'transparent' },
+        { id: '4702', typeLetter: 'S', typeColor: '#0369A1', pre: '', match: 'Login', post: ' mit Passkeys', meta: 'User Story · Sprint 43', state: 'Active', bg: 'transparent' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

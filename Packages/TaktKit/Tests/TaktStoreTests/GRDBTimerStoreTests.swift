@@ -22,15 +22,17 @@ struct GRDBTimerStoreTests {
     let id = try await engine.start(EntryDraft(title: "Review", weight: 0.7), mode: .switchTo).value
 
     let stored = try await database.writer.read { db -> [String: DatabaseValue] in
-      let row = try Row.fetchOne(
-        db,
-        sql: """
-          SELECT e.id, typeof(e.id) AS id_type, typeof(e.created_at) AS time_type, e.weight,
-                 s.start_at, s.end_at
-          FROM time_entry e JOIN segment s ON s.entry_id = e.id
-          """,
+      let row = try #require(
+        try Row.fetchOne(
+          db,
+          sql: """
+            SELECT e.id, typeof(e.id) AS id_type, typeof(e.created_at) AS time_type, e.weight,
+                   s.start_at, s.end_at
+            FROM time_entry e JOIN segment s ON s.entry_id = e.id
+            """,
+        )
       )
-      return Dictionary(uniqueKeysWithValues: (row ?? Row()).map { ($0, $1) })
+      return Dictionary(uniqueKeysWithValues: row.map { ($0, $1) })
     }
     #expect(stored["id"] == id.uuidString.databaseValue)
     #expect(stored["id_type"] == "text".databaseValue)

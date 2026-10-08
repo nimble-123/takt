@@ -38,6 +38,15 @@ public struct MenuBarStatus: Equatable, Sendable {
     case .paused: "pause.circle"
     }
   }
+
+  /// What VoiceOver reads for the status item.
+  public var accessibilityDescription: String {
+    switch state {
+    case .idle: String(localized: "Takt, no timer running", bundle: .module)
+    case .running: String(localized: "Takt, timer running, \(title ?? "")", bundle: .module)
+    case .paused: String(localized: "Takt, timer paused", bundle: .module)
+    }
+  }
 }
 
 // MARK: - DurationText

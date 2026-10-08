@@ -16,6 +16,7 @@ Closes #
 - [ ] Neue Logik hat Tests; Fehlerbehebungen haben einen Test, der vorher fehlschlug
 - [ ] `docs/TECHNICAL_CONCEPT.md` angepasst, falls die Umsetzung vom Konzept abweicht
 - [ ] UI: Hell- und Dunkelmodus geprüft, Bedienung per Tastatur möglich
+- [ ] UI: Design-Canvas aktualisiert (Artboard: …) oder keine sichtbare Änderung
 
 ## Screenshots
 

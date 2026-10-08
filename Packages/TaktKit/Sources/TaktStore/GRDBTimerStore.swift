@@ -161,20 +161,10 @@ public struct GRDBTimerStore: TimerStore {
         try db.execute(sql: "DELETE FROM \(table) WHERE id = ?", arguments: [id])
 
       case (nil, let after?):
-        let columns = after.columns.sorted { $0.key < $1.key }
-        let names = columns.map(\.key).joined(separator: ", ")
-        try db.execute(
-          sql: "INSERT INTO \(table) (\(names)) VALUES (\(databaseQuestionMarks(count: columns.count)))",
-          arguments: StatementArguments(columns.map(\.value)),
-        )
+        try after.insertRow(into: db)
 
       case (_?, let after?):
-        let columns = after.columns.filter { $0.key != "id" }.sorted { $0.key < $1.key }
-        let assignments = columns.map { "\($0.key) = ?" }.joined(separator: ", ")
-        try db.execute(
-          sql: "UPDATE \(table) SET \(assignments) WHERE id = ?",
-          arguments: StatementArguments(columns.map(\.value) + [id]),
-        )
+        try after.updateRow(id: id, in: db)
       }
     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
       // A missing parent row, e.g. a segment of an entry that no longer exists.

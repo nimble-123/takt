@@ -68,6 +68,15 @@ public struct PopoverView: View {
     .frame(width: 360)
     .foregroundStyle(Palette.textPrimary)
     .animation(.snappy(duration: 0.2), value: model.toast)
+    .onChange(of: model.toast) { old, new in
+      // VoiceOver users do not see the toast appear.
+      guard let new, new.id != old?.id else { return }
+      AccessibilityNotification.Announcement(String(localized: "Stopped: \(new.title)", bundle: .module)).post()
+    }
+    .onChange(of: model.errorMessage) { _, message in
+      guard let message else { return }
+      AccessibilityNotification.Announcement(message).post()
+    }
     .onChange(of: model.openCount, initial: true) {
       searchFocused = true
     }
@@ -146,12 +155,18 @@ public struct PopoverView: View {
             : String(localized: "Pause all", bundle: .module),
           systemImage: model.canResumeAll ? "play.fill" : "pause.fill",
         )
+        .frame(minHeight: 28)
+        .contentShape(Rectangle())
       }
       .disabled(model.snapshot.running.isEmpty && !model.canResumeAll)
-      Text("⌥⇧P").foregroundStyle(Palette.textSecondary)
+      Text(verbatim: "⌥⇧P").foregroundStyle(Palette.textSecondary)
       Spacer()
-      Button(String(localized: "Stop all", bundle: .module)) {
+      Button {
         Task { await model.stopAll() }
+      } label: {
+        Text("Stop all", bundle: .module)
+          .frame(minHeight: 28)
+          .contentShape(Rectangle())
       }
       .disabled(model.snapshot.entries.isEmpty)
       Button {
@@ -210,6 +225,7 @@ struct SuggestionList: View {
           }
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(model.selection == index ? .isSelected : [])
         if let item = suggestion.workItem, model.previewedItem?.id == item.id {
           WorkItemDetail(item: item)
         }
@@ -255,7 +271,7 @@ struct SuggestionList: View {
       }
       Spacer()
       if selected {
-        Text("↩").foregroundStyle(Palette.textSecondary)
+        Text(verbatim: "↩").foregroundStyle(Palette.textSecondary)
       }
     }
     .padding(.horizontal, 10)
@@ -322,7 +338,7 @@ struct CompletionList: View {
             }
             Spacer()
             if selected {
-              Text("⇥").foregroundStyle(Palette.textSecondary)
+              Text(verbatim: "⇥").foregroundStyle(Palette.textSecondary)
             }
           }
           .padding(.horizontal, 10)
@@ -331,6 +347,7 @@ struct CompletionList: View {
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
       }
       Text("⇥ Complete  Esc Close", bundle: .module)
         .font(.system(size: 11))
@@ -467,11 +484,13 @@ struct TimerRow: View {
         .foregroundStyle(isRunning ? Palette.accentText : Palette.textSecondary)
       iconButton(
         isRunning ? "pause.fill" : "play.fill",
-        label: isRunning ? "Pause" : "Resume",
+        label: isRunning
+          ? String(localized: "Pause “\(active.entry.title)”", bundle: .module)
+          : String(localized: "Resume “\(active.entry.title)”", bundle: .module),
       ) {
         if isRunning { await model.pause(active.id) } else { await model.resume(active.id) }
       }
-      iconButton("stop.fill", label: "Stop") {
+      iconButton("stop.fill", label: String(localized: "Stop “\(active.entry.title)”", bundle: .module)) {
         await model.stop(active.id)
       }
     }
@@ -491,7 +510,7 @@ struct TimerRow: View {
 
   private func iconButton(
     _ symbol: String,
-    label: String.LocalizationValue,
+    label: String,
     action: @escaping () async -> Void,
   ) -> some View {
     Button {
@@ -502,7 +521,7 @@ struct TimerRow: View {
         .contentShape(Rectangle())
     }
     .buttonStyle(.borderless)
-    .accessibilityLabel(String(localized: label, bundle: .module))
+    .accessibilityLabel(label)
   }
 }
 
@@ -530,7 +549,7 @@ struct RecentList: View {
                 .lineLimit(1)
             }
             Spacer()
-            Text("⌘\(index + 1)")
+            Text(verbatim: "⌘\(index + 1)")
               .font(.system(size: 12))
               .foregroundStyle(Palette.textSecondary)
           }
@@ -558,7 +577,7 @@ struct DayProgress: View {
       HStack {
         SectionTitle(text: String(localized: "Today", bundle: .module))
         Spacer()
-        Text("\(DurationText.hoursMinutes(total)) / \(DurationText.hoursMinutes(model.dailyGoal)) h")
+        Text(verbatim: "\(DurationText.hoursMinutes(total)) / \(DurationText.hoursMinutes(model.dailyGoal)) h")
           .font(.system(size: 12))
           .monospacedDigit()
           .foregroundStyle(Palette.textSecondary)
@@ -579,7 +598,12 @@ struct DayProgress: View {
       .frame(height: 6)
       .accessibilityElement()
       .accessibilityLabel(Text("Progress towards the daily goal", bundle: .module))
-      .accessibilityValue(Text(DurationText.hoursMinutes(total)))
+      .accessibilityValue(
+        Text(
+          "\(DurationText.hoursMinutes(total)) h of \(DurationText.hoursMinutes(model.dailyGoal)) h",
+          bundle: .module,
+        )
+      )
       if model.todayByCategory.contains(where: { $0.categoryID != nil }) {
         HStack(spacing: 10) {
           ForEach(model.todayByCategory.prefix(4)) { share in
@@ -636,13 +660,21 @@ struct StopToast: View {
           .font(.system(size: 12))
           .lineLimit(1)
         Spacer()
-        Button(String(localized: "Note", bundle: .module)) {
+        Button {
           model.holdToast()
           editingNote = true
           noteFocused = true
+        } label: {
+          Text("Note", bundle: .module)
+            .frame(minHeight: 28)
+            .contentShape(Rectangle())
         }
-        Button(String(localized: "Undo ⌘Z", bundle: .module)) {
+        Button {
           Task { await model.undo() }
+        } label: {
+          Text("Undo ⌘Z", bundle: .module)
+            .frame(minHeight: 28)
+            .contentShape(Rectangle())
         }
       }
       .buttonStyle(.borderless)

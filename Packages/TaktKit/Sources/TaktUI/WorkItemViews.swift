@@ -53,6 +53,8 @@ struct WorkItemRow: View {
     .padding(.horizontal, 10)
     .padding(.vertical, compact ? 3 : 5)
     .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 6))
+    // The compact row is shorter than the minimum hit target; enlarge only the clickable area.
+    .frame(minHeight: compact ? 28 : nil)
     .contentShape(Rectangle())
     .accessibilityElement(children: .combine)
   }

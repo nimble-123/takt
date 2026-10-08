@@ -278,12 +278,14 @@ struct CommandPaletteView: View {
         ScrollView {
           VStack(spacing: 2) {
             ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
-              row(item, selected: index == model.selection)
-                .id(index)
-                .onTapGesture {
-                  model.selection = index
-                  Task { await model.runSelected() }
-                }
+              Button {
+                model.selection = index
+                Task { await model.runSelected() }
+              } label: {
+                row(item, selected: index == model.selection)
+              }
+              .buttonStyle(.plain)
+              .id(index)
             }
           }
           .padding(6)
@@ -322,6 +324,6 @@ struct CommandPaletteView: View {
     .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 6))
     .contentShape(Rectangle())
     .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
+    .accessibilityAddTraits(selected ? .isSelected : [])
   }
 }

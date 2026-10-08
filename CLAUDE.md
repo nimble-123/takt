@@ -6,13 +6,14 @@ Takt ist ein nativer macOS-Timetracker (Menüleiste + Hauptfenster) mit Azure-De
 
 - `docs/PRD.md` – Anforderungen mit IDs (z. B. `TM-05`, `DO-24`). Quelle der Wahrheit für das *Was*.
 - `docs/TECHNICAL_CONCEPT.md` – Architektur, Schema, Timer-Engine, ADO-Buchungsablauf. Quelle der Wahrheit für das *Wie*.
-- `docs/DESIGN.md` – Screens, Farb-Tokens, Typografie, Interaktionsregeln. Entwürfe: Link in der Datei.
+- `docs/DESIGN.md` – Screens, Farb-Tokens, Typografie, Interaktionsregeln.
+- Design-Canvas (https://claude.ai/artifact/FeiQaPoKc5FuezMenGZ9Kh) – Entwürfe aller Screens, Quelle der Wahrheit für das *Aussehen*.
 - `docs/RELEASING.md` – Versionierung, Release-PRs, lokales Signieren.
 - `site/` – Produktseite auf GitHub Pages (Vite, GSAP, Lenis, three.js); `npm ci && npm run dev` in `site/`.
 - `docs/MDM.md` – verwaltbare Einstellungen, Beispielprofil `docs/mdm/Takt.mobileconfig`, Verteilung per Intune/Jamf.
 - GitHub-Issues und Milestones (`Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau`, `Phase 4 · Nachweis`) – der Backlog.
 
-Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR angepasst.
+Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR angepasst. Features mit Auswirkung auf UI/UX werden vor oder im selben PR auf dem Design-Canvas festgehalten (neues oder geändertes Artboard), in `docs/DESIGN.md` eingetragen und der Snapshot in `site/public/design/` aktualisiert (siehe „Galerie aktualisieren“ in `docs/DESIGN.md`).
 
 ## Befehle
 
@@ -31,7 +32,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 ## Architekturregeln (nicht verhandelbar)
 
 - **Schichten:** App → TaktUI → Dienste (TaktADO, TaktSystem, TaktAnalytics, TaktCalendar) → TaktStore → TaktCore. Abhängigkeiten nur nach unten.
-- **TaktCore** importiert nur `Foundation` – kein AppKit, SwiftUI, GRDB. **TaktCore und TaktStore** bleiben frei von Apple-only-Frameworks, damit ihre Tests auch unter Linux laufen (eigener CI-Job). `Package.swift` deklariert Apple-only-Targets (TaktUI, TaktSystem …) deshalb nur innerhalb von `#if os(macOS)`.
+- **TaktCore** importiert nur `Foundation` und Module der Swift-Standardbibliothek (z. B. `Synchronization`) – kein AppKit, SwiftUI, GRDB. **TaktCore und TaktStore** bleiben frei von Apple-only-Frameworks, damit ihre Tests auch unter Linux laufen (eigener CI-Job). `Package.swift` deklariert Apple-only-Targets (TaktUI, TaktSystem …) deshalb nur innerhalb von `#if os(macOS)`.
 - **Rohdaten statt Ableitungen:** Gespeichert werden Segmente (UTC-Millisekunden, `INTEGER`). Zählweise, Rundung und Buchungsbeträge werden zur Abfragezeit berechnet.
 - **Zeit nur über `TaktClock`:** Kein `Date()` in Core/Store/Diensten außer in `SystemClock`. Tests nutzen eine manuelle Uhr.
 - **Ein Befehl = eine Transaktion:** Die Timer-Engine schreibt ausschließlich über `TimerStore.update(_:)`.

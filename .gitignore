@@ -22,3 +22,6 @@ build/
 *.p12
 *.mobileprovision
 .env
+
+# Worktrees of Claude Code agents
+.claude/worktrees/

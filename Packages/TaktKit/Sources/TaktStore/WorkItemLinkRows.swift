@@ -60,16 +60,6 @@ extension WorkItemLink: TableRow {
   }
 }
 
-extension EntryQueries {
-  /// All linked work items by ID; the table holds one row per work item.
-  public func workItemLinks() async throws -> [WorkItemLinkID: WorkItemLink] {
-    try await database.writer.read { db in
-      let links = try Row.fetchAll(db, sql: "SELECT * FROM work_item_link").map(WorkItemLink.init(row:))
-      return Dictionary(uniqueKeysWithValues: links.map { ($0.id, $0) })
-    }
-  }
-}
-
 // MARK: - WorkItemCache
 
 /// Work items seen in searches and suggestions, for instant local hits (DO-11).
@@ -94,16 +84,7 @@ public struct WorkItemCache: Sendable {
           arguments: [item.organization, item.workItemID],
         ).map(WorkItemLink.init(row:))
         let stored = existing?.updated(with: item) ?? item
-        let columns = stored.columns.sorted { $0.key < $1.key }
-        let updates = columns.filter { $0.key != "id" }.map { "\($0.key) = excluded.\($0.key)" }
-        try db.execute(
-          sql: """
-            INSERT INTO work_item_link (\(columns.map(\.key).joined(separator: ", ")))
-            VALUES (\(databaseQuestionMarks(count: columns.count)))
-            ON CONFLICT(id) DO UPDATE SET \(updates.joined(separator: ", "))
-            """,
-          arguments: StatementArguments(columns.map(\.value)),
-        )
+        try stored.upsertRow(into: db)
         return stored
       }
     }

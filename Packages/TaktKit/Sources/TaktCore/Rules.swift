@@ -74,15 +74,15 @@ public struct Rule: Hashable, Sendable, Codable, Identifiable {
 
 public enum Rules {
   /// What the rules add to a new or newly linked entry.
-  public struct Result: Hashable, Sendable {
+  public struct Outcome: Hashable, Sendable {
     public var categoryID: CategoryID?
     public var projectID: ProjectID?
     public var tags = [String]()
   }
 
   /// Rules apply in their order; for each field the first matching rule wins.
-  public static func evaluate(_ rules: [Rule], title: String, workItem: WorkItemLink?) -> Result {
-    var result = Result()
+  public static func evaluate(_ rules: [Rule], title: String, workItem: WorkItemLink?) -> Outcome {
+    var result = Outcome()
     for rule in rules where rule.matches(title: title, workItem: workItem) {
       if result.categoryID == nil { result.categoryID = rule.categoryID }
       if result.projectID == nil { result.projectID = rule.projectID }
@@ -95,7 +95,7 @@ public enum Rules {
 
   /// Fills only what the user left empty: a manual choice always wins.
   public static func apply(_ rules: [Rule], to draft: EntryDraft, workItem: WorkItemLink?) -> (
-    EntryDraft,
+    draft: EntryDraft,
     tags: [String],
   ) {
     let result = evaluate(rules, title: draft.title, workItem: workItem)
