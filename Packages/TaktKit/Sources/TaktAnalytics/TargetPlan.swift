@@ -24,13 +24,13 @@ public struct TargetPlan: Hashable, Sendable {
   }
 
   /// Contractual hours per week.
-  public var weeklyHours: Double
+  public private(set) var weeklyHours: Double
   /// Working days, 1 = Monday … 7 = Sunday.
-  public var workDays: Set<Int>
+  public private(set) var workDays: Set<Int>
 
   /// Target seconds of a local day: the weekly hours spread evenly over the working days.
   public func target(on day: Timestamp, calendar: Calendar) -> TimeInterval {
-    guard !workDays.isEmpty, workDays.contains(Self.weekday(day, calendar)) else { return 0 }
+    guard !workDays.isEmpty, workDays.contains(day.mondayBasedWeekday(in: calendar)) else { return 0 }
     return weeklyHours * 3600 / Double(workDays.count)
   }
 
@@ -47,10 +47,4 @@ public struct TargetPlan: Hashable, Sendable {
     return comparison
   }
 
-  // MARK: Internal
-
-  /// 1 = Monday … 7 = Sunday.
-  static func weekday(_ day: Timestamp, _ calendar: Calendar) -> Int {
-    (calendar.component(.weekday, from: day.date) + 5) % 7 + 1
-  }
 }
