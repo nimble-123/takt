@@ -42,10 +42,21 @@ private struct SingleEntryInspector: View {
     Form {
       Section {
         TextField(String(localized: "Title", bundle: .module), text: $title)
-          .onSubmit { save(String(localized: "Rename", bundle: .module)) { $0.title = title } }
+          .commitsOnBlur(title) { value in
+            // An entry always has a title: a cleared field goes back to the stored one.
+            guard let new = value.nilIfBlank else {
+              title = entry.entry.title
+              return
+            }
+            guard new != entry.entry.title else { return }
+            save(String(localized: "Rename", bundle: .module)) { $0.title = new }
+          }
         TextField(String(localized: "Note", bundle: .module), text: $note, axis: .vertical)
           .lineLimit(2...6)
-          .onSubmit { save(String(localized: "Change Note", bundle: .module)) { $0.note = note.nilIfBlank } }
+          .commitsOnBlur(note) { value in
+            guard value.nilIfBlank != entry.entry.note else { return }
+            save(String(localized: "Change Note", bundle: .module)) { $0.note = value.nilIfBlank }
+          }
       }
 
       AssignmentSection(model: model, ids: [entry.id])
@@ -95,8 +106,11 @@ private struct SingleEntryInspector: View {
           }
         }
         LabeledContent(String(localized: "Total", bundle: .module)) {
-          Text(DurationText.hoursMinutes(entry.duration(at: model.now)))
-            .monospacedDigit()
+          // Re-rendered every minute, so a running entry keeps counting.
+          TimelineView(.everyMinute) { _ in
+            Text(DurationText.hoursMinutes(entry.duration(at: model.now)))
+              .monospacedDigit()
+          }
         }
       }
 
@@ -157,17 +171,18 @@ private struct SegmentRow: View {
 
   var body: some View {
     HStack(spacing: 6) {
-      DatePicker("", selection: $start, displayedComponents: .hourAndMinute)
+      // Committed when editing ends, not on every arrow key: one write and one undo step.
+      DatePicker(String(localized: "Start", bundle: .module), selection: $start, displayedComponents: .hourAndMinute)
         .labelsHidden()
-        .onChange(of: start) { commit() }
+        .commitsOnBlur(start) { _ in commit() }
       Text("–")
       if segment.isOpen {
         Text("running", bundle: .module)
           .foregroundStyle(Palette.accentText)
       } else {
-        DatePicker("", selection: $end, displayedComponents: .hourAndMinute)
+        DatePicker(String(localized: "End", bundle: .module), selection: $end, displayedComponents: .hourAndMinute)
           .labelsHidden()
-          .onChange(of: end) { commit() }
+          .commitsOnBlur(end) { _ in commit() }
       }
       Spacer()
       if segment.source != .live {
@@ -213,12 +228,15 @@ private struct MultiEntryInspector: View {
         Text("\(ids.count) entries selected", bundle: .module)
           .font(.headline)
         LabeledContent(String(localized: "Total", bundle: .module)) {
-          Text(
-            DurationText.hoursMinutes(
-              ids.compactMap(model.entry).reduce(0) { $0 + $1.duration(at: model.now) }
+          // Re-rendered every minute, so running entries keep counting.
+          TimelineView(.everyMinute) { _ in
+            Text(
+              DurationText.hoursMinutes(
+                ids.compactMap(model.entry).reduce(0) { $0 + $1.duration(at: model.now) }
+              )
             )
-          )
-          .monospacedDigit()
+            .monospacedDigit()
+          }
         }
       }
       AssignmentSection(model: model, ids: ids)
@@ -340,8 +358,8 @@ private struct AssignmentSection: View {
         text: $tags,
         prompt: Text("comma separated", bundle: .module),
       )
-      .onSubmit {
-        let names = tags.split(separator: ",").map { String($0).trimmed }
+      .commitsOnBlur(tags) { value in
+        let names = value.split(separator: ",").map { String($0).trimmed }
         Task { await catalog.setTags(named: names, on: ids) }
       }
     }
