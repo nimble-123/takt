@@ -31,7 +31,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 ## Architekturregeln (nicht verhandelbar)
 
 - **Schichten:** App → TaktUI → Dienste (TaktADO, TaktSystem, TaktAnalytics, TaktCalendar) → TaktStore → TaktCore. Abhängigkeiten nur nach unten.
-- **TaktCore** importiert nur `Foundation` – kein AppKit, SwiftUI, GRDB. **TaktCore und TaktStore** bleiben frei von Apple-only-Frameworks, damit ihre Tests auch unter Linux laufen (eigener CI-Job). `Package.swift` deklariert Apple-only-Targets (TaktUI, TaktSystem …) deshalb nur innerhalb von `#if os(macOS)`.
+- **TaktCore** importiert nur `Foundation` und Module der Swift-Standardbibliothek (z. B. `Synchronization`) – kein AppKit, SwiftUI, GRDB. **TaktCore und TaktStore** bleiben frei von Apple-only-Frameworks, damit ihre Tests auch unter Linux laufen (eigener CI-Job). `Package.swift` deklariert Apple-only-Targets (TaktUI, TaktSystem …) deshalb nur innerhalb von `#if os(macOS)`.
 - **Rohdaten statt Ableitungen:** Gespeichert werden Segmente (UTC-Millisekunden, `INTEGER`). Zählweise, Rundung und Buchungsbeträge werden zur Abfragezeit berechnet.
 - **Zeit nur über `TaktClock`:** Kein `Date()` in Core/Store/Diensten außer in `SystemClock`. Tests nutzen eine manuelle Uhr.
 - **Ein Befehl = eine Transaktion:** Die Timer-Engine schreibt ausschließlich über `TimerStore.update(_:)`.

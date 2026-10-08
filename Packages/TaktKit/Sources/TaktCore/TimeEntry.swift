@@ -55,6 +55,23 @@ public struct TimeEntry: Hashable, Sendable, Codable, Identifiable {
     self.deletedAt = deletedAt
   }
 
+  /// A new entry with what the user chose in `draft`, created and last updated at `now`.
+  public init(draft: EntryDraft, state: EntryState, at now: Timestamp) {
+    self.init(
+      title: draft.title,
+      projectID: draft.projectID,
+      taskID: draft.taskID,
+      categoryID: draft.categoryID,
+      workItemLinkID: draft.workItemLinkID,
+      note: draft.note,
+      countingMode: draft.countingMode,
+      weight: draft.weight,
+      state: state,
+      createdAt: now,
+      updatedAt: now,
+    )
+  }
+
   // MARK: Public
 
   public var id: EntryID

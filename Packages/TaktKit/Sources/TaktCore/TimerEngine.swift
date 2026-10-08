@@ -86,7 +86,7 @@ public actor TimerEngine {
     let now = clock.now()
     return try await perform { snapshot in
       var changes = mode == .switchTo ? Self.pauseChanges(snapshot.running, at: now) : []
-      let entry = Self.entry(from: draft, state: .running, at: now)
+      let entry = TimeEntry(draft: draft, state: .running, at: now)
       changes.append(.entry(before: nil, after: entry))
       changes.append(.segment(before: nil, after: Segment(entryID: entry.id, start: now)))
       return TimerUpdate(changes: changes, result: entry.id)
@@ -247,7 +247,7 @@ public actor TimerEngine {
 
       case .reassign(let draft):
         resolved.resolution = .reassigned
-        let target = Self.entry(from: draft, state: .stopped, at: now)
+        let target = TimeEntry(draft: draft, state: .stopped, at: now)
         resolved.targetEntryID = target.id
         changes.append(.entry(before: nil, after: target))
         changes.append(
@@ -318,22 +318,6 @@ public actor TimerEngine {
   private let clock: any TaktClock
   private var subscribers = [Int: Subscriber]()
   private var nextSubscriber = 0
-
-  private static func entry(from draft: EntryDraft, state: EntryState, at now: Timestamp) -> TimeEntry {
-    TimeEntry(
-      title: draft.title,
-      projectID: draft.projectID,
-      taskID: draft.taskID,
-      categoryID: draft.categoryID,
-      workItemLinkID: draft.workItemLinkID,
-      note: draft.note,
-      countingMode: draft.countingMode,
-      weight: draft.weight,
-      state: state,
-      createdAt: now,
-      updatedAt: now,
-    )
-  }
 
   private static func active(_ id: EntryID, in snapshot: TimerSnapshot) throws -> ActiveEntry {
     guard let active = snapshot.entry(id) else { throw TimerError.entryNotActive(id) }
