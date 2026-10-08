@@ -13,6 +13,7 @@ struct MenuBarModelTests {
   // MARK: Lifecycle
 
   init() throws {
+    testDefaults = try TestDefaults()
     let database = try AppDatabase.inMemory()
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
@@ -23,7 +24,7 @@ struct MenuBarModelTests {
       queries: EntryQueries(database: database),
       catalog: catalog,
       clock: clock,
-      settings: AppSettings(defaults: UserDefaults(suiteName: "takt-tests-\(UUID().uuidString)") ?? .standard),
+      settings: AppSettings(defaults: testDefaults.defaults),
       calendar: calendar,
     )
   }
@@ -141,6 +142,19 @@ struct MenuBarModelTests {
   }
 
   @Test
+  func suggestionIDsAreUniqueAndStableAcrossRenders() async throws {
+    for title in ["A", "B", "C"] { try await track(title, minutes: 1) }
+    try await sync()
+
+    let ids = model.suggestions.map(\.id)
+    #expect(Set(ids).count == 3)
+    #expect(model.suggestions.map(\.id) == ids)
+    let recent = MenuBarModel.Suggestion(draft: EntryDraft(title: "A"), group: .recent)
+    let task = MenuBarModel.Suggestion(draft: EntryDraft(title: "A"), group: .localTask)
+    #expect(recent.id != task.id)
+  }
+
+  @Test
   func pauseAllTogglesToResumeAll() async throws {
     await model.start(EntryDraft(title: "A"), parallel: false)
     await model.start(EntryDraft(title: "B"), parallel: true)
@@ -217,6 +231,7 @@ struct MenuBarModelTests {
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000)) // 2026-10-07 10:00 Berlin
+  private let testDefaults: TestDefaults
   private let engine: TimerEngine
   private let model: MenuBarModel
   private let catalog: CatalogModel

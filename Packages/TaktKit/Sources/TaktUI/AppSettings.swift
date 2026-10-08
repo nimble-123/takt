@@ -1,6 +1,10 @@
 import Foundation
 import Observation
+import os
+import TaktADO
+import TaktAnalytics
 import TaktCore
+import TaktSystem
 
 /// User settings in `UserDefaults`. A configuration profile (MDM) can force values; those are
 /// read-only in the UI (TECHNICAL_CONCEPT "Verwaltete Einstellungen").
@@ -13,20 +17,28 @@ public final class AppSettings {
   public init(defaults: UserDefaults = .standard, isForced: ((String) -> Bool)? = nil) {
     self.defaults = defaults
     self.isForced = isForced ?? { defaults.objectIsForced(forKey: $0) }
+    let snapshot = Snapshot(
+      idleThresholdMinutes: max(1, defaults.object(forKey: Key.idleThresholdMinutes.rawValue) as? Int ?? 10),
+      lockCountsAsPause: defaults.bool(forKey: Key.lockCountsAsPause.rawValue),
+      reduceRemainingWork: defaults.object(forKey: Key.reduceRemainingWork.rawValue) as? Bool ?? true,
+      bookingIncludesNote: defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true,
+      gitFolders: defaults.stringArray(forKey: Key.gitFolders.rawValue) ?? [],
+    )
+    snapshotLock = OSAllocatedUnfairLock(initialState: snapshot)
     startMode = defaults.string(forKey: Key.startMode.rawValue) == "parallel" ? .parallel : .switchTo
     countingMode = defaults.string(forKey: Key.countingMode.rawValue).flatMap(CountingMode.init) ?? .split
-    idleThresholdMinutes = max(1, defaults.object(forKey: Key.idleThresholdMinutes.rawValue) as? Int ?? 10)
-    lockCountsAsPause = defaults.bool(forKey: Key.lockCountsAsPause.rawValue)
+    idleThresholdMinutes = snapshot.idleThresholdMinutes
+    lockCountsAsPause = snapshot.lockCountsAsPause
     roundingMinutes = max(0, defaults.integer(forKey: Key.roundingMinutes.rawValue))
     bookingMode = defaults.string(forKey: Key.bookingMode.rawValue).flatMap(BookingMode.init) ?? .review
     dailyGoalHours = defaults.object(forKey: Key.dailyGoalHours.rawValue) as? Double ?? 8
     showElapsedInMenuBar = defaults.object(forKey: Key.showElapsedInMenuBar.rawValue) as? Bool ?? true
     onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted.rawValue)
-    reduceRemainingWork = defaults.object(forKey: Key.reduceRemainingWork.rawValue) as? Bool ?? true
-    bookingIncludesNote = defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true
+    reduceRemainingWork = snapshot.reduceRemainingWork
+    bookingIncludesNote = snapshot.bookingIncludesNote
     weeklyHours = defaults.object(forKey: Key.weeklyHours.rawValue) as? Double ?? 40
     workDays = Set(defaults.array(forKey: Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
-    gitFolders = defaults.stringArray(forKey: Key.gitFolders.rawValue) ?? []
+    gitFolders = snapshot.gitFolders
   }
 
   // MARK: Public
@@ -53,6 +65,29 @@ public final class AppSettings {
     case manual
     case review
     case automatic
+  }
+
+  /// The settings that services read outside the main actor (idle monitor, booking service, Git
+  /// branches); a copy that follows every change.
+  public struct Snapshot: Sendable, Equatable {
+    public var idleThresholdMinutes: Int
+    public var lockCountsAsPause: Bool
+    public var reduceRemainingWork: Bool
+    public var bookingIncludesNote: Bool
+    public var gitFolders: [String]
+
+    public var idle: IdleSettings {
+      IdleSettings(threshold: TimeInterval(idleThresholdMinutes * 60), lockCountsAsPause: lockCountsAsPause)
+    }
+
+    /// DO-22, DO-23.
+    public var bookingOptions: BookingService.Options {
+      BookingService.Options(reduceRemainingWork: reduceRemainingWork, includeNote: bookingIncludesNote)
+    }
+
+    public var gitBranches: GitBranches {
+      GitBranches(folders: gitFolders.map { URL(filePath: $0) })
+    }
   }
 
   public static let roundingChoices = [0, 5, 6, 10, 15, 30]
@@ -132,6 +167,20 @@ public final class AppSettings {
     didSet { write(.bookingIncludesNote, bookingIncludesNote) }
   }
 
+  /// Readable from any isolation, e.g. from the `@Sendable` closures of the services.
+  public nonisolated var snapshot: Snapshot {
+    snapshotLock.withLock { $0 }
+  }
+
+  /// AN-07: the weekly hours spread over the working days.
+  public var targetPlan: TargetPlan {
+    TargetPlan(weeklyHours: weeklyHours, workDays: workDays)
+  }
+
+  public var rounding: Rounding {
+    Rounding(minutes: roundingMinutes)
+  }
+
   public var dailyGoal: TimeInterval {
     dailyGoalHours * 3600
   }
@@ -159,8 +208,17 @@ public final class AppSettings {
   @ObservationIgnored private let defaults: UserDefaults
   /// Whether a configuration profile sets a key; replaceable in tests.
   @ObservationIgnored private let isForced: (String) -> Bool
+  @ObservationIgnored private nonisolated let snapshotLock: OSAllocatedUnfairLock<Snapshot>
 
   private func write(_ key: Key, _ value: Any) {
+    let snapshot = Snapshot(
+      idleThresholdMinutes: idleThresholdMinutes,
+      lockCountsAsPause: lockCountsAsPause,
+      reduceRemainingWork: reduceRemainingWork,
+      bookingIncludesNote: bookingIncludesNote,
+      gitFolders: gitFolders,
+    )
+    snapshotLock.withLock { $0 = snapshot }
     guard !isLocked(key) else { return }
     defaults.set(value, forKey: key.rawValue)
   }

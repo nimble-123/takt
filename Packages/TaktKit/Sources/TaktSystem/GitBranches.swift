@@ -37,6 +37,12 @@ public struct GitBranches: Sendable {
     repositories().compactMap(Self.branch(of:)).sorted { $0.switchedAt > $1.switchedAt }
   }
 
+  /// `current()` on the concurrent pool, so reading the files never blocks the main actor.
+  @concurrent
+  public func load() async -> [GitBranch] {
+    current()
+  }
+
   // MARK: Internal
 
   /// `.git` is a directory, or a file `gitdir: <path>` in a worktree or submodule.

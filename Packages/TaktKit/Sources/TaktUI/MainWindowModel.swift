@@ -388,6 +388,9 @@ public final class MainWindowModel {
   let clock: any TaktClock
   let calendar: Calendar
 
+  /// The running search; tests await it.
+  @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
+
   var shownRange: Range<Timestamp> {
     section == .today || section == .dayClose ? dayRange : weekRange
   }
@@ -409,7 +412,6 @@ public final class MainWindowModel {
 
   // MARK: Private
 
-  @ObservationIgnored private var searchTask: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
 

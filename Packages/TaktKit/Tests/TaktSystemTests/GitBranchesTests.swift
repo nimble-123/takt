@@ -47,6 +47,16 @@ struct GitBranchesTests {
   }
 
   @Test
+  func loadReadsTheSameBranchesOffTheCallersActor() async throws {
+    defer { try? FileManager.default.removeItem(at: root) }
+    _ = try repository("portal", head: "ref: refs/heads/feature/1234-login\n")
+
+    let branches = await GitBranches(folders: [root]).load()
+
+    #expect(branches.map(\.name) == ["feature/1234-login"])
+  }
+
+  @Test
   func missingFoldersAreIgnored() {
     #expect(GitBranches(folders: [root.appending(path: "nope")]).current().isEmpty)
   }

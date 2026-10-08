@@ -267,9 +267,7 @@ struct MainWindowSearchTests {
     try await engine.apply(changes)
 
     model.searchText = "changelog"
-    for _ in 0..<100 where model.searchResults.entries.isEmpty {
-      try await Task.sleep(for: .milliseconds(20))
-    }
+    await model.searchTask?.value
     let hit = try #require(model.searchResults.entries.first)
     #expect(hit.entry.id == entry.id)
     #expect(hit.snippet == "**Changelog** prüfen")

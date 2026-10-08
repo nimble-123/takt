@@ -30,9 +30,8 @@ struct BookingCoordinatorTests {
       entries: EntryQueries(database: database),
       clock: clock,
     ) { BookingService.Options() }
-    let settings = AppSettings(
-      defaults: UserDefaults(suiteName: "takt-bc-settings-\(UUID().uuidString)") ?? .standard
-    )
+    testDefaults = try TestDefaults("takt-bc-settings")
+    let settings = AppSettings(defaults: testDefaults.defaults)
     settings.roundingMinutes = 15
     coordinator = BookingCoordinator(
       service: service,
@@ -71,6 +70,7 @@ struct BookingCoordinatorTests {
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000)) // 2026-10-07 10:00 Berlin
+  private let testDefaults: TestDefaults
   private let database: AppDatabase
   private let coordinator: BookingCoordinator
   private let cache: WorkItemCache

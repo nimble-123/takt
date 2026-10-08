@@ -22,7 +22,7 @@ public final class MenuBarModel {
     settings: AppSettings,
     workItems: (any WorkItemSource)? = nil,
     rules: RulesModel? = nil,
-    gitBranches: (@Sendable () -> [GitBranch])? = nil,
+    gitBranches: (@Sendable () async -> [GitBranch])? = nil,
     actions: TimerActions? = nil,
     calendar: Calendar = .current,
   ) {
@@ -52,8 +52,27 @@ public final class MenuBarModel {
     /// For Azure DevOps hits: the details of the compact preview.
     public var workItem: WorkItemLink?
 
-    public var id: Int {
-      hashValue
+    /// Stable across renders and launches: the group plus the work item, the task or the
+    /// recent activity's fields.
+    public var id: String {
+      switch group {
+      case .azureDevOps:
+        "ado:" + (workItem.map { "\($0.organization)#\($0.workItemID)" } ?? draft.title)
+
+      case .recent:
+        "recent:"
+          + [
+            draft.title,
+            draft.projectID?.uuidString,
+            draft.taskID?.uuidString,
+            draft.categoryID?.uuidString,
+            draft.workItemLinkID?.uuidString,
+          ]
+          .map { $0 ?? "" }.joined(separator: "|")
+
+      case .localTask:
+        "task:" + (draft.taskID?.uuidString ?? draft.title)
+      }
     }
   }
 
@@ -132,6 +151,7 @@ public final class MenuBarModel {
   }
 
   /// Recent activities if the query is empty, otherwise matching recent activities and local tasks.
+  /// Computed on every access; a view reads it once per render.
   public var suggestions: [Suggestion] {
     let text = input.title
     if text.isEmpty {
@@ -233,7 +253,7 @@ public final class MenuBarModel {
     guard let workItems else { return }
     let now = clock.now()
     // Branches switched within the last 12 hours, newest first (PRD "Vorgeschlagene Items" 4).
-    let branches = (gitBranches?() ?? []).filter { now.seconds(since: $0.switchedAt) < 12 * 3600 }
+    let branches = (await gitBranches?() ?? []).filter { now.seconds(since: $0.switchedAt) < 12 * 3600 }
     let switchedSinceLoad = branches.first.map { branch in
       suggestionsLoadedAt.map { branch.switchedAt > $0 } ?? true
     }
@@ -305,6 +325,7 @@ public final class MenuBarModel {
     if acceptCompletion() { return }
     let title = input.title
     let draft: EntryDraft
+    let suggestions = suggestions
     if let selection, suggestions.indices.contains(selection) {
       draft = suggestions[selection].draft
     } else {
@@ -437,6 +458,9 @@ public final class MenuBarModel {
 
   let queries: EntryQueries
 
+  /// The running work item search; tests await it.
+  private(set) var searchTask: Task<Void, Never>?
+
   /// The input's tokens matched against the catalog; shown as chips below the search field.
   var tokens: StartTokens {
     StartTokens(input, catalog: catalog)
@@ -468,14 +492,14 @@ public final class MenuBarModel {
   private let calendar: Calendar
   private let workItems: (any WorkItemSource)?
   private let rules: RulesModel?
-  private let gitBranches: (@Sendable () -> [GitBranch])?
-  private var searchTask: Task<Void, Never>?
+  private let gitBranches: (@Sendable () async -> [GitBranch])?
   private var suggestionsLoadedAt: Timestamp?
   private var undoStack = [TimerUndo]()
   private var toastTask: Task<Void, Never>?
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "menu-bar")
 
   private var selectedWorkItem: WorkItemLink? {
+    let suggestions = suggestions
     guard let selection, suggestions.indices.contains(selection) else { return nil }
     return suggestions[selection].workItem
   }
