@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Woche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tb.s{width:24px;height:24px}
+a{color:#0F766E}a:hover{color:#115E59}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #0F766E;outline-offset:1px}
+kbd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#555559;background:#FFFFFF;border:1px solid #D9D9DE;border-radius:5px;padding:1px 5px}
+input[type=checkbox]{accent-color:#0F766E;width:16px;height:16px;margin:0;flex:none}
+.side{display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:7px;color:#1C1C1E;text-decoration:none}
+.side svg{color:#55555A;flex:none}
+.side:hover{background:#ECECF0;color:#1C1C1E}
+.side[aria-current=page]{background:#E2E8E7;font-weight:600}
+.side[aria-current=page] svg{color:#0F766E}
+.tb{width:30px;height:30px;border:0;border-radius:7px;background:transparent;display:flex;align-items:center;justify-content:center;color:#55555A;padding:0}
+.tb:hover{background:#ECECF0}
+.btn{height:26px;padding:0 10px;border:1px solid #D9D9DE;border-radius:6px;background:#FFFFFF;font-size:12px;white-space:nowrap}
+.btn-p{height:28px;padding:0 14px;border:0;border-radius:7px;background:#0F766E;color:#FFFFFF;font-weight:600;white-space:nowrap}
+.ctl{height:26px;border:1px solid #D9D9DE;border-radius:6px;background:#FFFFFF;padding:0 6px;font:inherit;font-size:13px;color:#1C1C1E;min-width:0}
+.ghost{height:26px;padding:0 4px;border:0;background:transparent;color:#0F766E}
+.grp-h{margin:0 0 6px 10px;font-size:13px;font-weight:600;color:#1C1C1E}
+.grp{background:#FFFFFF;border:1px solid #E5E5EA;border-radius:9px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 12px;box-sizing:border-box;border-top:1px solid #F0F0F3}
+.row:first-child{border-top:0}
+.row>.lbl{flex:1;min-width:0}
+.cap{margin:6px 10px 0;font-size:11px;line-height:1.45;color:#55555A}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+input.sw{appearance:none;-webkit-appearance:none;width:30px;height:18px;border-radius:9px;background:#D9D9DE;position:relative;margin:0;flex:none;cursor:pointer}
+input.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+input.sw:checked{background:#0F766E}input.sw:checked::after{transform:translateX(12px)}
+input.sw:disabled{opacity:.55;cursor:default}
+.seg{display:inline-flex;padding:2px;border-radius:7px;background:#ECECF0;gap:2px}
+.seg button{height:22px;padding:0 10px;border:0;border-radius:5px;background:transparent;font-size:12px}
+.seg button[aria-pressed=true]{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.15);font-weight:600}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 800px; box-sizing: border-box; padding: 24px; background: #E4E7EC; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px">
+<svg width="0" height="0" style="position: absolute" aria-hidden="true"><defs><symbol id="i-left" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5"></path></symbol><symbol id="i-right" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"></path></symbol><symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.8"></circle><path d="M10.6 10.6L14 14"></path></symbol><symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"></path></symbol><symbol id="i-insp" viewBox="0 0 16 16"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2"></rect><path d="M10 2.5v11"></path></symbol><symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.8"></circle><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"></path></symbol><symbol id="i-seal" viewBox="0 0 16 16"><path d="M8 1.6l1.6 1.2 2-.1.6 1.9 1.6 1.2-.7 1.9.7 1.9-1.6 1.2-.6 1.9-2-.1L8 14.4l-1.6-1.2-2 .1-.6-1.9-1.6-1.2.7-1.9-.7-1.9 1.6-1.2.6-1.9 2 .1z"></path><path d="M5.8 8.1l1.5 1.5 3-3.1"></path></symbol><symbol id="i-cal" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2"></rect><path d="M2 6.5h12M5.5 1.6v2.6M10.5 1.6v2.6"></path></symbol><symbol id="i-list" viewBox="0 0 16 16"><path d="M6 4h8M6 8h8M6 12h8"></path><circle cx="2.8" cy="4" r=".6"></circle><circle cx="2.8" cy="8" r=".6"></circle><circle cx="2.8" cy="12" r=".6"></circle></symbol><symbol id="i-chart" viewBox="0 0 16 16"><path d="M2 2v12h12"></path><path d="M5.5 11V8M8.5 11V5M11.5 11V7"></path></symbol><symbol id="i-folder" viewBox="0 0 16 16"><path d="M1.8 4.2c0-.7.5-1.2 1.2-1.2h3l1.4 1.5H13c.7 0 1.2.5 1.2 1.2v6.1c0 .7-.5 1.2-1.2 1.2H3c-.7 0-1.2-.5-1.2-1.2z"></path></symbol><symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 1.8v1.8M8 12.4v1.8M1.8 8h1.8M12.4 8h1.8M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3"></path><circle cx="8" cy="8" r="4.6"></circle></symbol></defs></svg>
+<div style="position: relative; max-width: 1232px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.16); overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid #ECECF0; background: #FAFAFB">
+<div style="display: flex; gap: 8px; margin-right: 6px" aria-hidden="true">
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+</div>
+<div style="display: flex; align-items: center; gap: 2px">
+<button type="button" class="tb" aria-label="Zurück"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-left"></use></svg></button>
+<button type="button" style="height: 26px; padding: 0 10px; border: 1px solid #D9D9DE; border-radius: 7px; background: #FFFFFF">Heute</button>
+<button type="button" class="tb" aria-label="Weiter"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-right"></use></svg></button>
+</div>
+<div style="font-size: 15px; font-weight: 700; white-space: nowrap">KW 41</div>
+<div style="flex: 1"></div>
+
+<label style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border-radius: 8px; background: #F1F1F4; color: #6E6E73; width: 300px; box-sizing: border-box; border: 1px solid transparent">
+<svg class="i" width="13" height="13" aria-hidden="true" style="color: #6E6E73; stroke-width: 1.6"><use href="#i-search"></use></svg>
+<input type="search" aria-label="Suchen" placeholder="Einträge, Notizen, Projekte, Work Items" style="border: 0; background: transparent; font: inherit; color: #1C1C1E; outline: none; min-width: 0; flex: 1">
+
+</label>
+<button type="button" class="tb" aria-label="Neuer Eintrag" title="Neuer Eintrag (⌘N)"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-plus"></use></svg></button>
+<button type="button" class="tb" aria-label="Inspektor" title="Inspektor (⌥⌘I)"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-insp"></use></svg></button>
+</div>
+<div style="display: flex; flex-wrap: wrap">
+<nav aria-label="Bereiche" style="flex: 0 0 200px; box-sizing: border-box; padding: 16px 10px; background: #F6F6F8; border-right: 1px solid #ECECF0; display: flex; flex-direction: column; gap: 2px; min-height: 720px">
+<a class="side" href="Today.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-sun"></use></svg>Heute</a>
+<a class="side" href="DayClose.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-seal"></use></svg>Tagesabschluss</a>
+<a class="side" href="Week.dc.html" aria-current="page"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-cal"></use></svg>Woche</a>
+<a class="side" href="Entries.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-list"></use></svg>Einträge</a>
+<a class="side" href="Analytics.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-chart"></use></svg>Analysen</a>
+<a class="side" href="Catalog.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-folder"></use></svg>Projekte</a>
+<a class="side" href="Settings.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-gear"></use></svg>Einstellungen</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<div style="display: flex; padding: 8px 8px 8px 0; border-bottom: 1px solid #ECECF0">
+<div style="width: 52px; flex: none"></div>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px">
+<span style="font-size: 12px; font-weight: {{d.weight}}; color: {{d.ink}}">{{d.label}}</span>
+<span class="mono" style="font-size: 11px; color: #55555A">{{d.total}}</span>
+</div>
+</sc-for>
+</div>
+<section data-wk-scroll ref="{{setScroll}}" tabindex="0" aria-label="Wochenraster, 24 Stunden, geöffnet bei 07:00" style="height: 640px; overflow-y: auto; scrollbar-width: thin">
+<div style="display: flex; padding: 12px 8px 12px 0">
+<div style="width: 52px; flex: none; position: relative; height: 960px; font-size: 10px; color: #55555A" class="mono">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
+<span style="position: absolute; top: {{h.top}}px; right: 6px; transform: translateY(-6px)">{{h.label}}</span>
+</sc-for>
+</div>
+<sc-for list="{{days}}" as="d" hint-placeholder-count="7">
+<div style="flex: 1; min-width: 0; position: relative; height: 960px; border-left: 1px solid #E5E5EA; background: {{d.bg}}">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
+<div style="position: absolute; left: 0; right: 0; top: {{h.top}}px; border-top: 1px solid #F0F0F3"></div>
+</sc-for>
+<sc-for list="{{d.blocks}}" as="b" hint-placeholder-count="5">
+<div title="{{b.title}} · {{b.time}}" style="position: absolute; top: {{b.top}}px; height: {{b.h}}px; left: {{b.left}}; right: {{b.right}}; box-sizing: border-box; margin: 1px 2px; padding: 2px 5px; border-radius: 5px; background: {{b.bg}}; color: {{b.ink}}; border: {{b.border}}; overflow: hidden; font-size: 11px; line-height: 14px">
+<div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{b.title}}</div>
+<div style="opacity: 0.8; white-space: nowrap; overflow: hidden">{{b.time}}</div>
+</div>
+</sc-for>
+<sc-if value="{{d.isToday}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; left: -4px; right: 0; top: 580px; display: flex; align-items: center">
+<span style="width: 7px; height: 7px; border-radius: 50%; background: #0F766E"></span>
+<span style="flex: 1; height: 2px; background: #0F766E"></span>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</section>
+</main>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    const el = document.querySelector('[data-wk-scroll]');
+    if (el && !el.dataset.init) { el.scrollTop = 280; el.dataset.init = '1'; }
+  }
+  renderVals() {
+    const H = 40;
+    const hours = [];
+    for (let i = 0; i < 24; i++) hours.push({ label: String(i).padStart(2, '0') + ':00', top: i * H });
+    const C = {
+      dev: { bg: '#DBEAFE', ink: '#1E3A8A', border: '0' },
+      meet: { bg: '#FFEDD5', ink: '#7C2D12', border: '0' },
+      rev: { bg: '#EDE9FE', ink: '#4C1D95', border: '0' },
+      sup: { bg: '#FCE7F3', ink: '#831843', border: '0' },
+      run: { bg: '#E8F4F2', ink: '#134E4A', border: '2px solid #0F766E' }
+    };
+    const t = (s) => { const p = s.split(':'); return (+p[0]) * 60 + (+p[1]); };
+    const b = (cat, from, to, title, left, right) => Object.assign({}, C[cat], {
+      top: t(from) * H / 60, h: (t(to) - t(from)) * H / 60, title: title, time: from + '–' + to, left: left || '0', right: right || '0'
+    });
+    const day = (label, total, blocks, opts) => Object.assign({
+      label: label, total: total, blocks: blocks, weight: '400', ink: '#1C1C1E', bg: 'transparent', isToday: false
+    }, opts || {});
+    return {
+      setScroll: this.setScroll || (this.setScroll = (el) => { if (el && !el.dataset.init) { el.scrollTop = 280; el.dataset.init = '1'; } }),
+      hours: hours,
+      days: [
+        day('Mo., 5.', '7:45', [
+          b('dev', '08:15', '09:45', '#4821 Login-Flow'), b('meet', '09:45', '10:00', 'Daily'),
+          b('dev', '10:00', '12:15', '#4790 SSO-Login-Bug'), b('meet', '13:00', '14:30', 'Sprint Planning'),
+          b('dev', '14:30', '16:45', '#4821 Login-Flow'), b('sup', '16:45', '17:15', 'Support-Anfrage')
+        ]),
+        day('Di., 6.', '7:02', [
+          b('dev', '08:30', '09:45', '#4821 Login-Flow'), b('meet', '09:45', '10:00', 'Daily'),
+          b('dev', '10:00', '12:00', '#4821 Login-Flow'), b('dev', '12:45', '13:41', '#4790 SSO-Login-Bug'),
+          b('dev', '14:04', '15:30', '#4790 SSO', '0', '50%'), b('meet', '14:30', '15:00', 'Architektur', '50%', '0'),
+          b('rev', '15:30', '16:15', 'Code-Review'), b('dev', '16:15', '16:40', '#4821')
+        ]),
+        day('Mi., 7.', '8:10', [
+          b('dev', '08:00', '09:45', '#4702 Passwort-Reset'), b('meet', '09:45', '10:00', 'Daily'),
+          b('rev', '10:00', '11:30', 'Code-Review'), b('dev', '11:30', '12:30', 'SSO-Fix verifizieren'),
+          b('dev', '13:15', '15:00', '#4702 Passwort-Reset'), b('meet', '15:00', '16:00', 'Kunden-Call'),
+          b('sup', '16:00', '17:30', 'Support')
+        ]),
+        day('Do., 8.', '4:50', [
+          b('dev', '08:45', '09:45', '#4821 Login-Flow'), b('meet', '09:45', '10:00', 'Daily'),
+          b('dev', '10:00', '12:00', '#4821 Login-Flow'), b('run', '12:45', '14:30', '#4655 Session-Timeout')
+        ], { weight: '700', ink: '#0F766E', bg: 'rgba(15,118,110,0.035)', isToday: true }),
+        day('Fr., 9.', '0:00', []),
+        day('Sa., 10.', '0:00', [], { bg: '#FAFAFB' }),
+        day('So., 11.', '0:00', [], { bg: '#FAFAFB' })
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

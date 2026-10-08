@@ -3,7 +3,11 @@
 Die Entwürfe liegen auf einem Design-Canvas: https://claude.ai/artifact/FeiQaPoKc5FuezMenGZ9Kh
 Diese Datei hält fest, was für die Umsetzung verbindlich ist: Screens, Farben, Typografie und Interaktionsregeln.
 
+Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://nimble-123.github.io/takt/design/ (Quelle: `site/public/design/`).
+
 **Pflege:** Der Canvas ist die Quelle der Wahrheit für das Aussehen, diese Datei für die verbindlichen Regeln. Features mit Auswirkung auf UI/UX werden vor oder im selben PR auf dem Canvas entworfen (neues oder geändertes Artboard) und hier in der Screen-Tabelle eingetragen. Entworfene, aber noch nicht gebaute Elemente sammelt #101.
+
+**Galerie aktualisieren:** Nach jeder Änderung am Canvas die Dateien unter `project/` des Canvas (`canvas.json` und alle `*.dc.html`) nach `site/public/design/` übernehmen, z. B. mit Claude Code (Artifact „read“). Vorher prüfen, dass die Artboards keine externen Skripte oder Stylesheets laden. `support.js` ist ein eigener, vereinfachter Renderer (Platzhalter, `sc-for`, `sc-if`); der Editor des Canvas läuft nur auf claude.ai und wird nicht ins Repo kopiert.
 
 ## Screens
 

@@ -13,7 +13,7 @@ Takt ist ein nativer macOS-Timetracker (Menüleiste + Hauptfenster) mit Azure-De
 - `docs/MDM.md` – verwaltbare Einstellungen, Beispielprofil `docs/mdm/Takt.mobileconfig`, Verteilung per Intune/Jamf.
 - GitHub-Issues und Milestones (`Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau`, `Phase 4 · Nachweis`) – der Backlog.
 
-Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR angepasst. Features mit Auswirkung auf UI/UX werden vor oder im selben PR auf dem Design-Canvas festgehalten (neues oder geändertes Artboard) und in `docs/DESIGN.md` eingetragen.
+Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR angepasst. Features mit Auswirkung auf UI/UX werden vor oder im selben PR auf dem Design-Canvas festgehalten (neues oder geändertes Artboard), in `docs/DESIGN.md` eingetragen und der Snapshot in `site/public/design/` aktualisiert (siehe „Galerie aktualisieren“ in `docs/DESIGN.md`).
 
 ## Befehle
 

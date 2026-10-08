@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Tagesabschluss</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tb.s{width:24px;height:24px}
+a{color:#0F766E}a:hover{color:#115E59}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #0F766E;outline-offset:1px}
+kbd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#555559;background:#FFFFFF;border:1px solid #D9D9DE;border-radius:5px;padding:1px 5px}
+input[type=checkbox]{accent-color:#0F766E;width:16px;height:16px;margin:0;flex:none}
+.side{display:flex;align-items:center;gap:10px;height:32px;padding:0 10px;border-radius:7px;color:#1C1C1E;text-decoration:none}
+.side svg{color:#55555A;flex:none}
+.side:hover{background:#ECECF0;color:#1C1C1E}
+.side[aria-current=page]{background:#E2E8E7;font-weight:600}
+.side[aria-current=page] svg{color:#0F766E}
+.tb{width:30px;height:30px;border:0;border-radius:7px;background:transparent;display:flex;align-items:center;justify-content:center;color:#55555A;padding:0}
+.tb:hover{background:#ECECF0}
+.btn{height:26px;padding:0 10px;border:1px solid #D9D9DE;border-radius:6px;background:#FFFFFF;font-size:12px;white-space:nowrap}
+.btn-p{height:28px;padding:0 14px;border:0;border-radius:7px;background:#0F766E;color:#FFFFFF;font-weight:600;white-space:nowrap}
+.ctl{height:26px;border:1px solid #D9D9DE;border-radius:6px;background:#FFFFFF;padding:0 6px;font:inherit;font-size:13px;color:#1C1C1E;min-width:0}
+.ghost{height:26px;padding:0 4px;border:0;background:transparent;color:#0F766E}
+.grp-h{margin:0 0 6px 10px;font-size:13px;font-weight:600;color:#1C1C1E}
+.grp{background:#FFFFFF;border:1px solid #E5E5EA;border-radius:9px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 12px;box-sizing:border-box;border-top:1px solid #F0F0F3}
+.row:first-child{border-top:0}
+.row>.lbl{flex:1;min-width:0}
+.cap{margin:6px 10px 0;font-size:11px;line-height:1.45;color:#55555A}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+input.sw{appearance:none;-webkit-appearance:none;width:30px;height:18px;border-radius:9px;background:#D9D9DE;position:relative;margin:0;flex:none;cursor:pointer}
+input.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+input.sw:checked{background:#0F766E}input.sw:checked::after{transform:translateX(12px)}
+input.sw:disabled{opacity:.55;cursor:default}
+.seg{display:inline-flex;padding:2px;border-radius:7px;background:#ECECF0;gap:2px}
+.seg button{height:22px;padding:0 10px;border:0;border-radius:5px;background:transparent;font-size:12px}
+.seg button[aria-pressed=true]{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.15);font-weight:600}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 800px; box-sizing: border-box; padding: 24px; background: #E4E7EC; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px">
+<svg width="0" height="0" style="position: absolute" aria-hidden="true"><defs><symbol id="i-cloudx" viewBox="0 0 16 16"><path d="M4.6 12.4H4a2.6 2.6 0 01-.4-5.2 4 4 0 017.6-1.4"></path><path d="M12.2 8.2A2.2 2.2 0 0112 12.4H7.6M2 2l12 12"></path></symbol><symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.6V8l2.3 1.4"></path></symbol><symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2.2l6.2 11H1.8z"></path><path d="M8 6.4v3.2M8 11.4h0"></path></symbol><symbol id="i-checkc" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"></circle><path d="M5.4 8.2l1.8 1.8 3.4-3.6"></path></symbol><symbol id="i-excl" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2"></circle><path d="M8 4.8v3.6M8 11h0"></path></symbol><symbol id="i-left" viewBox="0 0 16 16"><path d="M10 3L5 8l5 5"></path></symbol><symbol id="i-right" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"></path></symbol><symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.8"></circle><path d="M10.6 10.6L14 14"></path></symbol><symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"></path></symbol><symbol id="i-insp" viewBox="0 0 16 16"><rect x="1.8" y="2.5" width="12.4" height="11" rx="2"></rect><path d="M10 2.5v11"></path></symbol><symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.8"></circle><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"></path></symbol><symbol id="i-seal" viewBox="0 0 16 16"><path d="M8 1.6l1.6 1.2 2-.1.6 1.9 1.6 1.2-.7 1.9.7 1.9-1.6 1.2-.6 1.9-2-.1L8 14.4l-1.6-1.2-2 .1-.6-1.9-1.6-1.2.7-1.9-.7-1.9 1.6-1.2.6-1.9 2 .1z"></path><path d="M5.8 8.1l1.5 1.5 3-3.1"></path></symbol><symbol id="i-cal" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="11" rx="2"></rect><path d="M2 6.5h12M5.5 1.6v2.6M10.5 1.6v2.6"></path></symbol><symbol id="i-list" viewBox="0 0 16 16"><path d="M6 4h8M6 8h8M6 12h8"></path><circle cx="2.8" cy="4" r=".6"></circle><circle cx="2.8" cy="8" r=".6"></circle><circle cx="2.8" cy="12" r=".6"></circle></symbol><symbol id="i-chart" viewBox="0 0 16 16"><path d="M2 2v12h12"></path><path d="M5.5 11V8M8.5 11V5M11.5 11V7"></path></symbol><symbol id="i-folder" viewBox="0 0 16 16"><path d="M1.8 4.2c0-.7.5-1.2 1.2-1.2h3l1.4 1.5H13c.7 0 1.2.5 1.2 1.2v6.1c0 .7-.5 1.2-1.2 1.2H3c-.7 0-1.2-.5-1.2-1.2z"></path></symbol><symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"></circle><path d="M8 1.8v1.8M8 12.4v1.8M1.8 8h1.8M12.4 8h1.8M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3"></path><circle cx="8" cy="8" r="4.6"></circle></symbol></defs></svg>
+<div style="position: relative; max-width: 1232px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.16); overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid #ECECF0; background: #FAFAFB">
+<div style="display: flex; gap: 8px; margin-right: 6px" aria-hidden="true">
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+</div>
+<div style="display: flex; align-items: center; gap: 2px">
+<button type="button" class="tb" aria-label="Zurück"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-left"></use></svg></button>
+<button type="button" style="height: 26px; padding: 0 10px; border: 1px solid #D9D9DE; border-radius: 7px; background: #FFFFFF">Heute</button>
+<button type="button" class="tb" aria-label="Weiter"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-right"></use></svg></button>
+</div>
+<div style="font-size: 15px; font-weight: 700; white-space: nowrap">Dienstag, 6. Oktober 2026</div>
+<div style="flex: 1"></div>
+
+<label style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border-radius: 8px; background: #F1F1F4; color: #6E6E73; width: 300px; box-sizing: border-box; border: 1px solid transparent">
+<svg class="i" width="13" height="13" aria-hidden="true" style="color: #6E6E73; stroke-width: 1.6"><use href="#i-search"></use></svg>
+<input type="search" aria-label="Suchen" placeholder="Einträge, Notizen, Projekte, Work Items" style="border: 0; background: transparent; font: inherit; color: #1C1C1E; outline: none; min-width: 0; flex: 1">
+
+</label>
+<button type="button" class="tb" aria-label="Neuer Eintrag" title="Neuer Eintrag (⌘N)"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-plus"></use></svg></button>
+<button type="button" class="tb" aria-label="Inspektor" title="Inspektor (⌥⌘I)"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-insp"></use></svg></button>
+</div>
+<div style="display: flex; flex-wrap: wrap">
+<nav aria-label="Bereiche" style="flex: 0 0 200px; box-sizing: border-box; padding: 16px 10px; background: #F6F6F8; border-right: 1px solid #ECECF0; display: flex; flex-direction: column; gap: 2px; min-height: 720px">
+<a class="side" href="Today.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-sun"></use></svg>Heute</a>
+<a class="side" href="DayClose.dc.html" aria-current="page"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-seal"></use></svg>Tagesabschluss</a>
+<a class="side" href="Week.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-cal"></use></svg>Woche</a>
+<a class="side" href="Entries.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-list"></use></svg>Einträge</a>
+<a class="side" href="Analytics.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-chart"></use></svg>Analysen</a>
+<a class="side" href="Catalog.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-folder"></use></svg>Projekte</a>
+<a class="side" href="Settings.dc.html"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-gear"></use></svg>Einstellungen</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: #55555A">Zu buchen</span>
+<span class="mono" style="font-size: 22px; font-weight: 600">+4,00 h</span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; color: #B45309"><svg class="i" width="16" height="16" aria-hidden="true" style="color: #B45309"><use href="#i-cloudx"></use></svg><span>2 warten auf das Netz</span></div>
+<button type="button" class="btn" style="height: 28px; font-size: 13px">Erneut senden</button>
+<div style="flex: 1"></div>
+<button type="button" class="btn-p" title="Alles buchen (↩)">Alles buchen</button>
+</div>
+<div style="height: 1px; background: #ECECF0"></div>
+<div style="padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 20px">
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+<section aria-label="Work Item {{g.id}}">
+<div style="display: flex; align-items: center; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid #E5E5EA; font-size: 11px; font-weight: 600; color: #55555A">
+<span aria-label="{{g.type}}" style="width: 18px; height: 18px; border-radius: 4px; background: {{g.badge}}; color: #FFFFFF; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">{{g.letter}}</span>
+<span class="mono">#{{g.id}}</span><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{g.title}}</span>
+</div>
+<sc-for list="{{g.lines}}" as="l" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #F0F0F3">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{l.title}}</span>
+<sc-if value="{{l.isFail}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; color: #B91C1C">{{l.failure}}</span></sc-if>
+</div>
+<div style="width: 70px; flex: none; display: flex; flex-direction: column; align-items: flex-end"><span style="font-size: 10px; color: #55555A">Soll</span><span class="mono" style="color: #55555A">{{l.target}}</span></div>
+<div style="width: 70px; flex: none; display: flex; flex-direction: column; align-items: flex-end"><span style="font-size: 10px; color: #55555A">Gebucht</span><span class="mono" style="color: #55555A">{{l.booked}}</span></div>
+<div style="width: 70px; flex: none; display: flex; flex-direction: column; align-items: flex-end"><span style="font-size: 10px; color: #55555A">Differenz</span><span class="mono" style="color: {{l.diffColor}}">{{l.diff}}</span></div>
+<span style="width: 20px; flex: none; display: flex; justify-content: center">
+<sc-if value="{{l.isWait}}" hint-placeholder-val="{{false}}"><span title="Wartet auf das Senden" aria-label="Wartet auf das Senden" role="img"><svg class="i" width="15" height="15" aria-hidden="true" style="color: #B45309"><use href="#i-clock"></use></svg></span></sc-if>
+<sc-if value="{{l.isFail}}" hint-placeholder-val="{{false}}"><span aria-label="Fehler" role="img"><svg class="i" width="15" height="15" aria-hidden="true" style="color: #B91C1C; stroke-width: 1.7"><use href="#i-warn"></use></svg></span></sc-if>
+<sc-if value="{{l.isDone}}" hint-placeholder-val="{{false}}"><span title="Gebucht" aria-label="Gebucht" role="img"><svg class="i" width="15" height="15" aria-hidden="true" style="color: #0F766E; stroke-width: 1.7"><use href="#i-checkc"></use></svg></span></sc-if>
+</span>
+</div>
+</sc-for>
+</section>
+</sc-for>
+<section aria-label="Ohne Work Item">
+<div style="display: flex; align-items: center; gap: 6px; padding-bottom: 6px; border-bottom: 1px solid #E5E5EA; font-size: 11px; font-weight: 600; color: #B45309"><svg class="i" width="13" height="13" aria-hidden="true" style="color: #B45309"><use href="#i-excl"></use></svg>Ohne Work Item</div>
+<sc-for list="{{unlinked}}" as="u" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #F0F0F3; color: #B45309">
+<span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{u.title}}</span>
+<span class="mono">{{u.dur}}</span>
+<button type="button" class="btn" style="height: 22px; font-size: 11px; color: #1C1C1E" aria-label="{{u.title}} verknüpfen">Verknüpfen …</button>
+</div>
+</sc-for>
+</section>
+</div>
+</main>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sec = '#55555A', pri = '#1C1C1E';
+    const line = (title, target, booked, diff, state, failure) => ({
+      title: title, target: target, booked: booked, diff: diff,
+      diffColor: diff === '0,00 h' ? sec : pri,
+      isWait: state === 'wait', isFail: state === 'fail', isDone: state === 'done', failure: failure || ''
+    });
+    const types = { Bug: '#B91C1C', Task: '#A16207', 'User Story': '#0369A1' };
+    const group = (id, type, title, lines) => ({ id: id, type: type, letter: type.charAt(0), badge: types[type], title: title, lines: lines });
+    return {
+      groups: [
+        group('4655', 'Bug', 'Session-Timeout in Safari', [
+          line('Session-Timeout analysieren', '0,25 h', '0,00 h', '+0,25 h', 'fail', 'Das Work Item gibt es nicht mehr.')
+        ]),
+        group('4702', 'User Story', 'Passwort-Reset per E-Mail', [
+          line('Passwort-Reset: Mail-Template', '0,75 h', '0,00 h', '+0,75 h', 'wait'),
+          line('Passwort-Reset: Review', '0,25 h', '0,00 h', '+0,25 h', 'wait')
+        ]),
+        group('4790', 'Bug', 'SSO-Login schlägt bei Token-Ablauf fehl', [
+          line('#4790 SSO-Login-Bug', '2,50 h', '2,25 h', '+0,25 h', '')
+        ]),
+        group('4821', 'Task', 'Login-Flow refaktorieren', [
+          line('#4821 Login-Flow refaktorieren', '3,50 h', '0,00 h', '+3,50 h', ''),
+          line('Login-Flow: Tests nachziehen', '0,50 h', '0,50 h', '0,00 h', 'done')
+        ])
+      ],
+      unlinked: [
+        { title: 'Architektur-Review', dur: '0:30' },
+        { title: 'Daily Stand-up', dur: '0:15' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

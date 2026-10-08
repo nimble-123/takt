@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Eintrag bearbeiten</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+button{font:inherit;color:inherit;cursor:pointer}
+select,textarea,input{font:inherit;color:inherit}
+kbd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#555559;background:#FFFFFF;border:1px solid #D9D9DE;border-radius:5px;padding:1px 5px}
+input[type=range]{accent-color:#0F766E}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 800px; box-sizing: border-box; padding: 24px; background: #E4E7EC; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px">
+<div style="max-width: 1232px; margin: 0 auto; background: #FFFFFF; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.16); overflow: hidden">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 52px; padding: 8px 16px; border-bottom: 1px solid #ECECF0; background: #FAFAFB">
+<div style="display: flex; gap: 8px" aria-hidden="true">
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #FEBC2E"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #28C840"></span>
+</div>
+<div style="flex: 1"></div>
+<span style="color: #55555A">Ziehen verschiebt · Kanten ändern Start und Ende · <kbd>⌘Z</kbd> rückgängig</span>
+<button type="button" style="height: 30px; padding: 0 12px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF">+ Eintrag</button>
+</div>
+<div style="display: flex; flex-wrap: wrap">
+<nav aria-label="Bereiche" style="flex: 0 0 200px; box-sizing: border-box; padding: 16px 10px; background: #F6F6F8; border-right: 1px solid #ECECF0; display: flex; flex-direction: column; gap: 2px; min-height: 720px">
+<a href="Today.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; background: #E2E8E7; color: #1C1C1E; text-decoration: none; font-weight: 600">Heute</a>
+<a href="#" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">Kalender</a>
+<a href="#" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">Einträge</a>
+<a href="Analytics.dc.html" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">Analysen</a>
+<a href="#" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">Projekte</a>
+<div style="flex: 1"></div>
+<a href="#" style="display: flex; align-items: center; height: 32px; padding: 0 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">Einstellungen</a>
+</nav>
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 28px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<section aria-label="Timeline" style="flex: 3 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 700">Dienstag, 6. Oktober</h1>
+<div style="display: flex; gap: 8px">
+<div style="width: 40px; position: relative; height: 540px; flex: none; font-size: 11px; color: #55555A; font-family: 'SF Mono', ui-monospace, Menlo, monospace">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="10">
+<span style="position: absolute; top: {{h.top}}px; right: 0; transform: translateY(-50%)">{{h.label}}</span>
+</sc-for>
+</div>
+<div style="flex: 1; position: relative; height: 540px; border-left: 1px solid #ECECF0">
+<sc-for list="{{hours}}" as="h" hint-placeholder-count="10">
+<div style="position: absolute; left: 0; right: 0; top: {{h.top}}px; border-top: 1px solid #F0F0F3"></div>
+</sc-for>
+<sc-for list="{{blocks}}" as="b" hint-placeholder-count="8">
+<div style="position: absolute; top: {{b.top}}px; height: {{b.h}}px; left: {{b.left}}; right: {{b.right}}; box-sizing: border-box; margin: 1px 4px; padding: 3px 8px; border-radius: 6px; background: {{b.bg}}; color: {{b.ink}}; border: {{b.border}}; opacity: {{b.op}}; overflow: hidden; display: flex; gap: 6px; font-size: 12px; line-height: 16px">
+<span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{b.title}}</span>
+<span style="opacity: 0.8; white-space: nowrap">{{b.time}}</span>
+</div>
+</sc-for>
+<div style="position: absolute; top: 279px; height: 64px; left: 0; right: 0; box-sizing: border-box; margin: 0 4px; border-radius: 6px; background: #DBEAFE; border: 2px solid #1D4ED8; box-shadow: 0 6px 18px rgba(29,78,216,0.25); padding: 4px 8px; font-size: 12px; color: #1E3A8A">
+<div style="font-weight: 600">#4790 SSO-Login-Bug</div>
+<div>12:40–13:41 · 1:01 h</div>
+<div style="position: absolute; left: 50%; top: -4px; width: 28px; height: 6px; margin-left: -14px; border-radius: 3px; background: #1D4ED8"></div>
+<div style="position: absolute; left: 50%; bottom: -4px; width: 28px; height: 6px; margin-left: -14px; border-radius: 3px; background: #1D4ED8"></div>
+</div>
+<div style="position: absolute; top: 266px; left: -62px; padding: 2px 6px; border-radius: 5px; background: #1D4ED8; color: #FFFFFF; font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 600">12:40</div>
+<div style="position: absolute; top: 280px; left: 0; right: 0; border-top: 1px dashed #1D4ED8"></div>
+</div>
+</div>
+</section>
+<aside aria-labelledby="insp-title" style="flex: 2 1 320px; min-width: 0; border: 1px solid #E5E5EA; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; justify-content: space-between">
+<h2 id="insp-title" style="margin: 0; font-size: 16px; font-weight: 700">Eintrag bearbeiten</h2>
+<button type="button" aria-label="Schließen" style="width: 28px; height: 28px; border: 0; border-radius: 7px; background: transparent; font-size: 16px; color: #55555A">×</button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: #F6F6F8">
+<span style="width: 18px; height: 18px; border-radius: 4px; background: #B91C1C; color: #FFFFFF; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">B</span>
+<span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><strong>#4790</strong> SSO-Login schlägt bei Token-Ablauf fehl</span>
+<a href="#" style="font-size: 12px; text-decoration: none">ändern</a>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Projekt</span>
+<select style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; padding: 0 6px"><option>Kundenportal</option><option>Plattform</option><option>Intern</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Kategorie</span>
+<select style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; padding: 0 6px"><option>Entwicklung</option><option>Meeting</option><option>Review</option><option>Support</option></select></label>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; color: #55555A">Zeitsegmente</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<input type="time" aria-label="Start Segment 1" value="12:40" style="height: 30px; border: 2px solid #1D4ED8; border-radius: 8px; padding: 0 6px; background: #FFFFFF">
+<span style="color: #55555A">–</span>
+<input type="time" aria-label="Ende Segment 1" value="13:41" style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; padding: 0 6px; background: #FFFFFF">
+<span style="flex: 1; text-align: right; font-family: 'SF Mono', ui-monospace, Menlo, monospace">1:01</span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px; background: #FFF6E8; color: #78350F; font-size: 12px">
+<span style="flex: 1">Pause 13:41–14:04 · aus Inaktivität</span>
+<button type="button" style="height: 24px; padding: 0 8px; border: 1px solid #F5C77E; border-radius: 6px; background: #FFFFFF; font-size: 12px; color: #78350F">Als Arbeitszeit</button>
+</div>
+<div style="display: flex; align-items: center; gap: 6px">
+<input type="time" aria-label="Start Segment 2" value="14:04" style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; padding: 0 6px; background: #FFFFFF">
+<span style="color: #55555A">–</span>
+<input type="time" aria-label="Ende Segment 2" value="15:30" style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; padding: 0 6px; background: #FFFFFF">
+<span style="flex: 1; text-align: right; font-family: 'SF Mono', ui-monospace, Menlo, monospace">1:26</span>
+</div>
+<button type="button" style="align-self: flex-start; height: 26px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; color: #0F766E">+ Segment</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #F0F0F3">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 12px; font-weight: 600; color: #55555A">Parallel zu Architektur-Review, 30 min</span>
+<select aria-label="Zählweise" style="height: 26px; border: 1px solid #D9D9DE; border-radius: 6px; background: #FFFFFF; padding: 0 4px; font-size: 12px"><option>Geteilt</option><option>Voll</option></select></div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px"><span style="width: 74px">Dieser 60 %</span><input type="range" min="0" max="100" value="60" style="flex: 1"><span style="width: 74px; text-align: right">Review 40 %</span></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Notiz</span>
+<textarea rows="2" style="resize: none; border: 1px solid #D9D9DE; border-radius: 8px; padding: 8px 10px; background: #FFFFFF">Ursache im Refresh-Interceptor gefunden</textarea></label>
+<div style="display: flex; gap: 8px; padding: 10px; border-radius: 10px; background: #FEF3E2; color: #78350F; font-size: 12px; line-height: 1.4">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#B45309" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="8" cy="8" r="6.5"></circle><path d="M8 4.8v3.6M8 11h0"></path></svg>
+<span>Bereits gebucht: 2,25 h. Nach der Änderung sind es 2,5 h; die Differenz von +0,25 h wird im nächsten Tagesabschluss nachgebucht.</span>
+</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<button type="button" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent; color: #B91C1C">Löschen</button>
+<button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF">Teilen …</button>
+<div style="flex: 1"></div>
+<button type="button" style="height: 32px; padding: 0 16px; border: 0; border-radius: 8px; background: #0F766E; color: #FFFFFF; font-weight: 600">Fertig</button>
+</div>
+</aside>
+</main>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const hours = [];
+    for (let i = 0; i <= 9; i++) hours.push({ label: String(8 + i).padStart(2, '0') + ':00', top: i * 60 });
+    const dev = { bg: '#DBEAFE', ink: '#1E3A8A', border: '0', op: 1 };
+    const meet = { bg: '#FFEDD5', ink: '#7C2D12', border: '0', op: 1 };
+    const rev = { bg: '#EDE9FE', ink: '#4C1D95', border: '0', op: 1 };
+    const pause = { bg: 'repeating-linear-gradient(135deg, #EEEEF1 0 5px, #F8F8FA 5px 10px)', ink: '#55555A', border: '1px dashed #C7C7CC', op: 1 };
+    const idle = { bg: 'repeating-linear-gradient(135deg, #FDE7C2 0 5px, #FFF6E8 5px 10px)', ink: '#78350F', border: '1px dashed #D97706', op: 1 };
+    const ghost = { bg: '#F4F4F6', ink: '#8E8E93', border: '1px dashed #C7C7CC', op: 1 };
+    const b = (s, top, h, title, time, left, right) => Object.assign({}, s, { top: top, h: h, title: title, time: time, left: left || '0', right: right || '0' });
+    return {
+      hours: hours,
+      blocks: [
+        b(dev, 30, 75, '#4821 Login-Flow refaktorieren', '08:30–09:45'),
+        b(meet, 105, 15, 'Daily Stand-up', ''),
+        b(dev, 120, 120, '#4821 Login-Flow refaktorieren', '10:00–12:00'),
+        b(pause, 240, 40, 'Mittagspause', '12:00–12:40'),
+        b(idle, 341, 23, 'Inaktiv · als Pause', ''),
+        b(dev, 364, 86, '#4790 SSO-Login-Bug', '14:04–15:30', '0', '50%'),
+        b(meet, 390, 30, 'Architektur-Review', 'parallel', '50%', '0'),
+        b(rev, 450, 45, 'Code-Review', '15:30–16:15'),
+        b(dev, 495, 25, '#4821 Login-Flow refaktorieren', '16:15–16:40')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
