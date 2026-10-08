@@ -21,6 +21,16 @@
         }
       }
     },
+    "%@ h of %@ h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ h von %2$@ h"
+          }
+        }
+      }
+    },
     "%@ of %@ target": {
       "localizations": {
         "de": {
@@ -1321,6 +1331,16 @@
         }
       }
     },
+    "Handle inactivity": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktivität behandeln"
+          }
+        }
+      }
+    },
     "Hours": {
       "localizations": {
         "de": {
@@ -1941,6 +1961,16 @@
         }
       }
     },
+    "Pause “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ pausieren"
+          }
+        }
+      }
+    },
     "Paused": {
       "localizations": {
         "de": {
@@ -2221,22 +2251,22 @@
         }
       }
     },
-    "Resume": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fortsetzen"
-          }
-        }
-      }
-    },
     "Resume all": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Alle fortsetzen"
+          }
+        }
+      }
+    },
+    "Resume “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ fortsetzen"
           }
         }
       }
@@ -2601,16 +2631,6 @@
         }
       }
     },
-    "Stop": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Stoppen"
-          }
-        }
-      }
-    },
     "Stop All": {
       "localizations": {
         "de": {
@@ -2637,6 +2657,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle stoppen"
+          }
+        }
+      }
+    },
+    "Stop “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ stoppen"
           }
         }
       }
@@ -2787,6 +2817,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Takt liest den ausgecheckten Branch dieser Repositories und ihrer direkten Unterordner. Ein Branch wie „feature/1234-login“ schlägt Work Item 1234 vor."
+          }
+        }
+      }
+    },
+    "Takt, no timer running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt, kein Timer aktiv"
+          }
+        }
+      }
+    },
+    "Takt, timer paused": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt, Timer pausiert"
+          }
+        }
+      }
+    },
+    "Takt, timer running, %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt, Timer läuft, %@"
           }
         }
       }

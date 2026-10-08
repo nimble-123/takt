@@ -1,0 +1,227 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Analytics.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Analysen",
+      "w": 1280,
+      "x": 1360,
+      "y": 1060
+    },
+    "Edit.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Eintrag nachträglich bearbeiten",
+      "w": 1280,
+      "x": 2720,
+      "y": 1060
+    },
+    "Idle.dc.html": {
+      "h": 640,
+      "title": "Inaktivität erkannt",
+      "w": 460,
+      "x": 1000,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 640,
+      "title": "Menüleiste · Popover",
+      "w": 420,
+      "x": 0,
+      "y": 0
+    },
+    "MainDark.dc.html": {
+      "h": 640,
+      "title": "Dark · Menüleiste",
+      "w": 420,
+      "x": 0,
+      "y": 4120
+    },
+    "MeetingStart.dc.html": {
+      "h": 640,
+      "title": "Regeltermin: Start und Ende",
+      "w": 420,
+      "x": 2540,
+      "y": 0
+    },
+    "Onboarding.dc.html": {
+      "h": 640,
+      "title": "Onboarding · 3 Schritte",
+      "w": 1380,
+      "x": 0,
+      "y": 5640
+    },
+    "Search.dc.html": {
+      "h": 640,
+      "title": "Suche & ADO-Vorschau",
+      "w": 420,
+      "x": 500,
+      "y": 0
+    },
+    "SearchCalendar.dc.html": {
+      "h": 640,
+      "title": "Suche mit Outlook-Terminen",
+      "w": 420,
+      "x": 2040,
+      "y": 0
+    },
+    "Stop.dc.html": {
+      "h": 640,
+      "title": "Timer beenden",
+      "w": 420,
+      "x": 1540,
+      "y": 0
+    },
+    "Today.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Heute mit Inspektor",
+      "w": 1280,
+      "x": 0,
+      "y": 1060
+    },
+    "TodayDark.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Dark · Heute",
+      "w": 1280,
+      "x": 500,
+      "y": 4120
+    },
+    "DayClose.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Tagesabschluss",
+      "w": 1280,
+      "x": 0,
+      "y": 1980
+    },
+    "Week.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Woche",
+      "w": 1280,
+      "x": 1360,
+      "y": 1980
+    },
+    "Entries.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Einträge (Mehrfachauswahl)",
+      "w": 1280,
+      "x": 2720,
+      "y": 1980
+    },
+    "Palette.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Befehlspalette ⌘K",
+      "w": 1280,
+      "x": 4080,
+      "y": 1980
+    },
+    "Catalog.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Projekte",
+      "w": 1280,
+      "x": 0,
+      "y": 2900
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Einstellungen (MDM)",
+      "w": 1280,
+      "x": 1360,
+      "y": 2900
+    },
+    "SearchResults.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Suchergebnisse",
+      "w": 1280,
+      "x": 2720,
+      "y": 2900
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-06T20:15:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "row-dark": {
+      "kind": "title1",
+      "maxW": 1780,
+      "text": "Dark Mode",
+      "w": 240,
+      "x": 0,
+      "y": 3820
+    },
+    "row-menubar": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Menüleiste",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "row-onboarding": {
+      "kind": "title1",
+      "maxW": 1380,
+      "text": "Onboarding",
+      "w": 240,
+      "x": 0,
+      "y": 5340
+    },
+    "row-window": {
+      "kind": "title1",
+      "maxW": 5360,
+      "text": "Hauptfenster",
+      "w": 240,
+      "x": 0,
+      "y": 760
+    },
+    "note-menubar": {
+      "x": 3040,
+      "y": 0,
+      "w": 340,
+      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen und Regeltermin gehören zu Phase 3 (#14) und sind noch nicht gebaut."
+    },
+    "note-window": {
+      "x": 5440,
+      "y": 1060,
+      "w": 360,
+      "text": "Stand: App v0.4.x, abgeglichen in #92.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nEntworfen, aber noch nicht gebaut: #101.\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md)."
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Search.dc.html",
+    "Idle.dc.html",
+    "Stop.dc.html",
+    "SearchCalendar.dc.html",
+    "MeetingStart.dc.html",
+    "Today.dc.html",
+    "Analytics.dc.html",
+    "Edit.dc.html",
+    "DayClose.dc.html",
+    "Week.dc.html",
+    "Entries.dc.html",
+    "Palette.dc.html",
+    "Catalog.dc.html",
+    "Settings.dc.html",
+    "SearchResults.dc.html",
+    "MainDark.dc.html",
+    "TodayDark.dc.html",
+    "Onboarding.dc.html"
+  ],
+  "pages": [],
+  "title": "Takt – UI-Entwürfe"
+}

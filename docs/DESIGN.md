@@ -3,18 +3,31 @@
 Die Entwürfe liegen auf einem Design-Canvas: https://claude.ai/artifact/FeiQaPoKc5FuezMenGZ9Kh
 Diese Datei hält fest, was für die Umsetzung verbindlich ist: Screens, Farben, Typografie und Interaktionsregeln.
 
+Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://nimble-123.github.io/takt/design/ (Quelle: `site/public/design/`).
+
+**Pflege:** Der Canvas ist die Quelle der Wahrheit für das Aussehen, diese Datei für die verbindlichen Regeln. Features mit Auswirkung auf UI/UX werden vor oder im selben PR auf dem Canvas entworfen (neues oder geändertes Artboard) und hier in der Screen-Tabelle eingetragen. Entworfene, aber noch nicht gebaute Elemente sammelt #101.
+
+**Galerie aktualisieren:** Nach jeder Änderung am Canvas die Dateien unter `project/` des Canvas (`canvas.json` und alle `*.dc.html`) nach `site/public/design/` übernehmen, z. B. mit Claude Code (Artifact „read“). Vorher prüfen, dass die Artboards keine externen Skripte oder Stylesheets laden. `support.js` ist ein eigener, vereinfachter Renderer (Platzhalter, `sc-for`, `sc-if`); der Editor des Canvas läuft nur auf claude.ai und wird nicht ins Repo kopiert.
+
 ## Screens
 
 | Bereich | Screen | Kernpunkte |
 | --- | --- | --- |
 | Menüleiste | Popover | Suchfeld mit Sofortfokus, laufender und pausierter Timer, „Zuletzt“ mit ⌘1–⌘4, Tagesfortschritt nach Kategorie, „Alle pausieren ⌥⇧P“ |
 | Menüleiste | Suche & ADO-Vorschau | Treffer gruppiert (Azure DevOps, Lokale Tasks), Suchtreffer fett, Kompaktvorschau mit Status, Iteration, Aufwand, Fortschrittsbalken; „Starten ↩“, „Parallel ⌥↩“ |
-| Menüleiste | Inaktivität erkannt | Mini-Timeline mit schraffierter Inaktivität, vier Optionen als Radiogruppe, „Als Pause werten“ vorausgewählt |
+| Menüleiste | Inaktivität erkannt | Im Popover eingebettet; Mini-Timeline mit schraffierter Inaktivität, vier Optionen als Radiogruppe, „Als Pause werten“ vorausgewählt |
 | Menüleiste | Timer beenden | Stopp beendet sofort mit Toast („Notiz“, „Rückgängig ⌘Z“); Panel mit Notiz, Kategorie, Tags, Buchungswahl nur bei Bedarf |
 | Menüleiste | Suche mit Outlook-Terminen (Phase 3) | Gruppe „Kalender“ vor ADO; Zuordnung pro Serie; „Ab 09:45 starten“ |
 | Menüleiste | Regeltermin Start/Ende (Phase 3) | Hinweis zum Terminbeginn mit „Timer starten“; Toast zum Ende mit „Verlängern“ |
-| Hauptfenster | Heute & Tagesabschluss | KPI-Zeile, Timeline 08–17 Uhr mit paralleler Spur, Pausen und Inaktivität schraffiert, „jetzt“-Linie; rechts Tagesabschluss mit Buchungsliste |
-| Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise; KPIs mit Vorwochenvergleich; gestapelte Balken je Tag, Projekte, Top Work Items, Heatmap |
+| Hauptfenster | Heute | Seitenleiste Heute, Tagesabschluss, Woche, Einträge, Analysen, Projekte, Einstellungen; KPI-Zeile (Erfasst, Pausen, Einträge); Timeline über 24 h, scrollt zur aktuellen Stunde, parallele Spur, Pausen und Inaktivität schraffiert, „jetzt“-Linie; rechts der Inspektor des gewählten Eintrags |
+| Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ |
+| Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn |
+| Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
+| Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
+| Hauptfenster | Einstellungen | Allgemein, Erfassung, Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
+| Hauptfenster | Suchergebnisse | Suchfeld in der Toolbar ersetzt den Bereich durch Treffer: Einträge, Work Items, Tasks, Tags |
+| Hauptfenster | Befehlspalette ⌘K | Sheet mit unscharfer Suche über alle Aktionen, „Timer „…“ starten“, Einträge und gecachte Work Items |
+| Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise (Pro Eintrag, Voll, Geteilt); KPIs mit Vorwochenvergleich; gestapelte Balken je Tag, Verteilung, Heatmap 06–22 Uhr; Export CSV, JSON, PDF |
 | Hauptfenster | Eintrag bearbeiten | Ziehen in der Timeline mit Zeit-Tooltip; Inspektor mit Segmenten, Pause umwandeln, Gewichtsregler, Hinweis auf Differenzbuchung |
 | Dark Mode | Popover, Heute | Gleiche Struktur, aufgehellte Akzente |
 | Onboarding | 3 Schritte | 1. ADO per PAT verbinden + Projekte wählen, 2. Kürzel live testen, 3. Startverhalten und Zählweise mit Mini-Beispiel |

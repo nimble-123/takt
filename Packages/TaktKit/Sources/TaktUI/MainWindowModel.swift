@@ -310,10 +310,8 @@ public final class MainWindowModel {
   }
 
   public func closeGap(between first: Segment, and second: Segment) async {
-    await apply(
-      EntryEdits.closeGap(between: first, and: second),
-      name: String(localized: "Convert Pause to Work", bundle: .module),
-    )
+    guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second) }) else { return }
+    await apply(changes, name: String(localized: "Convert Pause to Work", bundle: .module))
   }
 
   public func split(_ id: EntryID, at time: Timestamp) async {

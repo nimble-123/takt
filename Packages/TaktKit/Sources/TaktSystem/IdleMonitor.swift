@@ -91,7 +91,10 @@ public actor IdleMonitor {
       if idle < threshold {
         await record(from: awaySince, to: now.adding(seconds: -idle), cause: .input)
       }
-    } else if awaySince == nil, idle >= threshold, await isRunning() {
+    } else if awaySince == nil, idle >= threshold {
+      let running = await isRunning()
+      // Sleep or a lock may have been reported while asking; that start and cause win.
+      guard running, awaySince == nil else { return }
       awaySince = now.adding(seconds: -idle)
       cause = .input
     }
