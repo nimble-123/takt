@@ -56,6 +56,45 @@ struct MenuBarModelTests {
   }
 
   @Test
+  func stopAllStopsEverythingAndReportsItOnce() async throws {
+    var reported = [[EntryID]]()
+    model.actions.onStopped = { reported.append($0) }
+    _ = try await engine.start(EntryDraft(title: "A"), mode: .switchTo)
+    _ = try await engine.start(EntryDraft(title: "B"), mode: .parallel)
+    try await sync()
+
+    await model.stopAll()
+    try await sync()
+
+    #expect(model.snapshot.entries.isEmpty)
+    #expect(reported.map(\.count) == [2])
+    #expect(model.canUndo)
+  }
+
+  @Test
+  func reopeningThePopoverForgetsEarlierUndo() async {
+    model.query = "Review"
+    await model.submit(alternate: false)
+    #expect(model.canUndo)
+
+    model.popoverDidOpen()
+
+    #expect(!model.canUndo)
+  }
+
+  @Test
+  func reopeningKeepsTheUndoOfTheStopInTheToast() async throws {
+    let id = try await engine.start(EntryDraft(title: "Review"), mode: .switchTo).value
+    try await sync()
+    await model.stop(id)
+    #expect(model.toast?.id == id)
+
+    model.popoverDidOpen()
+
+    #expect(model.canUndo)
+  }
+
+  @Test
   func emptyQueryDoesNotStart() async throws {
     model.query = "   "
     await model.submit(alternate: false)
