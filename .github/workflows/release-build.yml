@@ -107,7 +107,7 @@ jobs:
       # Prüfen mit: gh attestation verify <datei> --repo nimble-123/takt
       - name: Build-Provenienz attestieren
         if: env.TAG != ''
-        uses: actions/attest-build-provenance@v3
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             build/unsigned/dist/*.dmg
