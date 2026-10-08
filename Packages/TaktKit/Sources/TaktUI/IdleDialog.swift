@@ -44,7 +44,8 @@ struct IdleDialog: View {
         Text("Discard", bundle: .module).tag(Choice.discard)
         Text("Assign to another task", bundle: .module).tag(Choice.reassign)
       } label: {
-        EmptyView()
+        // Hidden visually, read by VoiceOver as the group's name.
+        Text("Handle inactivity", bundle: .module)
       }
       .pickerStyle(.radioGroup)
       .labelsHidden()
