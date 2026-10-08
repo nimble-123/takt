@@ -135,14 +135,21 @@ public final class AnalyticsModel {
   }
 
   public func reload() async {
+    // Reloads overlap when the period changes quickly; a result for a range no longer shown is
+    // dropped, the reload for the new range sets the data.
     let range = range
     let now = clock.now()
     do {
-      data = try await source.load(range, now: now)
-      previousData = try await source.load(Analyzer.previous(range), now: now)
+      let loaded = try await source.load(range, now: now)
+      let previousLoaded = try await source.load(Analyzer.previous(range), now: now)
+      guard range == self.range else { return }
+      data = loaded
+      previousData = previousLoaded
+      loadedRange = range
       drilldown = nil
       recompute()
     } catch {
+      guard range == self.range else { return }
       logger.error("Analytics failed: \(String(describing: error), privacy: .public)")
       errorMessage = String(localized: "The evaluation could not be loaded.", bundle: .module)
     }
@@ -194,6 +201,8 @@ public final class AnalyticsModel {
   // MARK: Private
 
   private var previousData = AnalyticsData(entries: [])
+  /// The range `data` belongs to; differs from `range` while a reload is running.
+  private var loadedRange: Range<Timestamp>?
   private let source: AnalyticsSource
   private let clock: any TaktClock
   private let calendar: Calendar
@@ -204,6 +213,8 @@ public final class AnalyticsModel {
   }
 
   private func recompute() {
+    // Before the first load there is no data to evaluate.
+    guard let range = loadedRange else { return }
     let analyzer = Analyzer(calendar: calendar, defaultMode: defaultMode)
     let now = clock.now()
     report = analyzer.report(data, in: range, now: now, by: grouping, mode: modeOverride)

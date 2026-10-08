@@ -191,13 +191,18 @@ public final class MainWindowModel {
   }
 
   public func reload() async {
+    // Reloads overlap when the day or section changes; a result for a range no longer shown is
+    // dropped, the reload for the new range sets the data.
+    let range = shownRange
     do {
-      data = try await queries.timeline(in: shownRange, now: clock.now())
-      if data.entries.contains(where: { $0.entry.workItemLinkID != nil }) {
-        workItemLinks = try await queries.workItemLinks()
-      }
+      let loaded = try await queries.timeline(in: range, now: clock.now())
+      let links = loaded.entries.contains { $0.entry.workItemLinkID != nil } ? try await queries.workItemLinks() : nil
+      guard range == shownRange else { return }
+      data = loaded
+      if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
     } catch {
+      guard range == shownRange else { return }
       show(error)
     }
   }
@@ -220,7 +225,8 @@ public final class MainWindowModel {
   }
 
   public func step(by days: Int) {
-    let unit = section == .today ? days : days * 7
+    // A day for the screens that show one day, otherwise a week.
+    let unit = shownRange == dayRange ? days : days * 7
     if let date = calendar.date(byAdding: .day, value: unit, to: day.date) {
       day = Timestamp(date)
     }
