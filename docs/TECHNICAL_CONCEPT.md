@@ -285,7 +285,7 @@ Der `IdleMonitor` merkt sich den Beginn der Abwesenheit und schreibt erst bei de
 | Verwerfen | Lücke, weiter ab Rückkehr |
 | Anderem Task zuordnen | Neuer gestoppter Eintrag mit Segment `idle`, die anderen laufen ab Rückkehr weiter |
 
-Schwelle (`idleThresholdMinutes`) und „Sperre als Pause“ (`lockCountsAsPause`) liegen in `UserDefaults`, damit ein MDM-Profil sie vorgeben kann.
+Schwelle (`idleThresholdMinutes`) und „Sperre als Pause“ (`lockCountsAsPause`) liegen in `UserDefaults`, damit ein MDM-Profil sie vorgeben kann; der `IdleMonitor` liest sie über `AppSettings.snapshot`.
 
 ## Menüleiste und UI-Architektur
 
@@ -294,7 +294,8 @@ Die App läuft als Menüleisten-App ohne Dock-Symbol (`LSUIElement`); das Dock-S
 - **Status-Item:** `NSStatusItem` mit Symbol und optionalem Laufzeittext. Der Titel wird einmal pro Minute aktualisiert.
 - **Popover:** `NSPanel` unter dem Status-Item mit `NSHostingView`. Es nimmt Tastatureingaben an, schließt bei Klick außerhalb und lässt sich per Hotkey öffnen.
 - **Hauptfenster:** `NavigationSplitView` (Seitenleiste, Inhalt, Inspektor) in einem `NSWindow` mit `NSHostingController`, damit die App das Dock-Symbol genau so lange zeigt, wie das Fenster offen ist. Nachträgliche Änderungen (aufziehen, verschieben, Kanten ziehen, Pause umwandeln, teilen, löschen, Sammeländerungen) sind reine Funktionen in `TaktCore.EntryEdits` und laufen über `TimerEngine.apply(_:)`.
-- **Zustand:** pro Bildschirm ein `@Observable`-ViewModel auf dem `@MainActor`. Es abonniert Daten über GRDB-`ValueObservation` bzw. `TimerEngine.updates()` und schickt Befehle an die Engine.
+- **Zustand:** pro Bildschirm ein `@Observable`-ViewModel auf dem `@MainActor`. Es abonniert Daten über GRDB-`ValueObservation` bzw. `TimerEngine.updates()` und schickt Befehle an die Engine. Views rendern nur; Zustand und Ableitungen (z. B. im Tagesabschluss Gruppen, offene Zeilen und Summe in `DayCloseModel`) liegen im Model und sind getestet. Datei-I/O (Git-Branches, JSON-Sicherung) läuft per `@concurrent` außerhalb des Main Actors.
+- **Einstellungen:** Alle Teile lesen sie über `AppSettings`, nie mit eigenen Schlüsseln aus `UserDefaults`; die Standardwerte stehen nur dort. Dienste mit `@Sendable`-Closures (Inaktivität, Buchung, Git-Branches) lesen `AppSettings.snapshot`, eine thread-sichere Kopie, die jeder Änderung folgt.
 - **Gemeinsame Timer-Aktionen:** Starten (mit Regeln und Tags), Stoppen, „Alle stoppen“ und der Entwurf für ein Work Item laufen für Menüleiste, Hauptfenster und ⌘K über eine `TimerActions`-Instanz aus dem Composition Root. Ihr `onStopped` löst die automatische Buchung aus (DO-21), egal von wo gestoppt wurde. „Alle stoppen“ ist ein Engine-Befehl in einer Transaktion. Das Popover vergisst sein Undo beim nächsten Öffnen, außer für den Stopp im noch sichtbaren Toast.
 - **Suche:** ein `SearchCoordinator` fragt lokale Tasks, den Work-Item-Cache und die ADO-Suche parallel ab. Eingaben werden mit 250 ms entprellt; lokale Treffer erscheinen sofort, ADO-Treffer werden nachgeladen.
 - **Erscheinungsbild:** Farben als Asset-Katalog mit Hell- und Dunkel-Variante (siehe [DESIGN.md](DESIGN.md)), Systemschrift und Systemmaterialien.

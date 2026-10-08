@@ -97,7 +97,7 @@ struct CommandPaletteTests {
     )
     try await engine.apply(changes)
     palette.query = "quartal"
-    for _ in 0..<100 where palette.hits.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
+    await palette.hitTask?.value
     #expect(palette.items.contains { $0.id == "entry-\(entry.id)" })
   }
 

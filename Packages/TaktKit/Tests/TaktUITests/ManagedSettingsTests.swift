@@ -1,6 +1,7 @@
 import Foundation
 import TaktADO
 import TaktCore
+import TaktSystem
 import Testing
 
 @testable import TaktUI
@@ -47,8 +48,9 @@ struct ManagedSettingsTests {
 
   @Test
   func profileValuesAreReadAndLocked() throws {
-    let suite = "takt-mdm-\(UUID().uuidString)"
-    let defaults = try #require(UserDefaults(suiteName: suite))
+    let testDefaults = try TestDefaults("takt-mdm")
+    let suite = testDefaults.suiteName
+    let defaults = testDefaults.defaults
     let payload = try profilePayload()
     for (key, value) in payload { defaults.set(value, forKey: key) }
     // Values different from the defaults, to see that they are really read.
@@ -83,6 +85,11 @@ struct ManagedSettingsTests {
     #expect(!settings.showElapsedInMenuBar)
     #expect(settings.gitFolders == ["/Users/x/src"])
     #expect(settings.onboardingCompleted)
+    // The services read the same values (idle monitor, booking, Git branches).
+    #expect(settings.snapshot.idle == IdleSettings(threshold: 25 * 60, lockCountsAsPause: true))
+    #expect(!settings.snapshot.bookingOptions.reduceRemainingWork)
+    #expect(!settings.snapshot.bookingOptions.includeNote)
+    #expect(settings.snapshot.gitFolders == ["/Users/x/src"])
     #expect(ADOAccounts(suiteName: suite).managedOrganization == "contoso")
 
     for key in AppSettings.Key.allCases {

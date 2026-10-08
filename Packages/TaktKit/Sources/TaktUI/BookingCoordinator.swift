@@ -60,7 +60,7 @@ public final class BookingCoordinator {
       localDay: localDay,
       now: now,
       defaultMode: settings.countingMode,
-      rounding: Rounding(minutes: settings.roundingMinutes),
+      rounding: settings.rounding,
       deletedTitles: deletedTitles,
     )
   }

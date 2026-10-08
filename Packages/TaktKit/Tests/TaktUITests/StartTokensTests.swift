@@ -12,6 +12,7 @@ struct StartTokensTests {
   // MARK: Lifecycle
 
   init() throws {
+    testDefaults = try TestDefaults()
     let database = try AppDatabase.inMemory()
     engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
     catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
@@ -20,7 +21,7 @@ struct StartTokensTests {
       queries: EntryQueries(database: database),
       catalog: catalog,
       clock: clock,
-      settings: AppSettings(defaults: UserDefaults(suiteName: "takt-tests-\(UUID().uuidString)") ?? .standard),
+      settings: AppSettings(defaults: testDefaults.defaults),
     )
   }
 
@@ -153,6 +154,7 @@ struct StartTokensTests {
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
+  private let testDefaults: TestDefaults
   private let engine: TimerEngine
   private let model: MenuBarModel
   private let catalog: CatalogModel

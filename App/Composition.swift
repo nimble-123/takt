@@ -35,13 +35,9 @@ final class Composition {
       cache: cache,
       entries: queries,
       clock: clock,
-    ) {
+    ) { [settings] () -> BookingService.Options in
       // Read on every booking, so changed settings apply at once.
-      let defaults = UserDefaults.standard
-      return BookingService.Options(
-        reduceRemainingWork: defaults.object(forKey: "reduceRemainingWork") as? Bool ?? true,
-        includeNote: defaults.object(forKey: "bookingIncludesNote") as? Bool ?? true,
-      )
+      settings.snapshot.bookingOptions
     }
     booking = BookingCoordinator(
       service: service,
@@ -62,9 +58,8 @@ final class Composition {
       settings: settings,
       workItems: workItems,
       rules: rules,
-      gitBranches: {
-        let folders = UserDefaults.standard.stringArray(forKey: "gitFolders") ?? []
-        return GitBranches(folders: folders.map { URL(filePath: $0) }).current()
+      gitBranches: { [settings] () async -> [GitBranch] in
+        await settings.snapshot.gitBranches.load()
       },
       actions: actions,
     )
@@ -72,7 +67,7 @@ final class Composition {
       engine: engine,
       queries: queries,
       catalog: catalog,
-      analytics: AnalyticsModel(source: AnalyticsSource(database: database), clock: clock),
+      analytics: AnalyticsModel(source: AnalyticsSource(database: database), settings: settings, clock: clock),
       settings: settings,
       azureDevOps: azureDevOps,
       booking: booking,
@@ -84,7 +79,7 @@ final class Composition {
       clock: clock,
     )
     idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
-      Self.idleSettings()
+      [settings] () -> IdleSettings in settings.snapshot.idle
     }
   }
 
@@ -105,22 +100,12 @@ final class Composition {
   /// Called when inactivity needs the user's decision, e.g. to open the popover.
   var onIdleNeedsDecision: (@MainActor () -> Void)?
 
-  /// Settings come from `UserDefaults`, where MDM profiles can also set them.
-  nonisolated static func idleSettings() -> IdleSettings {
-    let defaults = UserDefaults.standard
-    let minutes = defaults.object(forKey: "idleThresholdMinutes") as? Int ?? 10
-    return IdleSettings(
-      threshold: TimeInterval(max(1, minutes) * 60),
-      lockCountsAsPause: defaults.bool(forKey: "lockCountsAsPause"),
-    )
-  }
-
   func launch() {
     tasks.append(
       Task {
         // Recovery must read the heartbeat of the previous run before a new one is written.
         do {
-          if try await engine.recoverAfterLaunch(idleThreshold: Self.idleSettings().threshold) != nil {
+          if try await engine.recoverAfterLaunch(idleThreshold: settings.snapshot.idle.threshold) != nil {
             onIdleNeedsDecision?()
           }
         } catch {

@@ -97,10 +97,12 @@ public final class CommandPaletteModel {
   /// Saves an export; provided by the view, which owns the save panel.
   @ObservationIgnored var export: ((AnalyticsModel.ExportFormat) -> Void)?
 
+  /// Loads the search hits; tests await it.
+  @ObservationIgnored private(set) var hitTask: Task<Void, Never>?
+
   // MARK: Private
 
   private let window: MainWindowModel
-  @ObservationIgnored private var hitTask: Task<Void, Never>?
 
   private func actions() -> [PaletteItem] {
     var items: [PaletteItem] = [
@@ -183,8 +185,10 @@ public final class CommandPaletteModel {
           symbol: "checkmark.seal",
           keywords: ["azure devops", "buchen", "tagesabschluss"],
         ) { [window] in
-          if let lines = try? await booking.lines(for: window.dayRange) {
-            await booking.book(lines.filter { $0.difference != 0 && $0.inFlight == 0 })
+          do {
+            await booking.book(try await booking.lines(for: window.dayRange).filter(\.isOpen))
+          } catch {
+            window.show(error)
           }
           window.section = .dayClose
         }

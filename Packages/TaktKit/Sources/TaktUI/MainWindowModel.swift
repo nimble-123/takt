@@ -392,6 +392,9 @@ public final class MainWindowModel {
   let clock: any TaktClock
   let calendar: Calendar
 
+  /// The running search; tests await it.
+  @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
+
   var shownRange: Range<Timestamp> {
     section == .today || section == .dayClose ? dayRange : weekRange
   }
@@ -426,7 +429,6 @@ public final class MainWindowModel {
 
   // MARK: Private
 
-  @ObservationIgnored private var searchTask: Task<Void, Never>?
   /// `data.entries` by ID, for lookups per timeline block and selected entry.
   private var entriesByID = [EntryID: EntryWithSegments]()
   @ObservationIgnored private var layoutCache = [Range<Timestamp>: (now: Timestamp, layout: TimelineLayout)]()

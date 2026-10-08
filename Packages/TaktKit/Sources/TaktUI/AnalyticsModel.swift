@@ -14,8 +14,9 @@ public final class AnalyticsModel {
 
   // MARK: Lifecycle
 
-  public init(source: AnalyticsSource, clock: any TaktClock, calendar: Calendar = .current) {
+  public init(source: AnalyticsSource, settings: AppSettings, clock: any TaktClock, calendar: Calendar = .current) {
     self.source = source
+    self.settings = settings
     self.clock = clock
     self.calendar = calendar
     anchor = clock.now()
@@ -72,11 +73,7 @@ public final class AnalyticsModel {
 
   /// AN-07: from the settings (or an MDM profile).
   public var targetPlan: TargetPlan {
-    let defaults = UserDefaults.standard
-    return TargetPlan(
-      weeklyHours: defaults.object(forKey: "weeklyHours") as? Double ?? 40,
-      workDays: Set(defaults.array(forKey: "workDays") as? [Int] ?? [1, 2, 3, 4, 5]),
-    )
+    settings.targetPlan
   }
 
   /// Target against tracked time of the shown period, up to today.
@@ -193,11 +190,11 @@ public final class AnalyticsModel {
   // MARK: Internal
 
   var defaultMode: CountingMode {
-    UserDefaults.standard.string(forKey: "countingMode").flatMap(CountingMode.init(rawValue:)) ?? .split
+    settings.countingMode
   }
 
   var rounding: Rounding {
-    Rounding(minutes: UserDefaults.standard.integer(forKey: "roundingMinutes"))
+    settings.rounding
   }
 
   // MARK: Private
@@ -206,6 +203,7 @@ public final class AnalyticsModel {
   /// The range `data` belongs to; differs from `range` while a reload is running.
   private var loadedRange: Range<Timestamp>?
   private let source: AnalyticsSource
+  private let settings: AppSettings
   private let clock: any TaktClock
   private let calendar: Calendar
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "analytics")
@@ -247,7 +245,7 @@ public final class AnalyticsModel {
 
     case .day(let start): day == start
 
-    case .weekday(let index): (calendar.component(.weekday, from: day.date) + 5) % 7 + 1 == index
+    case .weekday(let index): day.mondayBasedWeekday(in: calendar) == index
 
     case .tag(let id): data.tags[entry.id]?.contains { $0.id == id } == true
 

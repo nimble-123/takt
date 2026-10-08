@@ -66,6 +66,7 @@ struct WorkItemSearchModelTests {
   // MARK: Lifecycle
 
   init() throws {
+    testDefaults = try TestDefaults("takt-wi")
     database = try AppDatabase.inMemory()
     catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
   }
@@ -73,7 +74,7 @@ struct WorkItemSearchModelTests {
   // MARK: Internal
 
   @Test
-  func cachedHitsAppearAtOnceAndFreshOnesAfterTheDelay() async throws {
+  func cachedHitsAppearAtOnceAndFreshOnesAfterTheDelay() async {
     let source = FakeWorkItems(local: [item(1, "Login alt")], remote: [item(2, "Login neu"), item(1, "Login alt")])
     let model = model(source)
 
@@ -82,8 +83,7 @@ struct WorkItemSearchModelTests {
     #expect(model.workItemResults.map(\.workItemID) == [1])
     #expect(source.remoteSearches == 0)
 
-    try await settle(model, source)
-    try await wait { model.workItemResults.count == 2 }
+    await settle(model)
     #expect(model.workItemResults.map(\.workItemID) == [2, 1])
     #expect(source.remoteSearches == 1)
     #expect(model.suggestions.first?.group == .azureDevOps)
@@ -94,7 +94,7 @@ struct WorkItemSearchModelTests {
     let source = FakeWorkItems(remote: [item(1, "Login")])
     let model = model(source)
     for text in ["l", "lo", "log", "logi", "login"] { model.query = text }
-    try await settle(model, source)
+    await settle(model)
     // Give a wrongly scheduled second search time to show up.
     try await Task.sleep(for: MenuBarModel.searchDelay * 2)
     #expect(source.remoteSearches == 1)
@@ -120,12 +120,11 @@ struct WorkItemSearchModelTests {
   }
 
   @Test
-  func spacePreviewsOnlyASelectedWorkItem() async throws {
+  func spacePreviewsOnlyASelectedWorkItem() async {
     let source = FakeWorkItems(remote: [item(1, "Login")])
     let model = model(source)
     model.query = "login"
-    try await settle(model, source)
-    try await wait { !model.workItemResults.isEmpty }
+    await settle(model)
 
     #expect(!model.togglePreview()) // nothing selected: Space types a space
     model.moveSelection(by: 1)
@@ -144,6 +143,7 @@ struct WorkItemSearchModelTests {
   // MARK: Private
 
   private let clock = ManualClock()
+  private let testDefaults: TestDefaults
   private let database: AppDatabase
   private let catalog: CatalogModel
 
@@ -157,22 +157,14 @@ struct WorkItemSearchModelTests {
       queries: EntryQueries(database: database),
       catalog: catalog,
       clock: clock,
-      settings: AppSettings(defaults: UserDefaults(suiteName: "takt-wi-\(UUID().uuidString)") ?? .standard),
+      settings: AppSettings(defaults: testDefaults.defaults),
       workItems: source,
     )
   }
 
-  /// Polls until `condition` holds; a busy CI runner may need far longer than the debounce.
-  private func wait(until condition: () -> Bool, timeout: Duration = .seconds(5)) async throws {
-    let deadline = ContinuousClock.now + timeout
-    while !condition(), ContinuousClock.now < deadline {
-      try await Task.sleep(for: .milliseconds(20))
-    }
-  }
-
   /// Waits until the debounced remote search has run and its results are shown.
-  private func settle(_ model: MenuBarModel, _ source: FakeWorkItems, searches: Int = 1) async throws {
-    try await wait { source.remoteSearches >= searches && !model.isSearchingWorkItems }
+  private func settle(_ model: MenuBarModel) async {
+    await model.searchTask?.value
   }
 
 }
@@ -221,7 +213,7 @@ extension WorkItemSearchModelTests {
       queries: EntryQueries(database: database),
       catalog: catalog,
       clock: clock,
-      settings: AppSettings(defaults: UserDefaults(suiteName: "takt-git-\(UUID().uuidString)") ?? .standard),
+      settings: AppSettings(defaults: testDefaults.defaults),
       workItems: source,
       gitBranches: { branches },
     )

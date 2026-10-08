@@ -208,9 +208,11 @@ struct SuggestionList: View {
   let model: MenuBarModel
 
   var body: some View {
+    // Computed once per render instead of once per row.
+    let suggestions = model.suggestions
     VStack(alignment: .leading, spacing: 2) {
-      ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, suggestion in
-        if index == 0 || model.suggestions[index - 1].group != suggestion.group {
+      ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
+        if index == 0 || suggestions[index - 1].group != suggestion.group {
           SectionTitle(text: suggestion.group.title)
             .padding(.horizontal, 10)
             .padding(.top, index == 0 ? 0 : 6)
@@ -533,7 +535,7 @@ struct RecentList: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       SectionTitle(text: String(localized: "Recent", bundle: .module))
-      ForEach(Array(model.suggestions.enumerated()), id: \.offset) { index, suggestion in
+      ForEach(Array(model.suggestions.enumerated()), id: \.element.id) { index, suggestion in
         Button {
           Task { await model.startRecent(at: index) }
         } label: {

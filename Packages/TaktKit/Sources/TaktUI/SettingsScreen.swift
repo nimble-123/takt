@@ -170,7 +170,7 @@ struct SettingsScreen: View {
       if model.database != nil {
         Section(String(localized: "Data", bundle: .module)) {
           HStack {
-            Button(String(localized: "Save Backup as JSON …", bundle: .module), action: exportArchive)
+            Button(String(localized: "Save Backup as JSON …", bundle: .module)) { Task { await exportArchive() } }
             Button(String(localized: "Import Backup …", bundle: .module), action: chooseImport)
           }
           Text("Daily backups are kept automatically for 14 days.", bundle: .module)
@@ -189,7 +189,7 @@ struct SettingsScreen: View {
       isPresented: Binding(get: { confirmImport != nil }, set: { if !$0 { confirmImport = nil } }),
     ) {
       Button(String(localized: "Replace All Data", bundle: .module), role: .destructive) {
-        if let url = confirmImport { importArchive(url) }
+        if let url = confirmImport { Task { await importArchive(url) } }
       }
     } message: {
       Text("Entries, projects and settings stored in Takt are replaced. This cannot be undone.", bundle: .module)
@@ -222,14 +222,14 @@ struct SettingsScreen: View {
     }
   }
 
-  private func exportArchive() {
+  private func exportArchive() async {
     guard let database = model.database else { return }
     let panel = NSSavePanel()
     panel.allowedContentTypes = [.json]
     panel.nameFieldStringValue = "Takt-Backup.json"
     guard panel.runModal() == .OK, let url = panel.url else { return }
     do {
-      try DatabaseArchive.export(database).write(to: url, options: .atomic)
+      try await DatabaseArchive.export(database, to: url)
       message = String(localized: "Backup saved.", bundle: .module)
     } catch {
       NSAlert(error: error).runModal()
@@ -243,12 +243,12 @@ struct SettingsScreen: View {
     confirmImport = url
   }
 
-  private func importArchive(_ url: URL) {
+  private func importArchive(_ url: URL) async {
     guard let database = model.database else { return }
     do {
-      try DatabaseArchive.importReplacingAll(try Data(contentsOf: url), into: database)
+      try await DatabaseArchive.importReplacingAll(contentsOf: url, into: database)
       message = String(localized: "Backup imported.", bundle: .module)
-      Task { await model.dataWasReplaced() }
+      await model.dataWasReplaced()
     } catch {
       message = String(localized: "The backup could not be imported. Nothing was changed.", bundle: .module)
     }

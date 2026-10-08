@@ -1,11 +1,20 @@
 import Foundation
+import TaktAnalytics
 import TaktCore
+import TaktStore
+import TaktSystem
 import Testing
 
 @testable import TaktUI
 
 @MainActor
 struct SettingsTests {
+
+  // MARK: Lifecycle
+
+  init() throws {
+    testDefaults = try TestDefaults("takt-settings")
+  }
 
   // MARK: Internal
 
@@ -41,6 +50,45 @@ struct SettingsTests {
     let reloaded = AppSettings(defaults: store)
     #expect(reloaded.startMode == .parallel)
     #expect(reloaded.countingMode == .full)
+  }
+
+  @Test
+  func snapshotForTheServicesFollowsEveryChange() {
+    let settings = AppSettings(defaults: defaults())
+    #expect(settings.snapshot.idle == IdleSettings(threshold: 600, lockCountsAsPause: false))
+    #expect(settings.snapshot.bookingOptions.reduceRemainingWork)
+    #expect(settings.snapshot.bookingOptions.includeNote)
+
+    settings.idleThresholdMinutes = 15
+    settings.lockCountsAsPause = true
+    settings.reduceRemainingWork = false
+    settings.bookingIncludesNote = false
+    settings.gitFolders = ["/Users/x/src"]
+
+    let snapshot = settings.snapshot
+    #expect(snapshot.idle == IdleSettings(threshold: 900, lockCountsAsPause: true))
+    #expect(!snapshot.bookingOptions.reduceRemainingWork)
+    #expect(!snapshot.bookingOptions.includeNote)
+    #expect(snapshot.gitBranches.folders == [URL(filePath: "/Users/x/src")])
+    #expect(AppSettings(defaults: defaults()).snapshot == snapshot)
+  }
+
+  @Test
+  func analyticsReadTargetRoundingAndCountingModeFromTheSettings() throws {
+    let settings = AppSettings(defaults: defaults())
+    settings.weeklyHours = 32
+    settings.workDays = [1, 2, 3, 4]
+    settings.roundingMinutes = 15
+    settings.countingMode = .full
+    let model = AnalyticsModel(
+      source: AnalyticsSource(database: try AppDatabase.inMemory()),
+      settings: settings,
+      clock: ManualClock(),
+    )
+
+    #expect(model.targetPlan == TargetPlan(weeklyHours: 32, workDays: [1, 2, 3, 4]))
+    #expect(model.rounding == Rounding(minutes: 15))
+    #expect(model.defaultMode == .full)
   }
 
   @Test
@@ -110,10 +158,10 @@ struct SettingsTests {
 
   // MARK: Private
 
-  private let suite = "takt-settings-\(UUID().uuidString)"
+  private let testDefaults: TestDefaults
 
   private func defaults() -> UserDefaults {
-    UserDefaults(suiteName: suite) ?? .standard
+    testDefaults.defaults
   }
 
 }

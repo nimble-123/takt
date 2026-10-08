@@ -38,6 +38,19 @@ public enum DatabaseArchive {
     return try encoder.encode(archive)
   }
 
+  /// Writes the archive to `url` on the concurrent pool, so the main actor stays responsive.
+  @concurrent
+  public static func export(_ database: AppDatabase, to url: URL) async throws {
+    try export(database).write(to: url, options: .atomic)
+  }
+
+  /// Reads the archive at `url` and imports it on the concurrent pool. Nothing changes if the
+  /// import fails.
+  @concurrent
+  public static func importReplacingAll(contentsOf url: URL, into database: AppDatabase) async throws {
+    try importReplacingAll(try Data(contentsOf: url), into: database)
+  }
+
   /// Replaces all data with the archive's content. Nothing changes if the import fails.
   public static func importReplacingAll(_ data: Data, into database: AppDatabase) throws {
     let archive = try JSONDecoder().decode(Archive.self, from: data)

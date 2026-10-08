@@ -119,6 +119,19 @@ struct DatabaseArchiveTests {
     }
   }
 
+  @Test
+  func fileExportAndImportRoundTrip() async throws {
+    let source = try await filledDatabase()
+    let url = FileManager.default.temporaryDirectory.appending(path: "takt-archive-\(UUID().uuidString).json")
+    defer { try? FileManager.default.removeItem(at: url) }
+
+    try await DatabaseArchive.export(source, to: url)
+    let target = try AppDatabase.inMemory()
+    try await DatabaseArchive.importReplacingAll(contentsOf: url, into: target)
+
+    #expect(try DatabaseArchive.export(target) == DatabaseArchive.export(source))
+  }
+
   // MARK: Private
 
   private func filledDatabase() async throws -> AppDatabase {
