@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Regeltermin Start und Ende</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#0F766E}a:hover{color:#115E59}
+button{font:inherit;color:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 420px; height: 640px; box-sizing: border-box; position: relative; overflow: hidden; background: #D8DCE3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px">
+<div style="height: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 12px; background: rgba(246,246,248,0.9); border-bottom: 1px solid #C6CAD1">
+<div style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#1C1C1E" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 14.5h6L9.2 2H6.8z"></path><path d="M8 11.5l3-6"></path></svg>
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 600">1:13</span>
+</div>
+<span>Mi. 7. Okt.  09:45</span>
+</div>
+<div style="padding: 20px 14px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 12px; font-weight: 600; color: #3A3A3C">09:45 · Termin beginnt</div>
+<div role="alert" style="display: flex; flex-direction: column; border-radius: 16px; background: rgba(255,255,255,0.94); border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 12px 34px rgba(0,0,0,0.2); overflow: hidden">
+<div style="display: flex; gap: 10px; padding: 12px 14px">
+<div style="width: 36px; height: 36px; border-radius: 9px; background: #0F766E; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 14.5h6L9.2 2H6.8z"></path><path d="M8 11.5l3-6"></path></svg></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; justify-content: space-between"><strong>Daily Stand-up beginnt</strong><span style="font-size: 11px; color: #55555A">jetzt</span></div>
+<span style="color: #3A3A3C">Plattform · Meeting · bis 10:00</span>
+<span style="color: #55555A; font-size: 12px">„Login-Flow refaktorieren“ wird pausiert und läuft danach weiter.</span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #E5E5EA">
+<button type="button" style="height: 40px; border: 0; border-right: 1px solid #E5E5EA; background: transparent; color: #0F766E; font-weight: 600">Timer starten</button>
+<button type="button" style="height: 40px; border: 0; background: transparent">Ignorieren</button>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E5E5EA">
+<span style="width: 10px; height: 10px; border-radius: 50%; background: #C2410C; flex: none"></span>
+<span style="flex: 1">Daily Stand-up</span>
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-weight: 600; color: #0F766E">0:08:31</span>
+<span style="font-size: 11px; color: #55555A">endet 10:00</span>
+</div>
+<div style="height: 1px; background: #C6CAD1; margin: 10px 0"></div>
+<div style="font-size: 12px; font-weight: 600; color: #3A3A3C">10:00 · Termin endet</div>
+<div role="status" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #1C1C1E; color: #F5F5F7; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5EEAD4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+<span style="flex: 1; line-height: 1.35">Daily beendet · 0:15 h<br><span style="color: #C7C7CC; font-size: 12px">#4821 läuft weiter</span></span>
+<button type="button" style="height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(255,255,255,0.12); color: #F5F5F7">Verlängern</button>
+<button type="button" style="height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(255,255,255,0.12); color: #F5F5F7">Rückgängig</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

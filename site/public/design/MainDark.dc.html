@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Menüleisten-Popover dunkel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#5EEAD4}a:hover{color:#99F6E4}
+kbd{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:11px;color:#C7C7CC;background:#3A3A3C;border:1px solid #48484A;border-radius:5px;padding:1px 5px}
+button{font:inherit;color:inherit;cursor:pointer}
+input::placeholder{color:#98989D}
+</style>
+</helmet>
+<div style="width: 420px; height: 640px; box-sizing: border-box; position: relative; overflow: hidden; background: #1F2228; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #F5F5F7; font-size: 13px">
+<div style="height: 28px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 0 12px; background: rgba(30,30,32,0.92); border-bottom: 1px solid #000000">
+<div style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px; background: rgba(255,255,255,0.18)">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#F5F5F7" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M5 14.5h6L9.2 2H6.8z"></path><path d="M8 11.5l3-6"></path></svg>
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 600">{{shortTime}}</span>
+</div>
+<span>Di. 6. Okt.  22:14</span>
+</div>
+<div style="position: absolute; top: 34px; right: 14px; width: 360px; box-sizing: border-box; background: #2A2A2D; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.55); overflow: hidden">
+<div style="padding: 12px; display: flex; flex-direction: column; gap: 14px">
+<label style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px 0 12px; border-radius: 10px; background: #1C1C1E; border: 2px solid #2DD4BF; box-sizing: border-box">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#98989D" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.8"></circle><path d="M10.6 10.6L14 14"></path></svg>
+<input type="text" aria-label="Task oder Work Item suchen" placeholder="Was machst du gerade?" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; outline: none; color: #F5F5F7">
+<kbd>#ID</kbd>
+</label>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #98989D">Läuft</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: #12332F">
+<div style="width: 10px; height: 10px; border-radius: 50%; background: #2DD4BF; box-shadow: 0 0 0 4px rgba(45,212,191,0.22); flex: none"></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Login-Flow refaktorieren</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #AEAEB2">
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; padding: 0 5px; border-radius: 4px; background: #1C1C1E; color: #93C5FD">#4821</span>
+<span>Kundenportal · Entwicklung</span>
+</div>
+</div>
+<div style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 19px; font-weight: 600; color: #5EEAD4; font-variant-numeric: tabular-nums">{{runTime}}</div>
+<div style="display: flex; gap: 4px">
+<button type="button" aria-label="Pausieren" style="width: 32px; height: 32px; border-radius: 50%; border: 0; background: #2DD4BF; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 12 12" fill="#042F2E" aria-hidden="true"><rect x="2" y="1.5" width="3" height="9" rx="1"></rect><rect x="7" y="1.5" width="3" height="9" rx="1"></rect></svg></button>
+<button type="button" aria-label="Stoppen" style="width: 32px; height: 32px; border-radius: 50%; border: 0; background: #3A3A3C; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 12 12" fill="#F5F5F7" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"></rect></svg></button>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid #3A3A3C">
+<div style="width: 8px; height: 8px; border-radius: 50%; border: 2px solid #FBBF24; flex: none"></div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<div style="font-size: 13px; font-weight: 600">Architektur-Review</div>
+<div style="font-size: 12px; color: #AEAEB2">Plattform · Meeting · <span style="color: #FBBF24; font-weight: 600">pausiert</span></div>
+</div>
+<div style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 15px; font-weight: 600; color: #AEAEB2">0:32:10</div>
+<div style="display: flex; gap: 4px">
+<button type="button" aria-label="Fortsetzen" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #48484A; background: #2A2A2D; display: flex; align-items: center; justify-content: center"><svg width="11" height="11" viewBox="0 0 12 12" fill="#F5F5F7" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"></path></svg></button>
+<button type="button" aria-label="Stoppen" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #48484A; background: #2A2A2D; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 12 12" fill="#F5F5F7" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"></rect></svg></button>
+</div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #98989D; padding-bottom: 4px">Zuletzt</div>
+<sc-for list="{{recents}}" as="r" hint-placeholder-count="4">
+<button type="button" style="display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; text-align: left; width: 100%">
+<span style="width: 8px; height: 8px; border-radius: 50%; background: {{r.color}}; flex: none"></span>
+<span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="font-weight: 500">{{r.name}}</span>  <span style="color: #98989D">{{r.project}}</span></span>
+<kbd>{{r.key}}</kbd>
+</button>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: #1C1C1E">
+<div style="display: flex; align-items: baseline; justify-content: space-between">
+<span style="font-weight: 600">Heute</span>
+<span><span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-weight: 600">5:12 h</span> <span style="color: #98989D">von 8:00 h</span></span>
+</div>
+<div style="display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #3A3A3C">
+<sc-for list="{{segments}}" as="s" hint-placeholder-count="4">
+<div style="width: {{s.w}}; background: {{s.color}}"></div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: #AEAEB2">
+<sc-for list="{{segments}}" as="s" hint-placeholder-count="4">
+<span style="display: flex; align-items: center; gap: 4px"><span style="width: 6px; height: 6px; border-radius: 2px; background: {{s.color}}"></span>{{s.label}}</span>
+</sc-for>
+</div>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid #3A3A3C">
+<button type="button" style="display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent">Alle pausieren <kbd>⌥⇧P</kbd></button>
+<div style="flex: 1"></div>
+<button type="button" style="height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: transparent">Takt öffnen</button>
+<button type="button" aria-label="Einstellungen" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; display: flex; align-items: center; justify-content: center"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#AEAEB2" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="2.4"></circle><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"></path></svg></button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":640}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { secs: 5048 };
+  }
+  componentDidMount() {
+    this.timer = setInterval(() => this.setState({ secs: this.state.secs + 1 }), 1000);
+  }
+  componentWillUnmount() {
+    clearInterval(this.timer);
+  }
+  renderVals() {
+    const s = this.state.secs;
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    const p = (n) => String(n).padStart(2, '0');
+    return {
+      runTime: h + ':' + p(m) + ':' + p(sec),
+      shortTime: h + ':' + p(m),
+      recents: [
+        { name: 'Daily Stand-up', project: 'Plattform', color: '#FB923C', key: '⌘1' },
+        { name: '#4790 SSO-Login schlägt fehl', project: 'Kundenportal', color: '#60A5FA', key: '⌘2' },
+        { name: 'Code-Review', project: 'Kundenportal', color: '#A78BFA', key: '⌘3' },
+        { name: 'Support-Anfragen', project: 'Intern', color: '#F472B6', key: '⌘4' }
+      ],
+      segments: [
+        { label: 'Entwicklung', w: '38%', color: '#60A5FA' },
+        { label: 'Meeting', w: '16%', color: '#FB923C' },
+        { label: 'Review', w: '8%', color: '#A78BFA' },
+        { label: 'Support', w: '3%', color: '#F472B6' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

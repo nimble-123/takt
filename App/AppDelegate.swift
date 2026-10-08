@@ -213,10 +213,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let status = MenuBarStatus(snapshot: composition.menuBar.snapshot, now: composition.clock.now())
     let image = NSImage(
       systemSymbolName: status.symbolName,
-      accessibilityDescription: String(localized: "Takt"),
+      accessibilityDescription: status.accessibilityDescription,
     )
     image?.isTemplate = true
     button.image = image
+    // The description already contains the running time, so VoiceOver does not read the title separately.
+    button.setAccessibilityLabel(status.accessibilityDescription)
     let showTitle = composition.settings.showElapsedInMenuBar
     button.title = showTitle ? status.title.map { " \($0)" } ?? "" : ""
   }
