@@ -117,6 +117,23 @@ extension TimerUpdate where Result == Void {
   }
 }
 
+// MARK: - TimerCommit
+
+/// The outcome of a write: the command's value and the state right after it, read in the same
+/// transaction. `sequence` grows with every write of a store, so a subscriber can drop a snapshot
+/// that arrives after a newer one.
+public struct TimerCommit<Value: Sendable>: Sendable {
+  public init(value: Value, snapshot: TimerSnapshot, sequence: Int) {
+    self.value = value
+    self.snapshot = snapshot
+    self.sequence = sequence
+  }
+
+  public var value: Value
+  public var snapshot: TimerSnapshot
+  public var sequence: Int
+}
+
 // MARK: - TimerStoreError
 
 public enum TimerStoreError: Error, Equatable {
@@ -130,11 +147,15 @@ public enum TimerStoreError: Error, Equatable {
 public protocol TimerStore: Sendable {
   func snapshot() async throws -> TimerSnapshot
 
-  /// Reads the snapshot, calls `body` and writes `body`'s changes in order — one transaction.
-  /// Throws `TimerStoreError.conflict` and writes nothing if a change does not match.
+  /// Reads the snapshot, calls `body`, writes `body`'s changes in order and reads the snapshot
+  /// again — one transaction. Throws `TimerStoreError.conflict` and writes nothing if a change
+  /// does not match.
   func update<T: Sendable>(
     _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
-  ) async throws -> T
+  ) async throws -> TimerCommit<T>
+
+  /// The current snapshot with the sequence of the last write, read in order with the writes.
+  func latest() async throws -> TimerCommit<Void>
 
   /// Stores the engine's sign of life. Not part of undo.
   func recordHeartbeat(_ timestamp: Timestamp) async throws
