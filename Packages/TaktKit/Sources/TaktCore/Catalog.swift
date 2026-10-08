@@ -107,6 +107,13 @@ public struct Tag: Hashable, Sendable, Codable, Identifiable {
   public var id: TagID
   public var name: String
 
+  /// Tag names typed into one field: "a, b,,c " becomes ["a", "b", "c"].
+  public static func names(fromCommaSeparated text: String) -> [String] {
+    text.split(separator: ",")
+      .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+      .filter { !$0.isEmpty }
+  }
+
 }
 
 // MARK: - WorkItemLink

@@ -45,7 +45,7 @@ struct SearchResultsScreen: View {
                 VStack(alignment: .leading, spacing: 2) {
                   Text(hit.title)
                   if let snippet = hit.snippet {
-                    Text(highlighted(snippet))
+                    Text(Self.highlighted(snippet))
                       .font(.system(size: 11))
                       .foregroundStyle(Palette.textSecondary)
                       .lineLimit(1)
@@ -59,6 +59,19 @@ struct SearchResultsScreen: View {
         }
       }
     }
+  }
+
+  // MARK: Fileprivate
+
+  /// `**hit**` from the index becomes bold.
+  fileprivate static func highlighted(_ snippet: String) -> AttributedString {
+    var result = AttributedString()
+    for (index, part) in snippet.components(separatedBy: "**").enumerated() {
+      var piece = AttributedString(part)
+      if index % 2 == 1 { piece.inlinePresentationIntent = .stronglyEmphasized }
+      result += piece
+    }
+    return result
   }
 
   // MARK: Private
@@ -79,7 +92,7 @@ struct SearchResultsScreen: View {
         if let link { NSWorkspace.shared.open(ADOClient.webURL(of: link)) }
       }
 
-    default:
+    case .entry, .project, .task, .category, .tag:
       model.searchText = ""
       model.section = .projects
     }
@@ -104,7 +117,7 @@ private struct EntryHitRow: View {
       VStack(alignment: .leading, spacing: 2) {
         Text(hit.entry.entry.title)
         if let snippet = hit.snippet {
-          Text(highlighted(snippet))
+          Text(SearchResultsScreen.highlighted(snippet))
             .font(.system(size: 11))
             .foregroundStyle(Palette.textSecondary)
             .lineLimit(2)
@@ -116,17 +129,6 @@ private struct EntryHitRow: View {
     }
     .contentShape(Rectangle())
   }
-}
-
-/// `**hit**` from the index becomes bold.
-func highlighted(_ snippet: String) -> AttributedString {
-  var result = AttributedString()
-  for (index, part) in snippet.components(separatedBy: "**").enumerated() {
-    var piece = AttributedString(part)
-    if index % 2 == 1 { piece.inlinePresentationIntent = .stronglyEmphasized }
-    result += piece
-  }
-  return result
 }
 
 extension SearchHit.Kind {

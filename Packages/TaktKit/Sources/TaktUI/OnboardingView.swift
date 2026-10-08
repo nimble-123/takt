@@ -84,7 +84,7 @@ public struct OnboardingView: View {
         }
       }
       .accessibilityElement()
-      .accessibilityLabel(Text("Step \(model.step.rawValue + 1) of 3", bundle: .module))
+      .accessibilityLabel(Text("Step \(model.step.rawValue + 1) of \(OnboardingModel.Step.allCases.count)", bundle: .module))
 
       Group {
         switch model.step {

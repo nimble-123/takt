@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Synchronization
 
 // MARK: - CategoryColors
 
@@ -31,19 +32,32 @@ public enum CategoryColors {
 
   /// Stroke and text color.
   public static func color(_ hex: String) -> Color {
+    if let cached = colors.withLock({ $0[hex] }) { return cached }
     let swatch = swatches.first { $0.hex.caseInsensitiveCompare(hex) == .orderedSame }
-    return dynamic(light: hex, dark: swatch?.dark ?? hex)
+    let color = dynamic(light: hex, dark: swatch?.dark ?? hex)
+    colors.withLock { $0[hex] = color }
+    return color
   }
 
   /// Fill of timeline blocks.
   public static func surface(_ hex: String) -> Color {
-    guard let swatch = swatches.first(where: { $0.hex.caseInsensitiveCompare(hex) == .orderedSame }) else {
-      return color(hex).opacity(0.18)
-    }
-    return dynamic(light: swatch.surfaceLight, dark: swatch.surfaceDark)
+    if let cached = surfaces.withLock({ $0[hex] }) { return cached }
+    let surface =
+      if let swatch = swatches.first(where: { $0.hex.caseInsensitiveCompare(hex) == .orderedSame }) {
+        dynamic(light: swatch.surfaceLight, dark: swatch.surfaceDark)
+      } else {
+        color(hex).opacity(0.18)
+      }
+    surfaces.withLock { $0[hex] = surface }
+    return surface
   }
 
   // MARK: Private
+
+  /// Every timeline block and chart asks for its color on each redraw; the dynamic colors are
+  /// built once per hex.
+  private static let colors = Mutex([String: Color]())
+  private static let surfaces = Mutex([String: Color]())
 
   private static func dynamic(light: String, dark: String) -> Color {
     Color(

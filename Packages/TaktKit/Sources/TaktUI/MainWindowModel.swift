@@ -80,7 +80,6 @@ public final class MainWindowModel {
     }
   }
 
-  public private(set) var data = TimelineData()
   public var selection = Set<EntryID>()
   /// The user's choice from the toolbar; `showsInspector` decides where it actually appears.
   public var isInspectorShown = true
@@ -110,6 +109,10 @@ public final class MainWindowModel {
   public private(set) var workItemLinks = [WorkItemLinkID: WorkItemLink]()
   /// For backup and import in the settings.
   public let database: AppDatabase?
+
+  public private(set) var data = TimelineData() {
+    didSet { dataDidChange() }
+  }
 
   public var section = Section.today {
     didSet { Task { await reload() } }
@@ -169,7 +172,8 @@ public final class MainWindowModel {
 
   /// Pauses between segments of the same entry on the shown day (TM-02).
   public var dayPauses: TimeInterval {
-    TimelineLayout(entries: data.entries, day: dayRange, now: clock.now()).items
+    // Pauses do not depend on `now`, so the layout the timeline already cached will do.
+    layout(for: dayRange, now: layoutCache[dayRange]?.now ?? clock.now()).items
       .filter(\.isPause)
       .reduce(0) { $0 + $1.end.seconds(since: $1.start) }
   }
@@ -216,7 +220,7 @@ public final class MainWindowModel {
   }
 
   public func entry(_ id: EntryID) -> EntryWithSegments? {
-    data.entries.first { $0.id == id }
+    entriesByID[id]
   }
 
   /// Category color if set, otherwise the project's, otherwise the accent color.
@@ -392,6 +396,19 @@ public final class MainWindowModel {
     section == .today || section == .dayClose ? dayRange : weekRange
   }
 
+  /// The timeline of `day`, computed once per data change instead of on every redraw and drag
+  /// event. Open segments end at `now`, so while one runs the layout is also per `now`.
+  func layout(for day: Range<Timestamp>, now: Timestamp) -> TimelineLayout {
+    // Read `data` even on a cache hit, so views observe it.
+    let entries = data.entries
+    if let cached = layoutCache[day], cached.now == now || !hasOpenSegment {
+      return cached.layout
+    }
+    let layout = TimelineLayout(entries: entries, day: day, now: now)
+    layoutCache[day] = (now, layout)
+    return layout
+  }
+
   func show(_ error: any Error) {
     logger.error("Edit failed: \(String(describing: error), privacy: .public)")
     errorMessage =
@@ -410,6 +427,10 @@ public final class MainWindowModel {
   // MARK: Private
 
   @ObservationIgnored private var searchTask: Task<Void, Never>?
+  /// `data.entries` by ID, for lookups per timeline block and selected entry.
+  private var entriesByID = [EntryID: EntryWithSegments]()
+  @ObservationIgnored private var layoutCache = [Range<Timestamp>: (now: Timestamp, layout: TimelineLayout)]()
+  @ObservationIgnored private var hasOpenSegment = false
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
 
@@ -422,6 +443,12 @@ public final class MainWindowModel {
     } catch {
       show(error)
     }
+  }
+
+  private func dataDidChange() {
+    entriesByID = Dictionary(data.entries.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    hasOpenSegment = data.entries.contains { $0.openSegment != nil }
+    layoutCache = [:]
   }
 
   private func runSearch() {

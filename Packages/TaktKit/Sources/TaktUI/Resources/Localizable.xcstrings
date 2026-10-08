@@ -2621,12 +2621,12 @@
         }
       }
     },
-    "Step %lld of 3": {
+    "Step %lld of %lld": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schritt %lld von 3"
+            "value": "Schritt %1$lld von %2$lld"
           }
         }
       }
