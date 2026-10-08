@@ -398,9 +398,24 @@ ORDER BY s.start_at;
 - Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
 - Ein einziger Sweep (`Allocation.intervals`) liefert Intervalle mit den Anteilen der laufenden Einträge. `TaktAnalytics.Analyzer` schneidet sie an lokalen Tages- und Stundengrenzen und leitet daraus Gruppen, Tagesbalken, Heatmap, Fokusblöcke, Kontextwechsel und Multitasking-Anteil ab. Gemessen: 12 Monate (3.000 Einträge, 36.000 Segmente) von der Datenbank bis zum Bericht in rund 0,2 s (Release-Build).
 - Bei Tags zählt ein Eintrag mit mehreren Tags in jedem davon; Einträge ohne Wert landen in der Gruppe „Ohne“.
-- **Soll/Ist (AN-07):** Wochenstunden (`weeklyHours`, Default 40) verteilen sich gleichmäßig auf die Arbeitstage (`workDays`, Default Mo–Fr). Der Saldo zählt nur Tage bis heute, damit eine laufende Woche kein künstliches Minus zeigt; Feiertage kennt Takt nicht. Die Tagesbalken zeigen das Soll als gestrichelte Linie.
+- **Soll/Ist (AN-07):** Wochenstunden (`weeklyHours`, Default 40) verteilen sich gleichmäßig auf die Arbeitstage (`workDays`, Default Mo–Fr). Der Saldo zählt nur Tage bis heute, damit eine laufende Woche kein künstliches Minus zeigt; Feiertage kennt Takt noch nicht (geplant: AZ-03). Die Tagesbalken zeigen das Soll als gestrichelte Linie.
 - **PDF-Bericht (AN-07):** A4, immer hell, gerendert mit `ImageRenderer` aus SwiftUI und Swift Charts: Seite 1 mit Kennzahlen, Soll/Ist, Tagesbalken und Verteilung, danach die Tabelle je Eintrag und Tag (34 Zeilen pro Seite) – dieselben Zeilen wie im CSV-Export.
 - Diagramme zeichnet Swift Charts; Export als CSV (RFC 4180, Dezimalpunkt) und JSON nutzt dieselbe Verteilung wie die Ansicht: eine Zeile je Eintrag und lokalem Tag mit Rohsekunden, Stunden und gerundeten Stunden (Rundung aus `roundingMinutes`).
+
+## Arbeitszeit & Konten (Phase 4, geplant)
+
+Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert werden nur Rohdaten (Segmente, Tagesmarker, Vergütungen, Änderungsprotokoll); Arbeitstage, Befunde und Salden werden zur Abfragezeit berechnet. Alle Berechnungen liegen in `TaktCore`/`TaktAnalytics` und laufen unter Linux.
+
+- **Arbeitstag (AZ-01):** Pro lokalem Tag die Vereinigung aller Segmente von Einträgen, deren Kategorie als Arbeitszeit zählt (neue Spalte an `category`, Default ja). Parallele Zeit zählt einmal, unabhängig von der Zählweise. Beginn = erstes, Ende = letztes Arbeitssegment. Lücken < 15 min zählen als Arbeitszeit (§ 4 Satz 2 ArbZG), längere sind Pausen. Netto = Ende − Beginn − Pausen. Tage über Mitternacht werden dem Tag des Beginns zugeordnet.
+- **Prüfregeln (AZ-02):** Reine Funktion von Arbeitstagen auf Befunde (Regel, Schweregrad, Messwert). Werktage sind Mo–Sa; der Ausgleichszeitraum für Ø 8 h ist rollierend 24 Wochen. Die Ruhezeit wird immer berechnet und ausgewiesen, nicht nur bei Verstoß.
+- **Feiertage (AZ-03):** Feste und von Ostern abhängige Feiertage je Bundesland (Osterformel nach Gauß), Einstellung `federalState`, MDM-verwaltbar. Feiertage setzen das Soll in `TargetPlan` auf 0.
+- **Änderungsprotokoll (AZ-04):** Neue Tabelle (Migration append-only) mit Segment, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt und optionalem Grund. Die Timer-Engine schreibt den Protokolleintrag in derselben Transaktion wie die Änderung (`TimerStore.update(_:)`). Live erfasste Segmente erzeugen keinen Eintrag; „korrigiert“ heißt `source = manual` oder mindestens ein Protokolleintrag.
+- **Flexkonto (AZ-05):** Saldo = Startsaldo (mit Stichtag) + Σ (Netto − Soll) bis einschließlich heute − Σ Vergütungen. Tagesmarker Urlaub, Krank, Frei als eigene Tabelle (Tag + Art) setzen das Soll auf 0. Abfeiern ist ein Tag mit weniger oder ohne Arbeitszeit und braucht keinen Marker.
+- **Urlaubskonto (AZ-06):** Anspruch und Übertrag aus den Einstellungen, genommen und geplant aus den Urlaubsmarkern an Arbeitstagen ohne Feiertag; der Übertrag in Folgejahre wird berechnet.
+- **Überstunden (AZ-07):** Überstunden des Tages = max(0, Netto − Soll). Vergütungen sind eigene Datensätze (Datum, Sekunden, Notiz) und mindern das Flexkonto. Das Quartalskontingent zählt nur Vergütungen, nach deren Datum.
+- **Übertragsgrenze (AZ-08):** Beim Jahreswechsel wird ein positiver Saldo auf die Grenze gekappt (Standard 220 h, leer = keine). Die Kappung ist eine Rechenregel, keine Buchung.
+- **Arbeitszeitnachweis (AZ-09):** Eine Zeile je Kalendertag; Zeiten auf Minuten, ohne `roundingMinutes`. Die Prüfsumme ist SHA-256 über eine kanonische Darstellung der Tageszeilen und des Änderungsprotokolls und steht im Kopf. PDF wie der bestehende Bericht über `ImageRenderer`; CSV über den `Exporter`.
+- **Grenze:** Gegen Änderungen durch den Nutzer selbst schützt das nicht; Ziel ist Nachvollziehbarkeit gegenüber Prüforganen.
 
 ## Sicherheit, Verteilung und Updates
 
