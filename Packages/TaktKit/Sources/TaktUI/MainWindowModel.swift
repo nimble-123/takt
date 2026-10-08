@@ -23,9 +23,11 @@ public final class MainWindowModel {
     search: SearchIndex? = nil,
     rules: RulesModel? = nil,
     database: AppDatabase? = nil,
+    actions: TimerActions? = nil,
     clock: any TaktClock,
     calendar: Calendar = .current,
   ) {
+    self.actions = actions ?? TimerActions(engine: engine, catalog: catalog, rules: rules, workItems: workItems)
     self.engine = engine
     self.queries = queries
     self.catalog = catalog
@@ -99,6 +101,8 @@ public final class MainWindowModel {
   public let workItems: (any WorkItemSource)?
   /// Rules for new and newly linked entries (ST-05, DO-14).
   public let rules: RulesModel?
+  /// Start and stop, shared with the menu bar; books after stopping (DO-21).
+  @ObservationIgnored public let actions: TimerActions
   /// Full-text search (HW-06); `nil` hides the search field.
   public let search: SearchIndex?
   public private(set) var searchResults = SearchResults()
@@ -187,13 +191,18 @@ public final class MainWindowModel {
   }
 
   public func reload() async {
+    // Reloads overlap when the day or section changes; a result for a range no longer shown is
+    // dropped, the reload for the new range sets the data.
+    let range = shownRange
     do {
-      data = try await queries.timeline(in: shownRange, now: clock.now())
-      if data.entries.contains(where: { $0.entry.workItemLinkID != nil }) {
-        workItemLinks = try await queries.workItemLinks()
-      }
+      let loaded = try await queries.timeline(in: range, now: clock.now())
+      let links = loaded.entries.contains { $0.entry.workItemLinkID != nil } ? try await queries.workItemLinks() : nil
+      guard range == shownRange else { return }
+      data = loaded
+      if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
     } catch {
+      guard range == shownRange else { return }
       show(error)
     }
   }
@@ -216,7 +225,8 @@ public final class MainWindowModel {
   }
 
   public func step(by days: Int) {
-    let unit = section == .today ? days : days * 7
+    // A day for the screens that show one day, otherwise a week.
+    let unit = shownRange == dayRange ? days : days * 7
     if let date = calendar.date(byAdding: .day, value: unit, to: day.date) {
       day = Timestamp(date)
     }
@@ -262,16 +272,14 @@ public final class MainWindowModel {
   /// `tags` come from typed tokens (MB-09) and are merged with tags from rules.
   public func startTimer(_ draft: EntryDraft, tags typed: [String] = []) async {
     let mode: TimerEngine.StartMode = settings?.startMode ?? .switchTo
-    let workItem = await linkedWorkItem(of: draft)
-    let (ruled, ruleTags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
-    let tags = StartTokens.merged(typed, ruleTags)
-    var started: EntryID?
-    await command(String(localized: "Start Timer", bundle: .module)) { engine in
-      let result = try await engine.start(ruled, mode: mode)
-      started = result.value
-      return result.undo
+    await command(String(localized: "Start Timer", bundle: .module)) { [actions] _ in
+      try await actions.start(draft, mode: mode, tags: typed)
     }
-    if let started, !tags.isEmpty { await catalog.setTags(named: tags, on: [started]) }
+  }
+
+  /// A timer for a work item, in its taken-over project (DO-10).
+  public func startTimer(for item: WorkItemLink) async {
+    await startTimer(actions.draft(for: item))
   }
 
   /// Pauses what runs, or resumes what "Pause all" paused (MB-06).
@@ -285,12 +293,8 @@ public final class MainWindowModel {
   }
 
   public func stopAll() async {
-    await command(String(localized: "Stop All", bundle: .module)) { engine in
-      var undos = [TimerUndo]()
-      for active in try await engine.snapshot().entries {
-        undos.append(try await engine.stop(active.id))
-      }
-      return TimerUndo(combining: undos)
+    await command(String(localized: "Stop All", bundle: .module)) { [actions] _ in
+      try await actions.stopAll()
     }
   }
 
@@ -408,13 +412,6 @@ public final class MainWindowModel {
   @ObservationIgnored private var searchTask: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
-
-  /// Starts a timer in the configured start mode; undoable in this window.
-  /// The cached work item of a draft, for the rules.
-  private func linkedWorkItem(of draft: EntryDraft) async -> WorkItemLink? {
-    guard let id = draft.workItemLinkID, let workItems else { return nil }
-    return try? await workItems.link(id)
-  }
 
   private func command(_ name: String, _ body: (TimerEngine) async throws -> TimerUndo) async {
     do {

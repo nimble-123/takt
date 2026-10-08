@@ -179,31 +179,28 @@ private struct RuleEditor: View {
     Form {
       TextField(String(localized: "Name", bundle: .module), text: $rule.name)
       Section(String(localized: "If", bundle: .module)) {
-        ForEach(rule.conditions.indices, id: \.self) { index in
+        // Rows are identified, not indexed: removing one never leaves a binding on a stale index.
+        ForEach($conditions) { $condition in
           HStack {
-            Picker("", selection: kindBinding(index)) {
+            Picker("", selection: $condition.kind) {
               ForEach(Rule.Condition.Kind.allCases) { Text($0.title).tag($0) }
             }
             .labelsHidden()
             .fixedSize()
-            TextField(
-              "",
-              text: valueBinding(index),
-              prompt: Text(verbatim: prompt(for: rule.conditions[index].kind)),
-            )
-            .labelsHidden()
+            TextField("", text: $condition.value, prompt: Text(verbatim: prompt(for: condition.kind)))
+              .labelsHidden()
             Button {
-              rule.conditions.remove(at: index)
+              conditions.removeAll { $0.id == condition.id }
             } label: {
               Image(systemName: "minus.circle")
             }
             .buttonStyle(.borderless)
-            .disabled(rule.conditions.count == 1)
+            .disabled(conditions.count == 1)
             .accessibilityLabel(Text("Remove condition", bundle: .module))
           }
         }
         Button(String(localized: "Add Condition", bundle: .module)) {
-          rule.conditions.append(.titleContains(""))
+          conditions.append(EditableCondition(kind: .titleContains, value: ""))
         }
       }
       Section(String(localized: "Then", bundle: .module)) {
@@ -227,23 +224,35 @@ private struct RuleEditor: View {
           .keyboardShortcut(.cancelAction)
         Button(String(localized: "Save", bundle: .module)) {
           rule.tags = tags.split(separator: ",").map { String($0).trimmed }.filter { !$0.isEmpty }
-          rule.conditions = rule.conditions.filter { !$0.value.trimmed.isEmpty }
+          rule.conditions = conditions.filter { !$0.value.trimmed.isEmpty }
+            .map { Rule.Condition(kind: $0.kind, value: $0.value) }
           onSave(rule)
           dismiss()
         }
         .keyboardShortcut(.defaultAction)
-        .disabled(rule.conditions.allSatisfy { $0.value.trimmed.isEmpty })
+        .disabled(conditions.allSatisfy { $0.value.trimmed.isEmpty })
       }
     }
     .formStyle(.grouped)
     .frame(width: 520)
     .padding(8)
-    .onAppear { tags = rule.tags.joined(separator: ", ") }
+    .onAppear {
+      tags = rule.tags.joined(separator: ", ")
+      conditions = rule.conditions.map { EditableCondition(kind: $0.kind, value: $0.value) }
+    }
   }
 
   // MARK: Private
 
+  /// A condition while it is edited, with a stable identity for `ForEach`.
+  private struct EditableCondition: Identifiable {
+    let id = UUID()
+    var kind: Rule.Condition.Kind
+    var value: String
+  }
+
   @State private var tags = ""
+  @State private var conditions = [EditableCondition]()
   @Environment(\.dismiss) private var dismiss
 
   private func prompt(for kind: Rule.Condition.Kind) -> String {
@@ -252,18 +261,6 @@ private struct RuleEditor: View {
     case .adoProject: "Kundenportal"
     case .titleContains: "Daily"
     case .workItemTag: "Kunde"
-    }
-  }
-
-  private func kindBinding(_ index: Int) -> Binding<Rule.Condition.Kind> {
-    Binding(get: { rule.conditions[index].kind }) { kind in
-      rule.conditions[index] = Rule.Condition(kind: kind, value: rule.conditions[index].value)
-    }
-  }
-
-  private func valueBinding(_ index: Int) -> Binding<String> {
-    Binding(get: { rule.conditions[index].value }) { value in
-      rule.conditions[index] = Rule.Condition(kind: rule.conditions[index].kind, value: value)
     }
   }
 }

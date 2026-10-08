@@ -221,19 +221,22 @@ struct DayScreen: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 24) {
-        KPI(
-          title: String(localized: "Tracked", bundle: .module),
-          value: DurationText.hoursMinutes(model.dayTotal),
-        )
-        KPI(
-          title: String(localized: "Pauses", bundle: .module),
-          value: DurationText.hoursMinutes(model.dayPauses),
-        )
-        KPI(title: String(localized: "Entries", bundle: .module), value: "\(model.data.entries.count)")
-        Spacer()
+      // Re-rendered every minute, so the totals keep counting while a timer runs.
+      TimelineView(.everyMinute) { _ in
+        HStack(spacing: 24) {
+          KPI(
+            title: String(localized: "Tracked", bundle: .module),
+            value: DurationText.hoursMinutes(model.dayTotal),
+          )
+          KPI(
+            title: String(localized: "Pauses", bundle: .module),
+            value: DurationText.hoursMinutes(model.dayPauses),
+          )
+          KPI(title: String(localized: "Entries", bundle: .module), value: "\(model.data.entries.count)")
+          Spacer()
+        }
+        .padding(16)
       }
-      .padding(16)
       Divider()
       ScrollViewReader { proxy in
         ScrollView {
@@ -295,10 +298,13 @@ struct WeekScreen: View {
             Text(day.lowerBound.date, format: .dateTime.weekday(.abbreviated).day())
               .font(.system(size: 12, weight: day.contains(model.now) ? .bold : .regular))
               .foregroundStyle(day.contains(model.now) ? Palette.accentText : Palette.textPrimary)
-            Text(DurationText.hoursMinutes(model.total(in: day)))
-              .font(.system(size: 11))
-              .monospacedDigit()
-              .foregroundStyle(Palette.textSecondary)
+            // Re-rendered every minute, so the totals keep counting while a timer runs.
+            TimelineView(.everyMinute) { _ in
+              Text(DurationText.hoursMinutes(model.total(in: day)))
+                .font(.system(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(Palette.textSecondary)
+            }
           }
           .frame(maxWidth: .infinity)
           .contentShape(Rectangle())
@@ -411,8 +417,11 @@ struct EntryListScreen: View {
       }
       .width(min: 90, ideal: 110)
       TableColumn(String(localized: "Duration", bundle: .module)) { entry in
-        Text(DurationText.hoursMinutes(entry.duration(at: model.now)))
-          .monospacedDigit()
+        // Re-rendered every minute, so a running entry keeps counting.
+        TimelineView(.everyMinute) { _ in
+          Text(DurationText.hoursMinutes(entry.duration(at: model.now)))
+            .monospacedDigit()
+        }
       }
       .width(min: 60, ideal: 70)
       TableColumn(String(localized: "Counting", bundle: .module)) { entry in
@@ -461,12 +470,13 @@ private struct InlineTitle: View {
   let entry: TimeEntry
 
   var body: some View {
-    TextField("", text: $title)
+    TextField(String(localized: "Title", bundle: .module), text: $title)
+      .labelsHidden()
       .textFieldStyle(.plain)
       .onAppear { title = entry.title }
       .onChange(of: entry.title) { title = entry.title }
-      .onSubmit {
-        guard let new = title.nilIfBlank, new != entry.title else { return }
+      .commitsOnBlur(title) { value in
+        guard let new = value.nilIfBlank, new != entry.title else { return }
         Task {
           await model.update([entry.id], name: String(localized: "Rename", bundle: .module)) {
             $0.title = new

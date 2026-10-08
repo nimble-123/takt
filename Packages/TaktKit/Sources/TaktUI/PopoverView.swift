@@ -58,7 +58,9 @@ public struct PopoverView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
       if let toast = model.toast {
+        // A new toast starts with an empty note, so a note is never saved on the wrong entry.
         StopToast(model: model, toast: toast)
+          .id(toast.id)
           .padding([.horizontal, .bottom], 12)
           .transition(.move(edge: .bottom).combined(with: .opacity))
       }
@@ -71,8 +73,10 @@ public struct PopoverView: View {
     }
     .background {
       // ⌘Z reverts the last action, also without the toast.
+      // Disabled while text is typed, so ⌘Z undoes typing in the search and note fields.
       Button("") { Task { await model.undo() } }
         .keyboardShortcut("z", modifiers: .command)
+        .disabled(!model.canUndo || !model.query.isEmpty || model.isHoldingToast)
         .hidden()
     }
   }

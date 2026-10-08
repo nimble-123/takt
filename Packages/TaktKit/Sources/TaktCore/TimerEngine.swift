@@ -124,6 +124,18 @@ public actor TimerEngine {
     }.undo
   }
 
+  /// Stops every running and paused entry in one transaction. Returns their IDs.
+  @discardableResult
+  public func stopAll() async throws -> CommandResult<[EntryID]> {
+    let now = clock.now()
+    return try await perform { snapshot in
+      TimerUpdate(
+        changes: Self.closeChanges(snapshot.entries, state: .stopped, at: now, updatedAt: now),
+        result: snapshot.entries.map(\.id),
+      )
+    }
+  }
+
   /// Pauses all running entries and remembers them. Returns `nil` if nothing was running.
   /// While a global pause is open, further entries are added to it.
   @discardableResult
