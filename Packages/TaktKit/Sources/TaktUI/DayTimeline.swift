@@ -145,7 +145,13 @@ struct DayTimeline: View {
                 .clipShape(RoundedRectangle(cornerRadius: 4))
                 .frame(width: frame.width, height: frame.height)
                 .offset(x: frame.minX, y: frame.minY)
-                .onTapGesture { model.selection = [item.entryID] }
+                .onTapGesture {
+                    if Self.isDoubleClick {
+                        model.openInspector(for: item.entryID)
+                    } else {
+                        model.selection = [item.entryID]
+                    }
+                }
                 .accessibilityLabel(Text("Pause", bundle: .module))
         case .segment(let segment):
             let running = segment.isOpen
@@ -173,12 +179,17 @@ struct DayTimeline: View {
     }
 
     private func select(_ id: EntryID) {
-        if NSEvent.modifierFlags.contains(.command) {
+        if Self.isDoubleClick {
+            model.openInspector(for: id)
+        } else if NSEvent.modifierFlags.contains(.command) {
             model.selection.formSymmetricDifference([id])
         } else {
             model.selection = [id]
         }
     }
+
+    /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
+    private static var isDoubleClick: Bool { NSApp.currentEvent?.clickCount == 2 }
 
     private func isDragging(_ segment: Segment) -> Bool {
         switch drag {

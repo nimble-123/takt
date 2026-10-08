@@ -39,6 +39,8 @@ struct DayCloseScreen: View {
                         } rows: {
                             ForEach(group.lines) { line in
                                 BookingRow(line: line, outcome: outcomes[line.id])
+                                    .contentShape(Rectangle())
+                                    .onTapGesture(count: 2) { model.openInspector(for: line.entryID) }
                                 Divider()
                             }
                         }
@@ -64,6 +66,8 @@ struct DayCloseScreen: View {
                                 }
                                 .foregroundStyle(Palette.warning)
                                 .padding(.vertical, 6)
+                                .contentShape(Rectangle())
+                                .onTapGesture(count: 2) { model.openInspector(for: entry.id) }
                                 Divider()
                             }
                         }

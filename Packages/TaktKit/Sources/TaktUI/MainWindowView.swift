@@ -6,7 +6,6 @@ import TaktStore
 public struct MainWindowView: View {
     @Bindable var model: MainWindowModel
     @Environment(\.undoManager) private var undoManager
-    @State private var showInspector = true
     @State private var palette: CommandPaletteModel
 
     public init(model: MainWindowModel) {
@@ -94,10 +93,11 @@ public struct MainWindowView: View {
             }
             ToolbarItem {
                 Button {
-                    showInspector.toggle()
+                    model.isInspectorShown.toggle()
                 } label: {
                     Label(String(localized: "Inspector", bundle: .module), systemImage: "sidebar.trailing")
                 }
+                .keyboardShortcut("i", modifiers: [.command, .option])
             }
         }
         .onDeleteCommand {
@@ -125,12 +125,8 @@ public struct MainWindowView: View {
         }
     }
 
-    /// The inspector edits entries; only the timeline, week and list screens show it, not search results.
     private var inspectorBinding: Binding<Bool> {
-        Binding(
-            get: { showInspector && model.searchText.isEmpty && [.today, .week, .entries].contains(model.section) },
-            set: { showInspector = $0 }
-        )
+        Binding(get: { model.showsInspector }, set: { model.isInspectorShown = $0 })
     }
 
     private var sectionBinding: Binding<MainWindowModel.Section?> {
@@ -388,6 +384,13 @@ struct EntryListScreen: View {
         .contextMenu(forSelectionType: EntryID.self) { ids in
             Button(String(localized: "Delete", bundle: .module), role: .destructive) {
                 Task { await model.delete(ids) }
+            }
+        } primaryAction: { ids in
+            // Double-click or ↩ opens the inspector (#79).
+            if ids.count == 1, let id = ids.first {
+                model.openInspector(for: id)
+            } else {
+                model.isInspectorShown = true
             }
         }
     }

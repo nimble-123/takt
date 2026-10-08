@@ -57,6 +57,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 - Das Suchfeld im Popover hat beim Öffnen immer den Fokus. Enter startet, ⌥↩ startet parallel.
 - Undo statt Rückfrage: Stoppen, Löschen, Verschieben sind sofort und per ⌘Z rückgängig zu machen.
 - Pausen und Inaktivität werden schraffiert dargestellt, nie als leere Lücke.
+- Doppelklick auf einen Eintrag (Heute, Tagesabschluss, Woche, Einträge) wählt ihn aus und öffnet den Inspektor; Einfachklick wählt nur aus. Inspektor ein- und ausblenden mit ⌥⌘I.
 - Fehlende Zuordnung (kein Work Item) ist Amber, nicht Rot.
 - Eine Hauptaktion pro Ansicht; Primärbutton immer `accent`.
 - Touch-Ziele mindestens 28 pt in der Menüleiste, 32 pt im Hauptfenster; alle Icon-Buttons mit Accessibility-Label.
