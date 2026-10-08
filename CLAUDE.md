@@ -52,6 +52,20 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 - Branches: `feat/<issue>-<kurzname>`, `fix/<issue>-<kurzname>`. Kleine PRs, ein Thema pro PR.
 - Versionen und `CHANGELOG.md` pflegt release-please. Nie von Hand ändern.
 
+## Skills für die Entwicklung
+
+Beim Schreiben, Ändern und Reviewen von Swift-Code diese Skills verwenden:
+
+| Skill | Wofür | Installation |
+| --- | --- | --- |
+| `swift` | Airbnb Swift Style Guide: Regeln, die SwiftFormat/SwiftLint nicht automatisch korrigieren | `~/.claude/skills/swift/` aus https://swift.airbnb.tech/SKILL.md; ins Repo kommt er mit #97 |
+| `write-swift` | Modernes Swift: Werttypen, Swift-6-Concurrency, Generics, API-Design, Performance, Swift Testing | `npx skills add emilkowalski/skills --skill write-swift` |
+| `swift-architecture-skill` | Architektur von Features und Modulen planen und reviewen | `npx skills add efremidze/swift-architecture-skill` |
+
+Vorrang: Die Architekturregeln oben und die übrigen Konventionen dieser Datei gehen den Skills vor. Insbesondere:
+- Die Schichtung (App → TaktUI → Dienste → TaktStore → TaktCore) bleibt; die Architektur-Skill dient nur zur Einordnung, nicht zur Einführung von TCA, VIPER o. Ä.
+- Tests bleiben bis zur Entscheidung in #97 in lowerCamelCase benannt.
+
 ## Vor jedem PR
 
 1. `swift test --package-path Packages/TaktKit`
