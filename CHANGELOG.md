@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/nimble-123/takt/compare/v0.3.0...v0.4.0) (2026-10-08)
+
+
+### Neue Funktionen
+
+* **ui:** open the inspector by double-clicking an entry (HW-02) ([#84](https://github.com/nimble-123/takt/issues/84)) ([f88be6c](https://github.com/nimble-123/takt/commit/f88be6cdb0d727922c29fb9b60db1eb669af1fa7))
+
+
+### Fehlerbehebungen
+
+* **ado:** verify tokens with the preview version of connectionData (DO-01) ([#82](https://github.com/nimble-123/takt/issues/82)) ([de92a06](https://github.com/nimble-123/takt/commit/de92a06a14bdc66170a657655dd98354fcd7f7dc))
+* **ui:** keep day close rows at full height (UC-07) ([#80](https://github.com/nimble-123/takt/issues/80)) ([d0cbbfe](https://github.com/nimble-123/takt/commit/d0cbbfeb7153e313df1caae8382b8aa15ec8ad58))
+
 ## [0.3.0](https://github.com/nimble-123/takt/compare/v0.2.0...v0.3.0) (2026-10-07)
 
 
