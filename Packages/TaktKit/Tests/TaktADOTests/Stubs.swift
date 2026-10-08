@@ -36,7 +36,8 @@ final class Stub: Sendable {
 
   /// The handler set by the last `respond`, so a test can wrap it.
   var currentHandler: Handler {
-    handler.withLock { $0 } ?? { _ in Response(status: 500, body: Data()) }
+    let fallback: Handler = { _ in Response(status: 500, body: Data()) }
+    return handler.withLock { $0 } ?? fallback
   }
 
   /// A recorded response from `Fixtures/`.
