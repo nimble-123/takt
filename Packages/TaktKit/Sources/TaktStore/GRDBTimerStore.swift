@@ -23,7 +23,12 @@ public struct GRDBTimerStore: TimerStore {
     try await database.writer.write { db in
       let update = try body(try Self.snapshot(db))
       for change in update.changes {
-        try Self.apply(change, db)
+        do {
+          try Self.apply(change, db)
+        } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_CHECK {
+          // Same error as `InMemoryTimerStore`, not a raw database error.
+          throw TimerStoreError.invalidValue
+        }
       }
       // Writes are serialised, so the sequence follows the order of the commits.
       let sequence = writes.next()
