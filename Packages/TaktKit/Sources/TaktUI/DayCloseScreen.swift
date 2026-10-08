@@ -20,47 +20,57 @@ struct DayCloseScreen: View {
             header
                 .padding(16)
             Divider()
-            List {
-                if lines.isEmpty, !loadFailed {
-                    Text("No entries with a work item on this day.", bundle: .module)
-                        .foregroundStyle(Palette.textSecondary)
-                }
-                ForEach(groups, id: \.workItem.id) { group in
-                    Section {
-                        ForEach(group.lines) { line in
-                            BookingRow(line: line, outcome: outcomes[line.id])
-                        }
-                    } header: {
-                        HStack(spacing: 6) {
-                            TypeBadge(type: group.workItem.cachedType)
-                            Text(verbatim: "#\(group.workItem.workItemID)").monospacedDigit()
-                            Text(group.workItem.cachedTitle ?? "").lineLimit(1)
-                        }
+            // A plain stack instead of `List`: on macOS the table does not re-measure rows that arrive after
+            // the first layout pass, so the two-line booking rows were clipped and overlapped (#78).
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    if lines.isEmpty, !loadFailed {
+                        Text("No entries with a work item on this day.", bundle: .module)
+                            .foregroundStyle(Palette.textSecondary)
                     }
-                }
-                if !unlinked.isEmpty {
-                    Section {
-                        ForEach(unlinked) { entry in
-                            HStack {
-                                Text(entry.entry.title).lineLimit(1)
-                                Spacer()
-                                Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
-                                Button(String(localized: "Link …", bundle: .module)) {
-                                    model.selection = [entry.id]
-                                    model.section = .today
-                                }
-                                .controlSize(.small)
+                    ForEach(groups, id: \.workItem.id) { group in
+                        ReviewSection {
+                            HStack(spacing: 6) {
+                                TypeBadge(type: group.workItem.cachedType)
+                                Text(verbatim: "#\(group.workItem.workItemID)").monospacedDigit()
+                                Text(group.workItem.cachedTitle ?? "").lineLimit(1)
                             }
-                            .foregroundStyle(Palette.warning)
+                            .foregroundStyle(Palette.textSecondary)
+                        } rows: {
+                            ForEach(group.lines) { line in
+                                BookingRow(line: line, outcome: outcomes[line.id])
+                                Divider()
+                            }
                         }
-                    } header: {
-                        Label(
-                            String(localized: "Without work item", bundle: .module),
-                            systemImage: "exclamationmark.circle"
-                        )
-                        .foregroundStyle(Palette.warning)
+                    }
+                    if !unlinked.isEmpty {
+                        ReviewSection {
+                            Label(
+                                String(localized: "Without work item", bundle: .module),
+                                systemImage: "exclamationmark.circle"
+                            )
+                            .foregroundStyle(Palette.warning)
+                        } rows: {
+                            ForEach(unlinked) { entry in
+                                HStack {
+                                    Text(entry.entry.title).lineLimit(1)
+                                    Spacer()
+                                    Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
+                                    Button(String(localized: "Link …", bundle: .module)) {
+                                        model.selection = [entry.id]
+                                        model.section = .today
+                                    }
+                                    .controlSize(.small)
+                                }
+                                .foregroundStyle(Palette.warning)
+                                .padding(.vertical, 6)
+                                Divider()
+                            }
+                        }
                     }
                 }
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .task(id: model.dayRange.lowerBound) { await reload() }
@@ -146,6 +156,22 @@ struct DayCloseScreen: View {
     }
 }
 
+/// A section header with a divider above its rows, styled like a list section.
+private struct ReviewSection<Header: View, Rows: View>: View {
+    @ViewBuilder let header: Header
+    @ViewBuilder let rows: Rows
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+                .font(.system(size: 11, weight: .semibold))
+                .padding(.bottom, 6)
+            Divider()
+            rows
+        }
+    }
+}
+
 private struct BookingRow: View {
     let line: BookingLine
     let outcome: BookingService.Outcome?
@@ -171,7 +197,7 @@ private struct BookingRow: View {
             status
                 .frame(width: 20)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder
