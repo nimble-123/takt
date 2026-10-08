@@ -137,9 +137,10 @@ private struct ProjectRow: View {
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
           .textFieldStyle(.plain)
-          .onSubmit {
+          .commitsOnBlur(name) { value in
+            guard let new = value.nilIfBlank, new != project.name else { return }
             var edited = project
-            edited.name = name
+            edited.name = new
             Task { await catalog.save(edited) }
           }
           .foregroundStyle(project.archived ? Palette.textSecondary : Palette.textPrimary)
@@ -182,9 +183,10 @@ private struct TaskRow: View {
         .multilineTextAlignment(.leading)
         .frame(maxWidth: .infinity, alignment: .leading)
         .textFieldStyle(.plain)
-        .onSubmit {
+        .commitsOnBlur(name) { value in
+          guard let new = value.nilIfBlank, new != task.name else { return }
           var edited = task
-          edited.name = name
+          edited.name = new
           Task { await catalog.save(edited) }
         }
         .foregroundStyle(task.archived ? Palette.textSecondary : Palette.textPrimary)
@@ -195,6 +197,8 @@ private struct TaskRow: View {
       }
     }
     .onAppear { name = task.name }
+    // Undo, an import or Azure DevOps may rename the task meanwhile.
+    .onChange(of: task.name) { name = task.name }
   }
 
   // MARK: Private
@@ -225,9 +229,10 @@ private struct CategoryRow: View {
         .multilineTextAlignment(.leading)
         .frame(maxWidth: .infinity, alignment: .leading)
         .textFieldStyle(.plain)
-        .onSubmit {
+        .commitsOnBlur(name) { value in
+          guard let new = value.nilIfBlank, new != category.name else { return }
           var edited = category
-          edited.name = name
+          edited.name = new
           Task { await catalog.save(edited) }
         }
         .foregroundStyle(category.archived ? Palette.textSecondary : Palette.textPrimary)

@@ -55,7 +55,10 @@ struct DayCloseScreen: View {
                 HStack {
                   Text(entry.entry.title).lineLimit(1)
                   Spacer()
-                  Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
+                  // Re-rendered every minute, so a running entry keeps counting.
+                  TimelineView(.everyMinute) { _ in
+                    Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
+                  }
                   Button(String(localized: "Link …", bundle: .module)) {
                     model.selection = [entry.id]
                     model.section = .today
