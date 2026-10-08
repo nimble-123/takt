@@ -287,6 +287,108 @@ struct BookingTests {
     #expect(try await records.records(onDay: "2026-10-07").first?.field == TimeField.history)
   }
 
+  @Test
+  func queueDoesNotResendABookingThatIsStillBeingSent() async throws {
+    let link = try await workItem()
+    _ = try await entry(link)
+    let line = try #require(try await lines(link).first)
+    let (reachedNetwork, signal) = AsyncStream.makeStream(of: Void.self)
+    let release = DispatchSemaphore(value: 0)
+    let reads = Mutex(0)
+    respondNormally()
+    let normal = stub.currentHandler
+    stub.respond { request in
+      if request.url?.path().hasSuffix("/updates") == true {
+        return Stub.Response(status: 200, body: Data(#"{"count":0,"value":[]}"#.utf8))
+      }
+      // The first read of the work item belongs to `book`: hold it until the queue has run.
+      if
+        request.httpMethod == "GET", request.url?.path() == "/contoso/_apis/wit/workitems/1234",
+        reads.withLock({ count in
+          count += 1
+          return count
+        }) == 1
+      {
+        signal.yield()
+        _ = release.wait(timeout: .now() + 5)
+      }
+      return try normal(request)
+    }
+
+    let booking = Task { await service.book(line) }
+    var iterator = reachedNetwork.makeAsyncIterator()
+    _ = await iterator.next()
+    await service.processPending(force: true)
+    release.signal()
+
+    #expect(await booking.value == .booked)
+    #expect(stub.requests.count(where: { $0.httpMethod == "PATCH" }) == 1)
+  }
+
+  @Test
+  func staleLineIsNotBookedAgain() async throws {
+    respondNormally()
+    let link = try await workItem()
+    _ = try await entry(link)
+    let line = try #require(try await lines(link).first)
+
+    #expect(await service.book(line) == .booked)
+    // The same line, read before the first booking finished, must not book the time twice.
+    #expect(await service.book(line) == .nothingToDo)
+    #expect(stub.requests.count(where: { $0.httpMethod == "PATCH" }) == 1)
+  }
+
+  @Test
+  func deletedWorkItemFailsTheQueuedBooking() async throws {
+    let link = try await workItem()
+    let id = try await entry(link)
+    let record = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 1800,
+      createdAt: clock.now(),
+    )
+    try await records.insert(record)
+    stub.respond { _ in Stub.Response(status: 404, body: Data()) }
+
+    #expect(await service.processPending() == 0)
+    let failed = try #require(try await records.record(record.id))
+    #expect(failed.status == .failed && failed.error == BookingFailure.workItemGone.rawValue)
+  }
+
+  @Test
+  func queueCountsEveryBookingLeftWhenOffline() async throws {
+    let link = try await workItem()
+    let id = try await entry(link)
+    for _ in 0..<2 {
+      try await records.insert(
+        SyncRecord(
+          entryID: id,
+          workItemLinkID: link.id,
+          localDay: "2026-10-07",
+          field: TimeField.completedWork,
+          deltaSeconds: 900,
+          createdAt: clock.now(),
+        )
+      )
+    }
+    stub.respond { _ in throw URLError(.notConnectedToInternet) }
+
+    #expect(await service.processPending() == 2)
+  }
+
+  @Test
+  func signInPageCountsAsRejectedToken() async throws {
+    let link = try await workItem()
+    _ = try await entry(link)
+    // Azure DevOps answers an invalid token with a 203 HTML sign-in page in some setups.
+    stub.respond { _ in Stub.Response(status: 203, body: Data("<html>Sign in</html>".utf8)) }
+
+    #expect(await service.book(try #require(try await lines(link).first)) == .failed(.unauthorized))
+  }
+
   // MARK: Private
 
   private let stub = Stub()

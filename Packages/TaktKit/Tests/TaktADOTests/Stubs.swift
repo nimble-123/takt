@@ -34,6 +34,11 @@ final class Stub: Sendable {
     return URLSession(configuration: configuration)
   }
 
+  /// The handler set by the last `respond`, so a test can wrap it.
+  var currentHandler: Handler {
+    handler.withLock { $0 } ?? { _ in Response(status: 500, body: Data()) }
+  }
+
   /// A recorded response from `Fixtures/`.
   static func fixture(_ name: String) -> Data {
     guard
