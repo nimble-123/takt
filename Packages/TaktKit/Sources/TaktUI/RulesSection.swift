@@ -168,9 +168,15 @@ extension Rule.Condition {
 /// Edits one rule in a sheet.
 private struct RuleEditor: View {
 
-  // MARK: Internal
+  // MARK: Lifecycle
 
-  @State var rule: Rule
+  init(rule: Rule, catalog: CatalogModel, onSave: @escaping (Rule) -> Void) {
+    _rule = State(initialValue: rule)
+    self.catalog = catalog
+    self.onSave = onSave
+  }
+
+  // MARK: Internal
 
   let catalog: CatalogModel
   let onSave: (Rule) -> Void
@@ -227,7 +233,7 @@ private struct RuleEditor: View {
         Button(String(localized: "Cancel", bundle: .module), role: .cancel) { dismiss() }
           .keyboardShortcut(.cancelAction)
         Button(String(localized: "Save", bundle: .module)) {
-          rule.tags = tags.split(separator: ",").map { String($0).trimmed }.filter { !$0.isEmpty }
+          rule.tags = Tag.names(fromCommaSeparated: tags)
           rule.conditions = conditions.filter { !$0.value.trimmed.isEmpty }
             .map { Rule.Condition(kind: $0.kind, value: $0.value) }
           onSave(rule)
@@ -255,6 +261,7 @@ private struct RuleEditor: View {
     var value: String
   }
 
+  @State private var rule: Rule
   @State private var tags = ""
   @State private var conditions = [EditableCondition]()
   @Environment(\.dismiss) private var dismiss

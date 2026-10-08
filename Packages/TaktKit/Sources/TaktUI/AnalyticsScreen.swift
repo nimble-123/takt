@@ -127,12 +127,12 @@ struct AnalyticsScreen: View {
     switch model.period {
     case .day: return range.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide))
     case .month: return range.lowerBound.date.formatted(.dateTime.month(.wide).year())
-    default: return "\(range.lowerBound.date.formatted(style)) – \(last.formatted(style))"
+    case .week, .custom: return "\(range.lowerBound.date.formatted(style)) – \(last.formatted(style))"
     }
   }
 
   private func export(_ format: AnalyticsModel.ExportFormat) {
-    saveExport(model, format)
+    Self.saveExport(model, format)
   }
 }
 
@@ -230,22 +230,6 @@ private struct KPIRow: View {
   }
 }
 
-// MARK: Charts (AN-03)
-
-/// The six largest groups by name; the rest is summed up as "Other".
-@MainActor
-private func topGroups(_ report: Report, _: AnalyticsModel) -> [GroupKey] {
-  Array(report.groups.prefix(6).map(\.key))
-}
-
-@MainActor
-private func color(_ key: GroupKey, index: Int, _ model: AnalyticsModel) -> Color {
-  if let hex = model.colorHex(key) { return CategoryColors.color(hex) }
-  if key == .none { return Palette.separator }
-  let swatches = CategoryColors.swatches
-  return CategoryColors.color(swatches[index % swatches.count].hex)
-}
-
 // MARK: - DayBars
 
 private struct DayBars: View {
@@ -253,7 +237,7 @@ private struct DayBars: View {
   let report: Report
 
   var body: some View {
-    let top = topGroups(report, model)
+    let top = AnalyticsScreen.topGroups(report)
     let other = String(localized: "Other", bundle: .module)
     VStack(alignment: .leading, spacing: 8) {
       SectionTitle(text: String(localized: "Per day", bundle: .module))
@@ -280,7 +264,7 @@ private struct DayBars: View {
       }
       .chartForegroundStyleScale(
         domain: top.map(model.label) + [other],
-        range: top.enumerated().map { color($1, index: $0, model) } + [Palette.separator],
+        range: top.enumerated().map { AnalyticsScreen.color($1, index: $0, model) } + [Palette.separator],
       )
       .chartXScale(domain: report.range.lowerBound.date...report.range.upperBound.date)
       .chartYAxisLabel(String(localized: "Hours", bundle: .module))
@@ -300,7 +284,7 @@ private struct Distribution: View {
       SectionTitle(text: model.grouping.title)
       Chart(Array(report.groups.prefix(8).enumerated()), id: \.element.key) { index, group in
         SectorMark(angle: .value("Hours", group.seconds), innerRadius: .ratio(0.6), angularInset: 1)
-          .foregroundStyle(color(group.key, index: index, model))
+          .foregroundStyle(AnalyticsScreen.color(group.key, index: index, model))
           .opacity(model.drilldown == nil || model.drilldown == group.key ? 1 : 0.35)
       }
       .frame(height: 140)
@@ -310,7 +294,7 @@ private struct Distribution: View {
             model.drilldown = model.drilldown == group.key ? nil : group.key
           } label: {
             HStack(spacing: 6) {
-              Circle().fill(color(group.key, index: index, model)).frame(width: 8, height: 8)
+              Circle().fill(AnalyticsScreen.color(group.key, index: index, model)).frame(width: 8, height: 8)
               Text(model.label(group.key)).lineLimit(1)
               Spacer()
               Text(DurationText.hoursMinutes(group.seconds))
@@ -441,22 +425,43 @@ private struct Heatmap: View {
 
 }
 
-/// Asks where to save and writes the export of the shown period (AN-06).
+// MARK: - AnalyticsScreen + Export and charts
+
 @MainActor
-func saveExport(_ model: AnalyticsModel, _ format: AnalyticsModel.ExportFormat) {
-  let panel = NSSavePanel()
-  let type: UTType =
-    switch format {
-    case .csv: .commaSeparatedText
-    case .json: .json
-    case .pdf: .pdf
+extension AnalyticsScreen {
+
+  // MARK: Internal
+
+  /// Asks where to save and writes the export of the shown period (AN-06).
+  static func saveExport(_ model: AnalyticsModel, _ format: AnalyticsModel.ExportFormat) {
+    let panel = NSSavePanel()
+    let type: UTType =
+      switch format {
+      case .csv: .commaSeparatedText
+      case .json: .json
+      case .pdf: .pdf
+      }
+    panel.allowedContentTypes = [type]
+    panel.nameFieldStringValue = model.exportFileName
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    do {
+      try model.export(format).write(to: url, options: .atomic)
+    } catch {
+      NSAlert(error: error).runModal()
     }
-  panel.allowedContentTypes = [type]
-  panel.nameFieldStringValue = model.exportFileName
-  guard panel.runModal() == .OK, let url = panel.url else { return }
-  do {
-    try model.export(format).write(to: url, options: .atomic)
-  } catch {
-    NSAlert(error: error).runModal()
+  }
+
+  // MARK: Fileprivate
+
+  /// Charts (AN-03): the six largest groups by name; the rest is summed up as "Other".
+  fileprivate static func topGroups(_ report: Report) -> [GroupKey] {
+    Array(report.groups.prefix(6).map(\.key))
+  }
+
+  fileprivate static func color(_ key: GroupKey, index: Int, _ model: AnalyticsModel) -> Color {
+    if let hex = model.colorHex(key) { return CategoryColors.color(hex) }
+    if key == .none { return Palette.separator }
+    let swatches = CategoryColors.swatches
+    return CategoryColors.color(swatches[index % swatches.count].hex)
   }
 }
