@@ -181,19 +181,28 @@ public actor BookingService {
 
   public func book(_ line: BookingLine) async -> Outcome {
     guard line.inFlight == 0, line.difference != 0 else { return .nothingToDo }
+    // Reserved synchronously, before the first suspension: a second call for the same line waits
+    // for nothing and books nothing (the actor is reentrant at every `await`).
+    guard linesInProgress.insert(line.id).inserted else { return .nothingToDo }
+    defer { linesInProgress.remove(line.id) }
     do {
       guard let client = try accounts.client(for: line.workItem.organization) else {
         return .failed(.notConnected)
       }
+      // The caller's line may be stale: the difference is taken from the stored records.
+      guard let difference = try await currentDifference(of: line) else { return .nothingToDo }
       // The field is checked when sending, so an offline booking can still be queued.
       let record = SyncRecord(
         entryID: line.entryID,
         workItemLinkID: line.workItem.id,
         localDay: line.localDay,
         field: TimeField.completedWork,
-        deltaSeconds: line.difference,
+        deltaSeconds: difference,
         createdAt: clock.now(),
       )
+      // Reserved before it becomes visible as pending, so the queue does not send it a second time.
+      recordsInFlight.insert(record.id)
+      defer { recordsInFlight.remove(record.id) }
       // Recorded before sending: after a crash the marker in the history tells whether it arrived.
       try await records.insert(record)
       return await send(record, note: line.note, client: client)
@@ -208,32 +217,30 @@ public actor BookingService {
   public func processPending(force: Bool = false) async -> Int {
     if !force, let nextAttempt, clock.now() < nextAttempt { return (try? await records.pending().count) ?? 0 }
     guard let pending = try? await records.pending() else { return 0 }
-    var remaining = 0
     for record in pending {
-      guard
-        let link = try? await cache.link(record.workItemLinkID),
-        let client = try? accounts.client(for: link.organization)
-      else {
-        remaining += 1
+      // Being sent right now by `book` or another run of the queue.
+      guard recordsInFlight.insert(record.id).inserted else { continue }
+      defer { recordsInFlight.remove(record.id) }
+      guard let link = try? await cache.link(record.workItemLinkID) else {
+        _ = await fail(record, .workItemUnknown)
         continue
       }
+      // Not connected (any more): stays pending until the organization is connected again.
+      guard let client = try? accounts.client(for: link.organization) else { continue }
       do {
         if let revision = try await client.revision(of: link.workItemID, withHistoryContaining: record.marker) {
           try await markSynced(record, revision: revision)
           continue
         }
       } catch {
-        remaining += 1
         if case .queued = handleTransient(error) { break }
+        _ = await fail(record, BookingFailure(error))
         continue
       }
       let entryNote = await note(of: record)
-      if await send(record, note: entryNote, client: client) == .queued {
-        remaining += 1
-        break
-      }
+      if await send(record, note: entryNote, client: client) == .queued { break }
     }
-    return remaining
+    return (try? await records.pending().count) ?? 0
   }
 
   // MARK: Internal
@@ -252,10 +259,26 @@ public actor BookingService {
   /// Exponential backoff for the offline queue; `Retry-After` wins if longer.
   private var nextAttempt: Timestamp?
   private var backoff: TimeInterval = 30
+  /// Lines `book` is working on, by `BookingLine.id`.
+  private var linesInProgress = Set<String>()
+  /// Pending records that `book` or the queue is sending; nobody else touches them meanwhile.
+  private var recordsInFlight = Set<SyncRecordID>()
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "booking")
 
   private static func rounded(_ hours: Double) -> Double {
     (hours * 100).rounded() / 100
+  }
+
+  /// Target minus what is booked or in flight according to the stored records; nil if nothing is
+  /// left to book or another booking of the line is still pending.
+  private func currentDifference(of line: BookingLine) async throws -> Int? {
+    let stored = try await records.records(onDay: line.localDay).filter {
+      $0.entryID == line.entryID && $0.workItemLinkID == line.workItem.id
+    }
+    guard !stored.contains(where: { $0.status == .pending }) else { return nil }
+    let booked = stored.filter { $0.status == .synced }.reduce(0) { $0 + $1.deltaSeconds }
+    let difference = line.target - booked
+    return difference == 0 ? nil : difference
   }
 
   private func send(_ record: SyncRecord, note: String?, client: ADOClient) async -> Outcome {

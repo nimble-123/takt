@@ -134,6 +134,9 @@ public struct ADOClient: Sendable {
     }
     guard let http = response as? HTTPURLResponse else { throw ADOError.invalidResponse }
     switch http.statusCode {
+    // ADO answers an invalid PAT with a 203 sign-in page in some setups.
+    case 203: throw ADOError.unauthorized
+
     case 200..<300:
       do {
         return try JSONDecoder.ado.decode(Response.self, from: data)
@@ -142,7 +145,6 @@ public struct ADOClient: Sendable {
         throw ADOError.invalidResponse
       }
 
-    // ADO answers an invalid PAT with a 203 sign-in page in some setups; 401 and 403 otherwise.
     case 401, 403: throw ADOError.unauthorized
 
     case 404: throw ADOError.notFound
