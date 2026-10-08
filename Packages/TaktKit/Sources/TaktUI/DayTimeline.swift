@@ -192,6 +192,11 @@ struct DayTimeline: View {
           }
         }
         .accessibilityLabel(Text("Pause", bundle: .module))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { model.selection = [item.entryID] }
+        .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
+          model.openInspector(for: item.entryID)
+        }
 
     case .segment(let segment):
       let running = segment.isOpen
@@ -215,6 +220,11 @@ struct DayTimeline: View {
       .offset(x: frame.minX, y: frame.minY)
       .onTapGesture { select(item.entryID) }
       .gesture(interactive && !running ? moveGesture(segment) : nil)
+      // Opening needs a double-click, so VoiceOver gets it as a named action (#110).
+      .accessibilityAction { model.selection = [item.entryID] }
+      .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
+        model.openInspector(for: item.entryID)
+      }
     }
   }
 
@@ -348,11 +358,20 @@ struct BlockView: View {
         .strokeBorder(selected ? tint : Palette.separator, lineWidth: selected ? 2 : 0.5)
     )
     .contentShape(Rectangle())
-    .accessibilityElement(children: .combine)
+    // One element with the time, also when the block is too small or compact to show it (#110).
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(accessibilityText)
     .accessibilityAddTraits(selected ? [.isSelected, .isButton] : .isButton)
   }
 
   // MARK: Private
+
+  private var accessibilityText: String {
+    let style = Date.FormatStyle.dateTime.hour().minute()
+    let range = "\(start.date.formatted(style)) – \(end.date.formatted(style))"
+    let state = running ? [String(localized: "running", bundle: .module)] : []
+    return ([title, range] + state).joined(separator: ", ")
+  }
 
   private var tint: Color {
     colorHex.map(CategoryColors.color) ?? Palette.accent

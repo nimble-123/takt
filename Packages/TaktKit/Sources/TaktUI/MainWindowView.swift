@@ -308,10 +308,12 @@ struct WeekScreen: View {
           }
           .frame(maxWidth: .infinity)
           .contentShape(Rectangle())
-          .onTapGesture(count: 2) {
-            model.day = day.lowerBound
-            model.section = .today
-          }
+          .onTapGesture(count: 2) { open(day) }
+          // Double-click only, so VoiceOver gets the same action (#110).
+          .accessibilityElement(children: .combine)
+          .accessibilityAddTraits(.isButton)
+          .accessibilityAction { open(day) }
+          .accessibilityAction(named: Text("Open Day", bundle: .module)) { open(day) }
         }
       }
       .padding(.vertical, 8)
@@ -340,6 +342,11 @@ struct WeekScreen: View {
 
   // MARK: Private
 
+  private func open(_ day: Range<Timestamp>) {
+    model.day = day.lowerBound
+    model.section = .today
+  }
+
   /// The current week opens at the current hour, other weeks at 8:00.
   private func scrollToNow(_ proxy: ScrollViewProxy) {
     let now = model.now
@@ -360,7 +367,7 @@ struct HourLabels: View {
   var body: some View {
     VStack(spacing: 0) {
       ForEach(0..<hours, id: \.self) { hour in
-        Text(String(format: "%02d:00", hour))
+        Text(Calendar.current.hourLabel(hour))
           .font(.system(size: 10))
           .monospacedDigit()
           .foregroundStyle(Palette.textSecondary)

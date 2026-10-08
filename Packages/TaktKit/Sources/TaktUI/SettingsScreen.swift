@@ -86,6 +86,8 @@ struct SettingsScreen: View {
                 },
               )
               .toggleStyle(.button)
+              // The very short symbols are ambiguous ("T", "S"): VoiceOver reads the full name (#110).
+              .accessibilityLabel(Calendar.current.weekdaySymbols[day % 7])
             }
           }
         }
@@ -110,7 +112,7 @@ struct SettingsScreen: View {
         .managed(settings.isLocked(.countingMode))
         Stepper(value: $settings.idleThresholdMinutes, in: 1...60) {
           LabeledContent(String(localized: "Ask about inactivity after", bundle: .module)) {
-            Text("\(settings.idleThresholdMinutes) min").monospacedDigit()
+            Text("\(settings.idleThresholdMinutes) min", bundle: .module).monospacedDigit()
           }
         }
         .managed(settings.isLocked(.idleThresholdMinutes))
@@ -136,7 +138,7 @@ struct SettingsScreen: View {
             if minutes == 0 {
               Text("None", bundle: .module).tag(0)
             } else {
-              Text("\(minutes) min").tag(minutes)
+              Text("\(minutes) min", bundle: .module).tag(minutes)
             }
           }
         }

@@ -5,6 +5,8 @@ import TaktAnalytics
 import TaktCore
 import TaktStore
 
+// MARK: - AnalyticsModel
+
 /// State of the analysis screen (AN-01–AN-06).
 @MainActor
 @Observable
@@ -165,7 +167,7 @@ public final class AnalyticsModel {
     case .weekday(let index): return calendar.shortWeekdaySymbols[index % 7]
     case .tag(let id): return data.tags.values.lazy.flatMap { $0 }.first { $0.id == id }?.name ?? "?"
     case .workItem(let id): return data.workItems[id]?.label ?? "?"
-    case .hour(let hour): return String(format: "%02d:00", hour)
+    case .hour(let hour): return calendar.hourLabel(hour)
     }
   }
 
@@ -256,4 +258,18 @@ public final class AnalyticsModel {
     }
   }
 
+}
+
+extension Calendar {
+  /// An hour of the day in the locale's clock, e.g. "14:00" or "2:00 PM" (#110).
+  func hourLabel(_ hour: Int, style: Date.FormatStyle = .dateTime.hour().minute()) -> String {
+    var style = style
+    style.calendar = self
+    style.timeZone = timeZone
+    if let locale { style.locale = locale }
+    // Any day without a clock change will do; the label only shows the hour.
+    let day = startOfDay(for: Date(timeIntervalSinceReferenceDate: 0))
+    guard let date = date(bySettingHour: hour, minute: 0, second: 0, of: day) else { return "\(hour)" }
+    return date.formatted(style)
+  }
 }

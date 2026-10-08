@@ -61,6 +61,16 @@
         }
       }
     },
+    "%@ “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ „%2$@“"
+          }
+        }
+      }
+    },
     "%@%@ vs. previous period": {
       "localizations": {
         "de": {
@@ -87,6 +97,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld Einträge ausgewählt"
+          }
+        }
+      }
+    },
+    "%lld min": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
           }
         }
       }
@@ -147,6 +167,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notiz des Eintrags in den Kommentar übernehmen"
+          }
+        }
+      }
+    },
+    "Airplane": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flugzeug"
           }
         }
       }
@@ -341,6 +371,26 @@
         }
       }
     },
+    "Blue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blau"
+          }
+        }
+      }
+    },
+    "Book": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buch"
+          }
+        }
+      }
+    },
     "Book All": {
       "localizations": {
         "de": {
@@ -401,6 +451,26 @@
         }
       }
     },
+    "Booking failed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buchung fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "Brush": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pinsel"
+          }
+        }
+      }
+    },
     "Bugs are support": {
       "localizations": {
         "de": {
@@ -411,12 +481,32 @@
         }
       }
     },
+    "Buildings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebäude"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Abbrechen"
+          }
+        }
+      }
+    },
+    "Cart": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einkaufswagen"
           }
         }
       }
@@ -521,6 +611,16 @@
         }
       }
     },
+    "Chart": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagramm"
+          }
+        }
+      }
+    },
     "Choose a time within the entry to split it.": {
       "localizations": {
         "de": {
@@ -537,6 +637,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Schließen"
+          }
+        }
+      }
+    },
+    "Code": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
           }
         }
       }
@@ -567,6 +677,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Befehlspalette"
+          }
+        }
+      }
+    },
+    "Condition": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bedingung"
           }
         }
       }
@@ -701,12 +821,42 @@
         }
       }
     },
+    "Cup": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tasse"
+          }
+        }
+      }
+    },
     "Custom": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Frei"
+          }
+        }
+      }
+    },
+    "Customer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunde"
+          }
+        }
+      }
+    },
+    "Customer portal": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kundenportal"
           }
         }
       }
@@ -861,6 +1011,16 @@
         }
       }
     },
+    "Document": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dokument"
+          }
+        }
+      }
+    },
     "Duration": {
       "localizations": {
         "de": {
@@ -941,12 +1101,32 @@
         }
       }
     },
+    "Envelope": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Briefumschlag"
+          }
+        }
+      }
+    },
     "Expires on": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Läuft ab am"
+          }
+        }
+      }
+    },
+    "Expiry date": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ablaufdatum"
           }
         }
       }
@@ -1001,12 +1181,42 @@
         }
       }
     },
+    "Eye": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auge"
+          }
+        }
+      }
+    },
     "Focus blocks": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Fokusblöcke"
+          }
+        }
+      }
+    },
+    "Folder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ordner"
+          }
+        }
+      }
+    },
+    "From": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von"
           }
         }
       }
@@ -1061,6 +1271,16 @@
         }
       }
     },
+    "Globe": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Globus"
+          }
+        }
+      }
+    },
     "Go to Today": {
       "localizations": {
         "de": {
@@ -1071,12 +1291,42 @@
         }
       }
     },
+    "Graduation cap": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doktorhut"
+          }
+        }
+      }
+    },
+    "Green": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grün"
+          }
+        }
+      }
+    },
     "Group by": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Gruppieren nach"
+          }
+        }
+      }
+    },
+    "Hammer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hammer"
           }
         }
       }
@@ -1201,6 +1451,16 @@
         }
       }
     },
+    "Lifebuoy": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rettungsring"
+          }
+        }
+      }
+    },
     "Link Work Item": {
       "localizations": {
         "de": {
@@ -1267,6 +1527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Monat"
+          }
+        }
+      }
+    },
+    "Most time on %@, around %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meiste Zeit am %1$@, gegen %2$@"
           }
         }
       }
@@ -1451,6 +1721,16 @@
         }
       }
     },
+    "No tracked time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine erfasste Zeit"
+          }
+        }
+      }
+    },
     "None": {
       "localizations": {
         "de": {
@@ -1477,6 +1757,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notiz"
+          }
+        }
+      }
+    },
+    "Ochre": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocker"
+          }
+        }
+      }
+    },
+    "Open Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag öffnen"
           }
         }
       }
@@ -1511,6 +1811,16 @@
         }
       }
     },
+    "Open in Inspector": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Inspektor öffnen"
+          }
+        }
+      }
+    },
     "Open main window": {
       "localizations": {
         "de": {
@@ -1527,6 +1837,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Popover öffnen"
+          }
+        }
+      }
+    },
+    "Orange": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange"
           }
         }
       }
@@ -1671,6 +1991,16 @@
         }
       }
     },
+    "People": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personen"
+          }
+        }
+      }
+    },
     "Per day": {
       "localizations": {
         "de": {
@@ -1707,6 +2037,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Personal Access Token"
+          }
+        }
+      }
+    },
+    "Phone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telefon"
+          }
+        }
+      }
+    },
+    "Pink": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pink"
           }
         }
       }
@@ -1787,6 +2137,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Projekte …"
+          }
+        }
+      }
+    },
+    "Purple": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Violett"
           }
         }
       }
@@ -1937,6 +2297,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rundung"
+          }
+        }
+      }
+    },
+    "Rule “%@” enabled": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regel „%@“ aktiv"
           }
         }
       }
@@ -2137,6 +2507,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Überspringen"
+          }
+        }
+      }
+    },
+    "Slate": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schiefergrau"
           }
         }
       }
@@ -2361,6 +2741,16 @@
         }
       }
     },
+    "Tag": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etikett"
+          }
+        }
+      }
+    },
     "Tag %@": {
       "localizations": {
         "de": {
@@ -2497,6 +2887,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tasks"
+          }
+        }
+      }
+    },
+    "Teal": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Petrol"
           }
         }
       }
@@ -2681,6 +3081,16 @@
         }
       }
     },
+    "To": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bis"
+          }
+        }
+      }
+    },
     "To book": {
       "localizations": {
         "de": {
@@ -2697,6 +3107,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Heute"
+          }
+        }
+      }
+    },
+    "Tools": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Werkzeug"
           }
         }
       }
@@ -2767,6 +3187,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ h übernehmen (%2$@ h ÷ %3$lld Arbeitstage)"
+          }
+        }
+      }
+    },
+    "Value": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wert"
           }
         }
       }
