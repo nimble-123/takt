@@ -8,6 +8,14 @@ import TaktStore
 /// Day close: review the day's bookings and send them to Azure DevOps with one click (UC-07, DO-20–DO-27).
 struct DayCloseScreen: View {
 
+  // MARK: Lifecycle
+
+  init(model: MainWindowModel, booking: BookingCoordinator) {
+    self.model = model
+    self.booking = booking
+    _dayClose = State(initialValue: DayCloseModel(booking: booking))
+  }
+
   // MARK: Internal
 
   let model: MainWindowModel
@@ -22,11 +30,11 @@ struct DayCloseScreen: View {
       // the first layout pass, so the two-line booking rows were clipped and overlapped (#78).
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          if lines.isEmpty, !loadFailed {
+          if dayClose.lines.isEmpty, !dayClose.loadFailed {
             Text("No entries with a work item on this day.", bundle: .module)
               .foregroundStyle(Palette.textSecondary)
           }
-          ForEach(groups, id: \.workItem.id) { group in
+          ForEach(dayClose.groups) { group in
             ReviewSection {
               HStack(spacing: 6) {
                 TypeBadge(type: group.workItem.cachedType)
@@ -36,7 +44,7 @@ struct DayCloseScreen: View {
               .foregroundStyle(Palette.textSecondary)
             } rows: {
               ForEach(group.lines) { line in
-                BookingRow(line: line, outcome: outcomes[line.id])
+                BookingRow(line: line, outcome: dayClose.outcomes[line.id])
                   .contentShape(Rectangle())
                   .onTapGesture(count: 2) { model.openInspector(for: line.entryID) }
                   // Double-click only, so VoiceOver gets the same action (#110).
@@ -88,9 +96,7 @@ struct DayCloseScreen: View {
       }
     }
     .task(id: model.dayRange.lowerBound) {
-      // Results of booking another day do not belong to this one.
-      outcomes = [:]
-      await reload()
+      await dayClose.load(model.dayRange)
     }
   }
 
@@ -103,19 +109,7 @@ struct DayCloseScreen: View {
 
   // MARK: Private
 
-  private struct Group {
-    var workItem: WorkItemLink
-    var lines: [BookingLine]
-  }
-
-  @State private var lines = [BookingLine]()
-  @State private var outcomes = [String: BookingService.Outcome]()
-  @State private var isBooking = false
-  @State private var loadFailed = false
-
-  private var open: [BookingLine] {
-    lines.filter { $0.difference != 0 && $0.inFlight == 0 }
-  }
+  @State private var dayClose: DayCloseModel
 
   private var unlinked: [EntryWithSegments] {
     model.data.entries.filter { $0.entry.workItemLinkID == nil }
@@ -128,7 +122,7 @@ struct DayCloseScreen: View {
           .font(.system(size: 11, weight: .semibold))
           .textCase(.uppercase)
           .foregroundStyle(Palette.textSecondary)
-        Text(Self.hours(open.reduce(0) { $0 + $1.difference }, signed: true))
+        Text(Self.hours(dayClose.openSeconds, signed: true))
           .font(.system(size: 22, weight: .semibold))
           .monospacedDigit()
       }
@@ -142,18 +136,18 @@ struct DayCloseScreen: View {
         Button(String(localized: "Send Again", bundle: .module)) {
           Task {
             await booking.processPending(force: true)
-            await reload()
+            await dayClose.reload()
           }
         }
       }
-      if loadFailed {
+      if dayClose.loadFailed {
         Text("The bookings could not be loaded.", bundle: .module).foregroundStyle(Palette.danger)
       }
       Spacer()
       Button {
-        Task { await bookAll() }
+        Task { await dayClose.bookAll() }
       } label: {
-        if isBooking {
+        if dayClose.isBooking {
           ProgressView().controlSize(.small)
         } else {
           Text("Book All", bundle: .module).padding(.horizontal, 6)
@@ -161,36 +155,9 @@ struct DayCloseScreen: View {
       }
       .buttonStyle(.borderedProminent)
       .tint(Palette.accent)
-      .disabled(open.isEmpty || isBooking)
+      .disabled(dayClose.open.isEmpty || dayClose.isBooking)
       .keyboardShortcut(.defaultAction)
     }
-  }
-
-  private var groups: [Group] {
-    Dictionary(grouping: lines, by: \.workItem.id).values
-      .compactMap { lines in lines.first.map { Group(workItem: $0.workItem, lines: lines) } }
-      .sorted { $0.workItem.workItemID < $1.workItem.workItemID }
-  }
-
-  private func reload() async {
-    let day = model.dayRange
-    do {
-      let loaded = try await booking.lines(for: day)
-      // The day changed while loading: that day's own load sets the lines.
-      guard !Task.isCancelled, day == model.dayRange else { return }
-      lines = loaded
-      loadFailed = false
-    } catch {
-      guard !Task.isCancelled, day == model.dayRange else { return }
-      loadFailed = true
-    }
-  }
-
-  private func bookAll() async {
-    isBooking = true
-    outcomes = await booking.book(open)
-    await reload()
-    isBooking = false
   }
 
 }
