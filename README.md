@@ -22,7 +22,7 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 </div>
 
 > [!NOTE]
-> Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. Releases ship an unsigned Apple Silicon build; see [Install](#install).
+> Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. Phase 4 (a working time record under German labor law, with flextime, overtime and vacation accounts) is planned. Releases ship an unsigned Apple Silicon build; see [Install](#install).
 
 <div align="center">
 
@@ -150,14 +150,14 @@ The project documentation is written in German.
 | --- | --- |
 | [PRD](docs/PRD.md) | Goals, requirements with IDs, release plan, decisions |
 | [Technical concept](docs/TECHNICAL_CONCEPT.md) | Modules, database schema, timer engine, Azure DevOps booking flow, tests |
-| [Design](docs/DESIGN.md) | Screens, colors, typography, interaction rules |
+| [Design](docs/DESIGN.md) | Screens, colors, typography, interaction rules, link to the design canvas |
 | [Releasing](docs/RELEASING.md) | Versioning, release PRs, signing and notarization |
 | [MDM](docs/MDM.md) | Managed settings and rollout with Intune or Jamf |
 | [CLAUDE.md](CLAUDE.md) | Working rules for Claude Code and everyone else |
 
 ## Contributing
 
-Contributions are welcome. Work is tracked in issues and three milestones: `Phase 1 · Erfassen`, `Phase 2 · Azure DevOps` and `Phase 3 · Ausbau`.
+Contributions are welcome. Work is tracked in issues and four milestones: `Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau` and `Phase 4 · Nachweis`.
 
 1. Pick or open an issue and branch from `main` as `feat/<issue>-<name>` or `fix/<issue>-<name>`.
 2. Keep PRs small, one topic each, and reference requirement IDs from the PRD (e.g. `TM-05`).
