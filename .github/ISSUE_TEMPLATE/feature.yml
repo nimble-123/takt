@@ -23,6 +23,11 @@ body:
     validations:
       required: true
   - type: textarea
+    id: ui
+    attributes:
+      label: Auswirkung auf UI/UX
+      description: Welche Screens ändern sich? Entwurf auf dem Design-Canvas (https://claude.ai/artifact/FeiQaPoKc5FuezMenGZ9Kh) vor der Umsetzung; „keine“, wenn nichts Sichtbares entsteht.
+  - type: textarea
     id: notes
     attributes:
       label: Hinweise zur Umsetzung
