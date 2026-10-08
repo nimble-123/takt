@@ -157,6 +157,42 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func layoutIsCachedUntilTheDataChanges() async throws {
+    _ = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let first = model.layout(for: model.dayRange, now: at(12))
+    // Without a running timer, `now` does not matter: the cached layout answers.
+    #expect(model.layout(for: model.dayRange, now: at(13)) == first)
+    #expect(first.items.count == 1)
+
+    _ = try #require(await model.createEntry(from: at(9), to: at(9.5)))
+
+    #expect(model.layout(for: model.dayRange, now: at(12)).items.count == 2)
+  }
+
+  @Test
+  func runningLayoutFollowsNow() async throws {
+    clock.set(at(8))
+    _ = try await engine.start(EntryDraft(title: "A"), mode: .switchTo)
+    await model.reload()
+
+    let early = model.layout(for: model.dayRange, now: at(9))
+    let late = model.layout(for: model.dayRange, now: at(10))
+
+    #expect(early.items.first?.end == at(9))
+    #expect(late.items.first?.end == at(10))
+  }
+
+  @Test
+  func entryLookupFollowsReloads() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    #expect(model.entry(id)?.entry.title == model.data.entries.first?.entry.title)
+
+    await model.delete([id])
+
+    #expect(model.entry(id) == nil)
+  }
+
+  @Test
   func weekHasSevenDaysStartingMonday() {
     model.section = .week
     #expect(model.weekDays.count == 7)

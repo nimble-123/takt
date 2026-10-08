@@ -280,6 +280,9 @@ private struct AssignmentSection: View {
   let ids: Set<EntryID>
 
   var body: some View {
+    // Computed once per body: the pickers below filter the catalog against it.
+    let entries = ids.compactMap(model.entry).map(\.entry)
+    let commonLink = (Self.common(\.workItemLinkID, of: entries) ?? nil).flatMap { model.workItemLinks[$0] }
     Section(String(localized: "Assignment", bundle: .module)) {
       if model.workItems != nil {
         LabeledContent(String(localized: "Work item", bundle: .module)) {
@@ -328,23 +331,23 @@ private struct AssignmentSection: View {
           .task(id: ids) { booked = await booking.bookedSeconds(of: Array(ids)).values.first ?? 0 }
         }
       }
-      Picker(String(localized: "Project", bundle: .module), selection: projectBinding) {
+      Picker(String(localized: "Project", bundle: .module), selection: projectBinding(entries)) {
         Text("None", bundle: .module).tag(ProjectID?.none)
-        ForEach(projects) { project in
+        ForEach(projects(assignedIn: entries)) { project in
           Text(project.name).tag(ProjectID?.some(project.id))
         }
       }
-      if let projectID = common(\.projectID) ?? nil {
-        Picker(String(localized: "Task", bundle: .module), selection: taskBinding) {
+      if let projectID = Self.common(\.projectID, of: entries) ?? nil {
+        Picker(String(localized: "Task", bundle: .module), selection: taskBinding(entries)) {
           Text("None", bundle: .module).tag(TaskID?.none)
           ForEach(catalog.activeTasks(of: projectID)) { task in
             Text(task.name).tag(TaskID?.some(task.id))
           }
         }
       }
-      Picker(String(localized: "Category", bundle: .module), selection: categoryBinding) {
+      Picker(String(localized: "Category", bundle: .module), selection: categoryBinding(entries)) {
         Text("None", bundle: .module).tag(CategoryID?.none)
-        ForEach(categories) { category in
+        ForEach(categories(assignedIn: entries)) { category in
           Label {
             Text(category.name)
           } icon: {
@@ -359,7 +362,7 @@ private struct AssignmentSection: View {
         prompt: Text("comma separated", bundle: .module),
       )
       .commitsOnBlur(tags) { value in
-        let names = value.split(separator: ",").map { String($0).trimmed }
+        let names = Tag.names(fromCommaSeparated: value)
         Task { await catalog.setTags(named: names, on: ids) }
       }
     }
@@ -377,16 +380,8 @@ private struct AssignmentSection: View {
   @State private var pickingWorkItem = false
   @State private var booked: Int?
 
-  private var entries: [TimeEntry] {
-    ids.compactMap(model.entry).map(\.entry)
-  }
-
   private var catalog: CatalogModel {
     model.catalog
-  }
-
-  private var commonLink: WorkItemLink? {
-    (common(\.workItemLinkID) ?? nil).flatMap { model.workItemLinks[$0] }
   }
 
   /// HW-02: what was booked; later changes are booked as differences.
@@ -396,21 +391,25 @@ private struct AssignmentSection: View {
     return String(localized: "Booked: \(value) h · changes are booked as a difference", bundle: .module)
   }
 
+  /// The value all entries share, or `nil` if they differ.
+  private static func common<Value: Hashable>(_ value: (TimeEntry) -> Value, of entries: [TimeEntry]) -> Value? {
+    let values = Set(entries.map(value))
+    return values.count == 1 ? values.first : nil
+  }
+
   /// Active projects plus archived ones still assigned, so the picker shows them.
-  private var projects: [Project] {
-    catalog.catalog.projects.filter { project in
-      !project.archived || entries.contains { $0.projectID == project.id }
-    }
+  private func projects(assignedIn entries: [TimeEntry]) -> [Project] {
+    let assigned = Set(entries.compactMap(\.projectID))
+    return catalog.catalog.projects.filter { !$0.archived || assigned.contains($0.id) }
   }
 
-  private var categories: [EntryCategory] {
-    catalog.catalog.categories.filter { category in
-      !category.archived || entries.contains { $0.categoryID == category.id }
-    }
+  private func categories(assignedIn entries: [TimeEntry]) -> [EntryCategory] {
+    let assigned = Set(entries.compactMap(\.categoryID))
+    return catalog.catalog.categories.filter { !$0.archived || assigned.contains($0.id) }
   }
 
-  private var projectBinding: Binding<ProjectID?> {
-    Binding(get: { common(\.projectID) ?? nil }) { project in
+  private func projectBinding(_ entries: [TimeEntry]) -> Binding<ProjectID?> {
+    Binding(get: { Self.common(\.projectID, of: entries) ?? nil }) { project in
       Task {
         await model.update(ids, name: String(localized: "Change Project", bundle: .module)) { entry in
           if entry.projectID != project { entry.taskID = nil }
@@ -420,28 +419,22 @@ private struct AssignmentSection: View {
     }
   }
 
-  private var taskBinding: Binding<TaskID?> {
-    Binding(get: { common(\.taskID) ?? nil }) { task in
+  private func taskBinding(_ entries: [TimeEntry]) -> Binding<TaskID?> {
+    Binding(get: { Self.common(\.taskID, of: entries) ?? nil }) { task in
       Task {
         await model.update(ids, name: String(localized: "Change Task", bundle: .module)) { $0.taskID = task }
       }
     }
   }
 
-  private var categoryBinding: Binding<CategoryID?> {
-    Binding(get: { common(\.categoryID) ?? nil }) { category in
+  private func categoryBinding(_ entries: [TimeEntry]) -> Binding<CategoryID?> {
+    Binding(get: { Self.common(\.categoryID, of: entries) ?? nil }) { category in
       Task {
         await model.update(ids, name: String(localized: "Change Category", bundle: .module)) {
           $0.categoryID = category
         }
       }
     }
-  }
-
-  /// The value all entries share, or `nil` if they differ.
-  private func common<Value: Hashable>(_ value: (TimeEntry) -> Value) -> Value? {
-    let values = Set(entries.map(value))
-    return values.count == 1 ? values.first : nil
   }
 
 }

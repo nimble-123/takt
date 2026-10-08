@@ -22,12 +22,12 @@ struct DayTimeline: View {
   var body: some View {
     TimelineView(.everyMinute) { context in
       let now = Timestamp(context.date)
-      let layout = TimelineLayout(entries: model.data.entries, day: day, now: now)
+      let layout = model.layout(for: day, now: now)
       GeometryReader { proxy in
         let width = max(0, proxy.size.width - gutter)
         ZStack(alignment: .topLeading) {
           hourGrid(width: proxy.size.width)
-          idleBands(width: width, now: now)
+          idleBands(width: width)
           if interactive {
             Color.clear
               .contentShape(Rectangle())
@@ -37,7 +37,7 @@ struct DayTimeline: View {
               .onTapGesture { model.selection = [] }
           }
           ForEach(layout.items) { item in
-            block(item, width: width, now: now)
+            block(item, width: width)
           }
           if day.contains(now) {
             nowLine(at: now, width: proxy.size.width)
@@ -143,7 +143,7 @@ struct DayTimeline: View {
     .frame(height: height(dayLength), alignment: .top)
   }
 
-  private func idleBands(width: CGFloat, now _: Timestamp) -> some View {
+  private func idleBands(width: CGFloat) -> some View {
     ForEach(model.data.idleEvents) { event in
       let start = max(event.start, day.lowerBound)
       let end = min(event.end, day.upperBound)
@@ -168,7 +168,7 @@ struct DayTimeline: View {
   }
 
   @ViewBuilder
-  private func block(_ item: TimelineLayout.Item, width: CGFloat, now _: Timestamp) -> some View {
+  private func block(_ item: TimelineLayout.Item, width: CGFloat) -> some View {
     let laneWidth = width / CGFloat(item.laneCount)
     let frame = CGRect(
       x: gutter + CGFloat(item.lane) * laneWidth + 2,
@@ -241,7 +241,7 @@ struct DayTimeline: View {
   private func isDragging(_ segment: Segment) -> Bool {
     switch drag {
     case .move(let dragged, _), .resize(let dragged, _, _): dragged.id == segment.id
-    default: false
+    case .create, nil: false
     }
   }
 
