@@ -64,6 +64,7 @@ package.targets += [
       "TaktSystem",
       "TaktADO",
       "TaktCalendar",
+      .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
     ],
     resources: [.process("Resources")],
   ),
