@@ -26,6 +26,8 @@ public struct ADOClient: Sendable {
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "ado")
 
     public static let apiVersion = "7.1"
+    /// For resources that only exist as a preview, such as `_apis/connectionData`.
+    static let previewAPIVersion = "7.1-preview"
 
     public init(
         organization: String,
@@ -56,8 +58,10 @@ public struct ADOClient: Sendable {
     // MARK: Requests
 
     /// `path` is relative to the organization, e.g. `_apis/projects`.
-    func get<Response: Decodable>(_ path: String, query: [URLQueryItem] = []) async throws -> Response {
-        try await send(request("GET", path, query: query))
+    func get<Response: Decodable>(
+        _ path: String, query: [URLQueryItem] = [], apiVersion: String = ADOClient.apiVersion
+    ) async throws -> Response {
+        try await send(request("GET", path, query: query, apiVersion: apiVersion))
     }
 
     func post<Body: Encodable, Response: Decodable>(
@@ -80,13 +84,14 @@ public struct ADOClient: Sendable {
     }
 
     private func request(
-        _ method: String, _ path: String, query: [URLQueryItem] = [], onSearchHost: Bool = false
+        _ method: String, _ path: String, query: [URLQueryItem] = [], onSearchHost: Bool = false,
+        apiVersion: String = ADOClient.apiVersion
     ) async throws -> URLRequest {
         let base = onSearchHost ? searchBaseURL : baseURL
         var components = URLComponents(
             url: base.appending(path: organization).appending(path: path), resolvingAgainstBaseURL: false
         )
-        components?.queryItems = query + [URLQueryItem(name: "api-version", value: Self.apiVersion)]
+        components?.queryItems = query + [URLQueryItem(name: "api-version", value: apiVersion)]
         guard let url = components?.url else { throw ADOError.invalidResponse }
         var request = URLRequest(url: url, timeoutInterval: 20)
         request.httpMethod = method
@@ -166,7 +171,7 @@ extension ADOClient {
             }
             var authenticatedUser: User
         }
-        let data: ConnectionData = try await get("_apis/connectionData")
+        let data: ConnectionData = try await get("_apis/connectionData", apiVersion: Self.previewAPIVersion)
         // An anonymous identity means the token was not accepted.
         guard let name = data.authenticatedUser.customDisplayName ?? data.authenticatedUser.providerDisplayName,
             name != "Anonymous"
