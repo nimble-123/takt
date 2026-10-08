@@ -10,7 +10,7 @@ Takt ist ein nativer macOS-Timetracker (Menüleiste + Hauptfenster) mit Azure-De
 - `docs/RELEASING.md` – Versionierung, Release-PRs, lokales Signieren.
 - `site/` – Produktseite auf GitHub Pages (Vite, GSAP, Lenis, three.js); `npm ci && npm run dev` in `site/`.
 - `docs/MDM.md` – verwaltbare Einstellungen, Beispielprofil `docs/mdm/Takt.mobileconfig`, Verteilung per Intune/Jamf.
-- GitHub-Issues und Milestones (`Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau`) – der Backlog.
+- GitHub-Issues und Milestones (`Phase 1 · Erfassen`, `Phase 2 · Azure DevOps`, `Phase 3 · Ausbau`, `Phase 4 · Nachweis`) – der Backlog.
 
 Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR angepasst.
 

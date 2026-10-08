@@ -32,6 +32,7 @@ Version 1 ist erfolgreich, wenn das Team Zeit live statt nachträglich erfasst u
 3. Aussagekräftige Analysen nach Zeit, Projekt, Kategorie, Tag und Work Item.
 4. Verknüpfen von Work Items und Zurückschreiben der Zeit in Azure DevOps.
 5. Leichtgewichtig: geringer Speicher- und Energiebedarf, schneller Start.
+6. Arbeitszeit nach ArbZG nachweisen und Flexkonto, Überstunden und Urlaub führen, ohne die App komplizierter zu machen.
 
 **Nicht-Ziele (v1)**
 
@@ -39,6 +40,7 @@ Version 1 ist erfolgreich, wenn das Team Zeit live statt nachträglich erfasst u
 - Keine Abrechnung, Rechnungen oder Stundensätze.
 - Kein automatisches App- oder Website-Tracking, keine Screenshots (Mitarbeiterüberwachung ist bewusst ausgeschlossen).
 - Keine Apps für Windows, iOS oder Web.
+- Keine Unveränderbarkeit gegenüber dem Nutzer selbst: Takt ist lokal und Single-User. Ziel beim Arbeitszeitnachweis ist Nachvollziehbarkeit (Änderungsprotokoll, Prüfsumme), keine Zusicherung von Rechtssicherheit.
 - Keine Integrationen außer Azure DevOps und, optional, dem Outlook-Kalender.
 
 **Erfolgsmetriken** (Zielwerte, lokal messbar)
@@ -155,6 +157,25 @@ Seitenleiste mit Heute, Kalender, Einträge, Analysen, Projekte, Einstellungen.
 | AN-05 | Drilldown vom Diagramm zu den zugrunde liegenden Einträgen | Should |
 | AN-06 | Export als CSV und JSON | Must |
 | AN-07 | PDF-Report und Soll/Ist gegen Wochenstunden | Could |
+
+### Arbeitszeit & Konten
+
+Takt unterstützt die Aufzeichnungs- und Nachweispflichten nach ArbZG (§§ 3, 4, 5, 9, 11, 16), MiLoG (§ 17) und der Rechtsprechung zur Arbeitszeiterfassung (EuGH C-55/18 „CCOO“, BAG 1 ABR 22/21). Standard ist Gleitzeit mit Flexkonto; Vertrauensarbeitszeit blendet Soll und Salden aus, die Prüfregeln gelten in beiden Modellen.
+
+| ID | Anforderung | Prio |
+| --- | --- | --- |
+| AZ-01 | Arbeitstag je lokalem Tag: Beginn, Ende, Pausen, Netto-Arbeitszeit. Nur Unterbrechungen ab 15 min sind Pausen; Kategorien können als „zählt nicht als Arbeitszeit“ markiert werden | Must |
+| AZ-02 | Prüfregeln: Netto > 8 h und > 10 h je Werktag; Ø 8 h je Werktag (Mo–Sa) über 24 Wochen; Pausen 30/45 min bei > 6/> 9 h; höchstens 6 h am Stück ohne Pause; 11 h Ruhezeit; Arbeit an Sonn- und Feiertagen gesondert | Must |
+| AZ-03 | Gesetzliche Feiertage nach Bundesland, offline berechnet; Feiertage setzen das Soll auf 0 | Should |
+| AZ-04 | Änderungsprotokoll: jede nachträgliche Anlage, Änderung und Löschung von Zeiten wird mit altem und neuem Wert festgehalten; korrigierte Zeiten sind erkennbar; optional Grund bei Änderungen älter als 7 Tage | Must |
+| AZ-05 | Flexkonto: Startsaldo + Σ (Netto − Soll) − Vergütungen. Abwesenheiten Urlaub, Krank, Frei setzen das Soll auf 0; Abfeiern braucht keinen Marker | Should |
+| AZ-06 | Urlaubskonto in ganzen Tagen: Anspruch, Übertrag, genommen, geplant; Hinweis auf Verfall des Vorjahresurlaubs zum 31.3. | Should |
+| AZ-07 | Überstunden = Netto über dem Tagessoll; nicht vergütete bleiben im Flexkonto. Vergütungen werden als Abbuchung erfasst; ein optionales Quartalskontingent begrenzt nur die vergüteten Stunden (Hinweis, keine Sperre) | Should |
+| AZ-08 | Übertragsgrenze des Flexkontos zum Jahreswechsel (Standard 220 h, einstellbar, leer = keine); Hinweis ab 1.10. mit Restkontingent | Should |
+| AZ-09 | Arbeitszeitnachweis als PDF und CSV (XLSX über AN-08): eine Zeile je Tag mit Beginn, Ende, Pause, Netto, Ruhezeit, Befunden, Korrekturmarker; Salden im Gleitzeitmodus; Änderungsprotokoll im Anhang; Prüfsumme; Name optional weglassen (Betriebsrat, § 80 Abs. 2 BetrVG) | Must |
+| AZ-10 | Monatsabschluss: Nachweis des Vormonats archivieren (Aufbewahrung ≥ 2 Jahre, § 16 Abs. 2 ArbZG); Hinweis auf Arbeitstage ohne Aufzeichnung nach 7 Tagen (§ 17 MiLoG) | Could |
+
+Neue Funktionen bleiben unaufdringlich: keine neuen Screens, Hinweise als Marker mit Tooltip, Abwesenheiten über Kontextmenü und ⌘K, neue Einstellungen nur für Modell, Bundesland, Startsaldo, Urlaubsanspruch, Kontingent und Übertragsgrenze.
 
 ## Azure DevOps Integration
 
@@ -284,6 +305,7 @@ Architektur, Datenmodell und Technologie: [TECHNICAL_CONCEPT.md](TECHNICAL_CONCE
 | 1 · Erfassen (MVP) | Menüleiste und Shortcut, Timer/Pausen/Multitasking, Inaktivität, Projekte und Kategorien, Timeline Tag und Woche, nachträgliches Bearbeiten, Basis-Analysen, CSV-Export, Onboarding | Phase 1 stabil im eigenen Pilot |
 | 2 · Azure DevOps (MVP) | Login per PAT (Entra später), Suche und Kompaktvorschau, Vorschläge, Rückschreiben mit Tagesabschluss, Sync-Protokoll und Offline-Queue | Pilot erfolgreich → Team-Rollout |
 | 3 · Ausbau | ⌘K und Volltextsuche, Heatmap und Fokusblöcke, Regeln und PDF-Report, Vorschläge aus Git-Branch, Team-Profile per MDM, Outlook-Kalender | – |
+| 4 · Nachweis | Arbeitstag und Prüfregeln nach ArbZG, Feiertage, Änderungsprotokoll, Flexkonto, Urlaub, Überstunden, Arbeitszeitnachweis | Nachweis vom Betriebsrat akzeptiert |
 
 Betriebsrat und Datenschutz haben das Zurückschreiben nach ADO freigegeben.
 
@@ -302,6 +324,11 @@ Betriebsrat und Datenschutz haben das Zurückschreiben nach ADO freigegeben.
 | Team-Struktur | Projekte selektiv aus ADO übernehmen, zusätzlich eigene je Nutzer |
 | Persistenz | SQLite über GRDB |
 | Kalender | Outlook über Microsoft Graph, Phase 3 |
+| Arbeitszeitmodell | Gleitzeit mit Flexkonto als Standard; Vertrauensarbeitszeit wählbar |
+| Abwesenheiten | Nur Urlaub, Krank, Frei; keine halben Tage; Abfeiern und Flextage ohne Marker |
+| Überstunden | Ein Konto: Überstunden fließen ins Flexkonto, Vergütungen sind Abbuchungen; Quartalskontingent nur für Vergütungen |
+| Übertrag Flexkonto | Höchstens 220 h ins Folgejahr als Standard, einstellbar |
+| Excel-Vorlage des Arbeitgebers | Wird nicht befüllt; stattdessen eigener Arbeitszeitnachweis (AZ-09) |
 
 **Offen**
 
@@ -309,3 +336,4 @@ Betriebsrat und Datenschutz haben das Zurückschreiben nach ADO freigegeben.
 - [ ] Mit der IT klären, ob Graph-Lesezugriff auf den Kalender per Admin-Zustimmung freigegeben wird
 - [ ] Datenschutz bestätigen lassen, dass das Lesen von Kalendertiteln von der bestehenden Freigabe gedeckt ist
 - [ ] Mit Arbeitgeber und IT klären, dass eine privat entwickelte und signierte App per MDM verteilt werden darf und wem die Rechte am Code gehören
+- [ ] Mit Personalabteilung und Betriebsrat klären, ob der Arbeitszeitnachweis aus Takt die Excel-Zeiterfassung ersetzen darf
