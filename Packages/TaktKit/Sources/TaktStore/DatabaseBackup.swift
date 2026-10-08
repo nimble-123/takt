@@ -56,11 +56,6 @@ public struct DatabaseBackup: Sendable {
   private func localDay(_ timestamp: Timestamp) -> String {
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = timeZone
-    let parts = calendar.dateComponents([.year, .month, .day], from: timestamp.date)
-    func pad(_ value: Int?, _ width: Int) -> String {
-      let string = String(value ?? 0)
-      return String(repeating: "0", count: max(0, width - string.count)) + string
-    }
-    return "\(pad(parts.year, 4))-\(pad(parts.month, 2))-\(pad(parts.day, 2))"
+    return timestamp.localDayString(in: calendar)
   }
 }

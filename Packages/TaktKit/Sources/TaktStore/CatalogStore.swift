@@ -99,7 +99,7 @@ public struct CatalogStore: Sendable {
         return try Tag(row: existing)
       }
       let tag = Tag(name: trimmed)
-      try Self.upsert(tag, db)
+      try tag.upsertRow(into: db)
       return tag
     }
   }
@@ -153,7 +153,7 @@ public struct CatalogStore: Sendable {
         ) ?? false
       guard !seeded else { return false }
       for category in categories {
-        try Self.upsert(category, db)
+        try category.upsertRow(into: db)
       }
       try db.execute(
         sql: "INSERT INTO setting (key, value) VALUES (?, '1')",
@@ -171,23 +171,9 @@ public struct CatalogStore: Sendable {
 
   private let database: AppDatabase
 
-  private static func upsert<Value: TableRow>(_ value: Value, _ db: Database) throws {
-    let columns = value.columns.sorted { $0.key < $1.key }
-    let names = columns.map(\.key)
-    let updates = names.filter { $0 != "id" }.map { "\($0) = excluded.\($0)" }.joined(separator: ", ")
-    try db.execute(
-      sql: """
-        INSERT INTO \(Value.table) (\(names.joined(separator: ", ")))
-        VALUES (\(databaseQuestionMarks(count: names.count)))
-        ON CONFLICT(id) DO UPDATE SET \(updates)
-        """,
-      arguments: StatementArguments(columns.map(\.value)),
-    )
-  }
-
   private func upsert(_ value: some TableRow, name: String) async throws {
     guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw CatalogError.emptyName }
-    try await database.writer.write { db in try Self.upsert(value, db) }
+    try await database.writer.write { db in try value.upsertRow(into: db) }
   }
 
 }
