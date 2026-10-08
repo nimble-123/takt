@@ -4,11 +4,16 @@ import Foundation
 
 /// An entry that is running or paused, as shown in the menu bar.
 public struct ActiveEntry: Hashable, Sendable {
+
+  // MARK: Lifecycle
+
   public init(entry: TimeEntry, openSegment: Segment?, closedDuration: TimeInterval) {
     self.entry = entry
     self.openSegment = openSegment
     self.closedDuration = closedDuration
   }
+
+  // MARK: Public
 
   public var entry: TimeEntry
   /// The running segment; `nil` while paused.

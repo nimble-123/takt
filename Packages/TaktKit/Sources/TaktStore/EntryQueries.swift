@@ -6,10 +6,15 @@ import TaktCore
 
 /// An entry with all its segments, oldest first.
 public struct EntryWithSegments: Hashable, Sendable, Identifiable {
+
+  // MARK: Lifecycle
+
   public init(entry: TimeEntry, segments: [Segment]) {
     self.entry = entry
     self.segments = segments
   }
+
+  // MARK: Public
 
   public var entry: TimeEntry
   public var segments: [Segment]

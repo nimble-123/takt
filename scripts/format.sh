@@ -7,6 +7,11 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root/BuildTools"
 
+# A lint run must not trust results cached by an earlier autocorrect run.
+if [[ " $* " == *" --lint "* ]]; then
+  rm -rf .build/plugins/FormatSwift/outputs/swiftformat.cache .build/plugins/FormatSwift/outputs/swiftlint.cache
+fi
+
 swift package --allow-writing-to-package-directory --allow-writing-to-directory "$root" \
   format "$@" \
   --paths \

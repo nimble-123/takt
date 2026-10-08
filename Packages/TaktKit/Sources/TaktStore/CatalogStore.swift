@@ -6,12 +6,17 @@ import TaktCore
 
 /// Projects, tasks, categories and tags, including archived ones.
 public struct Catalog: Hashable, Sendable {
+
+  // MARK: Lifecycle
+
   public init(projects: [Project] = [], tasks: [ProjectTask] = [], categories: [EntryCategory] = [], tags: [Tag] = []) {
     self.projects = projects
     self.tasks = tasks
     self.categories = categories
     self.tags = tags
   }
+
+  // MARK: Public
 
   public var projects = [Project]()
   public var tasks = [ProjectTask]()

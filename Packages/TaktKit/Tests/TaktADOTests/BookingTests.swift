@@ -121,7 +121,7 @@ struct BookingTests {
     #expect(stub.requests.count(where: { $0.httpMethod == "PATCH" }) == 2)
     #expect(
       stub.requests.count(where: { $0.url?.path() == "/contoso/_apis/wit/workitems/1234" && $0.httpMethod == "GET" })
-         == 2
+        == 2
     )
   }
 
