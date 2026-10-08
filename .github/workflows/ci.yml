@@ -30,12 +30,14 @@ jobs:
           xcodebuild -version
           swift --version
 
-      - name: Lint (swift-format)
-        if: hashFiles('**/*.swift') != ''
-        run: |
-          dirs=""
-          for d in App Packages; do [ -d "$d" ] && dirs="$dirs $d"; done
-          swift format lint --strict --recursive $dirs
+      - name: Cache für Formatierwerkzeuge
+        uses: actions/cache@v6
+        with:
+          path: BuildTools/.build
+          key: buildtools-${{ hashFiles('BuildTools/Package.resolved', 'BuildTools/Package.swift') }}
+
+      - name: Lint (SwiftFormat, SwiftLint)
+        run: scripts/format.sh --lint
 
       - name: SwiftPM-Cache
         if: hashFiles('Packages/TaktKit/Package.swift') != ''

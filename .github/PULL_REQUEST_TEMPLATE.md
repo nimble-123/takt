@@ -11,7 +11,7 @@ Closes #
 ## Prüfung
 
 - [ ] `swift test --package-path Packages/TaktKit`
-- [ ] `swift format lint --strict --recursive App Packages`
+- [ ] `scripts/format.sh --lint` ohne Befund
 - [ ] App baut (`xcodebuild … build`)
 - [ ] Neue Logik hat Tests; Fehlerbehebungen haben einen Test, der vorher fehlschlug
 - [ ] `docs/TECHNICAL_CONCEPT.md` angepasst, falls die Umsetzung vom Konzept abweicht

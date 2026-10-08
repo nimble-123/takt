@@ -161,7 +161,7 @@ Contributions are welcome. Work is tracked in issues and three milestones: `Phas
 
 1. Pick or open an issue and branch from `main` as `feat/<issue>-<name>` or `fix/<issue>-<name>`.
 2. Keep PRs small, one topic each, and reference requirement IDs from the PRD (e.g. `TM-05`).
-3. Run `swift test --package-path Packages/TaktKit` and `swift format lint --strict --recursive App Packages` before you push.
+3. Run `swift test --package-path Packages/TaktKit` and `scripts/format.sh` (SwiftFormat and SwiftLint, Airbnb style) before you push.
 4. PR titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) and are squash-merged. [release-please](https://github.com/googleapis/release-please) creates versions, tags and the changelog automatically.
 
 ## License

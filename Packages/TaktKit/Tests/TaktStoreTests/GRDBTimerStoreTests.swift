@@ -6,147 +6,162 @@ import Testing
 @testable import TaktStore
 
 struct GRDBTimerStoreTests {
-    let clock = ManualClock()
-    let database: AppDatabase
-    let store: GRDBTimerStore
-    let engine: TimerEngine
 
-    init() throws {
-        database = try AppDatabase.inMemory()
-        store = GRDBTimerStore(database: database)
-        engine = TimerEngine(store: store, clock: clock)
+  // MARK: Lifecycle
+
+  init() throws {
+    database = try AppDatabase.inMemory()
+    store = GRDBTimerStore(database: database)
+    engine = TimerEngine(store: store, clock: clock)
+  }
+
+  // MARK: Internal
+
+  @Test
+  func startWritesUUIDStringsAndMilliseconds() async throws {
+    let id = try await engine.start(EntryDraft(title: "Review", weight: 0.7), mode: .switchTo).value
+
+    let stored = try await database.writer.read { db -> [String: DatabaseValue] in
+      let row = try Row.fetchOne(
+        db,
+        sql: """
+          SELECT e.id, typeof(e.id) AS id_type, typeof(e.created_at) AS time_type, e.weight,
+                 s.start_at, s.end_at
+          FROM time_entry e JOIN segment s ON s.entry_id = e.id
+          """,
+      )
+      return Dictionary(uniqueKeysWithValues: (row ?? Row()).map { ($0, $1) })
+    }
+    #expect(stored["id"] == id.uuidString.databaseValue)
+    #expect(stored["id_type"] == "text".databaseValue)
+    #expect(stored["time_type"] == "integer".databaseValue)
+    #expect(stored["weight"] == 0.7.databaseValue)
+    #expect(stored["start_at"] == clock.now().milliseconds.databaseValue)
+    #expect(stored["end_at"] == .null)
+  }
+
+  @Test
+  func snapshotMatchesInMemoryStoreForTheSameCommands() async throws {
+    let memoryClock = ManualClock(clock.now())
+    let memory = TimerEngine(store: InMemoryTimerStore(), clock: memoryClock)
+
+    for (engine, clock) in [(engine, clock), (memory, memoryClock)] {
+      let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+      clock.advance(seconds: 600)
+      _ = try await engine.start(EntryDraft(title: "B"), mode: .parallel)
+      clock.advance(seconds: 300)
+      try await engine.pause(a)
+      clock.advance(seconds: 60)
+      _ = try await engine.pauseAll()
     }
 
-    @Test func startWritesUUIDStringsAndMilliseconds() async throws {
-        let id = try await engine.start(EntryDraft(title: "Review", weight: 0.7), mode: .switchTo).value
+    let fromDatabase = try await store.snapshot()
+    let fromMemory = try await memory.updates().first { _ in true }
+    #expect(fromDatabase.entries.map(\.entry.title) == fromMemory?.entries.map(\.entry.title))
+    #expect(fromDatabase.entries.map(\.closedDuration) == fromMemory?.entries.map(\.closedDuration))
+    #expect(fromDatabase.entries.map(\.entry.state) == [.paused, .paused])
+    #expect(fromDatabase.globalPause?.entryIDs.count == 1)
+  }
 
-        let stored = try await database.writer.read { db -> [String: DatabaseValue] in
-            let row = try Row.fetchOne(
-                db,
-                sql: """
-                    SELECT e.id, typeof(e.id) AS id_type, typeof(e.created_at) AS time_type, e.weight,
-                           s.start_at, s.end_at
-                    FROM time_entry e JOIN segment s ON s.entry_id = e.id
-                    """
-            )
-            return Dictionary(uniqueKeysWithValues: (row ?? Row()).map { ($0, $1) })
-        }
-        #expect(stored["id"] == id.uuidString.databaseValue)
-        #expect(stored["id_type"] == "text".databaseValue)
-        #expect(stored["time_type"] == "integer".databaseValue)
-        #expect(stored["weight"] == 0.7.databaseValue)
-        #expect(stored["start_at"] == clock.now().milliseconds.databaseValue)
-        #expect(stored["end_at"] == .null)
+  @Test
+  func undoRestoresTheStoredRows() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let before = try await store.snapshot()
+
+    let started = try await engine.start(EntryDraft(title: "B"), mode: .switchTo)
+    clock.advance(seconds: 5)
+    try await engine.undo(started.undo)
+
+    #expect(try await store.snapshot() == before)
+    #expect(try await store.snapshot().running.map(\.id) == [a])
+    let entries = try await database.writer.read { db in
+      try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM time_entry")
     }
+    #expect(entries == 1)
+  }
 
-    @Test func snapshotMatchesInMemoryStoreForTheSameCommands() async throws {
-        let memoryClock = ManualClock(clock.now())
-        let memory = TimerEngine(store: InMemoryTimerStore(), clock: memoryClock)
+  @Test
+  func staleUndoIsAConflictAndWritesNothing() async throws {
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let undoPause = try await engine.pause(id)
+    clock.advance(seconds: 60)
+    try await engine.resume(id, mode: .switchTo)
+    let before = try await store.snapshot()
 
-        for (engine, clock) in [(engine, clock), (memory, memoryClock)] {
-            let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-            clock.advance(seconds: 600)
-            _ = try await engine.start(EntryDraft(title: "B"), mode: .parallel)
-            clock.advance(seconds: 300)
-            try await engine.pause(a)
-            clock.advance(seconds: 60)
-            _ = try await engine.pauseAll()
-        }
-
-        let fromDatabase = try await store.snapshot()
-        let fromMemory = try await memory.updates().first { _ in true }
-        #expect(fromDatabase.entries.map(\.entry.title) == fromMemory?.entries.map(\.entry.title))
-        #expect(fromDatabase.entries.map(\.closedDuration) == fromMemory?.entries.map(\.closedDuration))
-        #expect(fromDatabase.entries.map(\.entry.state) == [.paused, .paused])
-        #expect(fromDatabase.globalPause?.entryIDs.count == 1)
+    await #expect(throws: TimerStoreError.conflict) {
+      try await engine.undo(undoPause)
     }
+    #expect(try await store.snapshot() == before)
+  }
 
-    @Test func undoRestoresTheStoredRows() async throws {
-        let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-        clock.advance(seconds: 60)
-        let before = try await store.snapshot()
-
-        let started = try await engine.start(EntryDraft(title: "B"), mode: .switchTo)
-        clock.advance(seconds: 5)
-        try await engine.undo(started.undo)
-
-        #expect(try await store.snapshot() == before)
-        #expect(try await store.snapshot().running.map(\.id) == [a])
-        let entries = try await database.writer.read { db in
-            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM time_entry")
-        }
-        #expect(entries == 1)
+  @Test
+  func insertingSegmentOfMissingEntryIsAConflict() async throws {
+    await #expect(throws: TimerStoreError.conflict) {
+      try await store.update { _ in
+        TimerUpdate(changes: [
+          .segment(before: nil, after: Segment(entryID: EntryID(), start: Timestamp(milliseconds: 0)))
+        ])
+      }
     }
+  }
 
-    @Test func staleUndoIsAConflictAndWritesNothing() async throws {
-        let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-        clock.advance(seconds: 60)
-        let undoPause = try await engine.pause(id)
-        clock.advance(seconds: 60)
-        try await engine.resume(id, mode: .switchTo)
-        let before = try await store.snapshot()
+  @Test
+  func dataSurvivesReopeningTheFile() async throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: "takt-tests-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let url = directory.appending(path: "takt.sqlite")
 
-        await #expect(throws: TimerStoreError.conflict) {
-            try await engine.undo(undoPause)
-        }
-        #expect(try await store.snapshot() == before)
-    }
+    let id = try await TimerEngine(store: GRDBTimerStore(database: try AppDatabase.open(at: url)), clock: clock)
+      .start(EntryDraft(title: "Persisted"), mode: .switchTo).value
 
-    @Test func insertingSegmentOfMissingEntryIsAConflict() async throws {
-        await #expect(throws: TimerStoreError.conflict) {
-            try await store.update { _ in
-                TimerUpdate(changes: [
-                    .segment(before: nil, after: Segment(entryID: EntryID(), start: Timestamp(milliseconds: 0)))
-                ])
-            }
-        }
-    }
+    let reopened = GRDBTimerStore(database: try AppDatabase.open(at: url))
+    #expect(try await reopened.snapshot().entry(id)?.entry.title == "Persisted")
+  }
 
-    @Test func dataSurvivesReopeningTheFile() async throws {
-        let directory = FileManager.default.temporaryDirectory.appending(path: "takt-tests-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let url = directory.appending(path: "takt.sqlite")
+  @Test
+  func recoveryAfterLongAbsenceClosesSegmentsAtHeartbeat() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 120)
+    try await engine.heartbeat()
+    let heartbeat = clock.now()
+    clock.advance(seconds: 3600) // app was gone for an hour
 
-        let id = try await TimerEngine(store: GRDBTimerStore(database: try AppDatabase.open(at: url)), clock: clock)
-            .start(EntryDraft(title: "Persisted"), mode: .switchTo).value
+    let event = try #require(try await engine.recoverAfterLaunch(idleThreshold: 600))
 
-        let reopened = GRDBTimerStore(database: try AppDatabase.open(at: url))
-        #expect(try await reopened.snapshot().entry(id)?.entry.title == "Persisted")
-    }
+    #expect(event.start == heartbeat)
+    #expect(event.end == clock.now())
+    #expect(event.entryIDs == [a])
+    let snapshot = try await store.snapshot()
+    #expect(snapshot.entry(a)?.entry.state == .paused)
+    #expect(snapshot.entry(a)?.closedDuration == 120)
+    #expect(snapshot.pendingIdleEvents == [event])
+    #expect(snapshot.lastHeartbeat == clock.now())
+  }
 
-    // MARK: Heartbeat and recovery (TM-07)
+  @Test
+  func recoveryWithinThresholdKeepsTimersRunning() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    try await engine.heartbeat()
+    clock.advance(seconds: 300)
 
-    @Test func recoveryAfterLongAbsenceClosesSegmentsAtHeartbeat() async throws {
-        let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-        clock.advance(seconds: 120)
-        try await engine.heartbeat()
-        let heartbeat = clock.now()
-        clock.advance(seconds: 3600)  // app was gone for an hour
+    #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
+    #expect(try await store.snapshot().entry(a)?.openSegment != nil)
+  }
 
-        let event = try #require(try await engine.recoverAfterLaunch(idleThreshold: 600))
+  @Test
+  func recoveryWithoutRunningTimersDoesNothing() async throws {
+    try await engine.heartbeat()
+    clock.advance(seconds: 86_400)
+    #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
+  }
 
-        #expect(event.start == heartbeat)
-        #expect(event.end == clock.now())
-        #expect(event.entryIDs == [a])
-        let snapshot = try await store.snapshot()
-        #expect(snapshot.entry(a)?.entry.state == .paused)
-        #expect(snapshot.entry(a)?.closedDuration == 120)
-        #expect(snapshot.pendingIdleEvents == [event])
-        #expect(snapshot.lastHeartbeat == clock.now())
-    }
+  // MARK: Private
 
-    @Test func recoveryWithinThresholdKeepsTimersRunning() async throws {
-        let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
-        try await engine.heartbeat()
-        clock.advance(seconds: 300)
+  private let clock = ManualClock()
+  private let database: AppDatabase
+  private let store: GRDBTimerStore
+  private let engine: TimerEngine
 
-        #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
-        #expect(try await store.snapshot().entry(a)?.openSegment != nil)
-    }
-
-    @Test func recoveryWithoutRunningTimersDoesNothing() async throws {
-        try await engine.heartbeat()
-        clock.advance(seconds: 86_400)
-        #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
-    }
 }

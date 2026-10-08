@@ -6,33 +6,48 @@ import Testing
 
 @testable import TaktUI
 
+// MARK: - AzureDevOpsModelTests
+
 @MainActor
 struct AzureDevOpsModelTests {
-    let clock = ManualClock()
 
-    @Test func takingOverCreatesAzureDevOpsProjectsOnce() async throws {
-        let database = try AppDatabase.inMemory()
-        let catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
-        let model = AzureDevOpsModel(
-            accounts: ADOAccounts(secrets: NoSecrets(), suiteName: "takt-ado-ui-\(UUID().uuidString)"),
-            catalog: catalog, clock: clock
-        )
-        model.importOrganization = "contoso"
+  // MARK: Internal
 
-        await model.takeOver("Kundenportal")
-        await model.takeOver("Kundenportal", areaPath: "Kundenportal\\Team Login")
-        await model.takeOver("Kundenportal")
+  @Test
+  func takingOverCreatesAzureDevOpsProjectsOnce() async throws {
+    let database = try AppDatabase.inMemory()
+    let catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
+    let model = AzureDevOpsModel(
+      accounts: ADOAccounts(secrets: NoSecrets(), suiteName: "takt-ado-ui-\(UUID().uuidString)"),
+      catalog: catalog,
+      clock: clock,
+    )
+    model.importOrganization = "contoso"
 
-        let projects = catalog.catalog.projects
-        #expect(projects.count == 2)
-        #expect(projects.allSatisfy { $0.source == .ado && $0.adoOrganization == "contoso" })
-        #expect(Set(projects.map(\.name)) == ["Kundenportal", "Team Login"])
-        #expect(model.isTakenOver("Kundenportal", areaPath: "Kundenportal\\Team Login"))
-    }
+    await model.takeOver("Kundenportal")
+    await model.takeOver("Kundenportal", areaPath: "Kundenportal\\Team Login")
+    await model.takeOver("Kundenportal")
+
+    let projects = catalog.catalog.projects
+    #expect(projects.count == 2)
+    #expect(projects.allSatisfy { $0.source == .ado && $0.adoOrganization == "contoso" })
+    #expect(Set(projects.map(\.name)) == ["Kundenportal", "Team Login"])
+    #expect(model.isTakenOver("Kundenportal", areaPath: "Kundenportal\\Team Login"))
+  }
+
+  // MARK: Private
+
+  private let clock = ManualClock()
+
 }
 
+// MARK: - NoSecrets
+
 private struct NoSecrets: SecretStore {
-    func read(_ account: String) throws -> String? { nil }
-    func write(_ secret: String, for account: String) throws {}
-    func delete(_ account: String) throws {}
+  func read(_: String) throws -> String? {
+    nil
+  }
+
+  func write(_: String, for _: String) throws { }
+  func delete(_: String) throws { }
 }

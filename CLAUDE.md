@@ -20,7 +20,8 @@ Weicht eine Umsetzung bewusst vom Konzept ab, wird das Konzept im selben PR ange
 brew install xcodegen                                   # einmalig
 xcodegen generate                                       # erzeugt Takt.xcodeproj (nicht einchecken)
 swift test --package-path Packages/TaktKit              # Package-Tests
-swift format lint --strict --recursive App Packages     # Lint (swift-format aus der Toolchain)
+scripts/format.sh                                       # Formatieren (SwiftFormat + SwiftLint, Airbnb-Stil)
+scripts/format.sh --lint                                # nur prüfen, wie in der CI
 xcodebuild -project Takt.xcodeproj -scheme Takt -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
 scripts/run-local.sh --test --seed                     # App bauen und mit Beispieldaten in ~/takt-test starten
 ```
@@ -43,7 +44,8 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 ## Konventionen
 
 - Code, Bezeichner und Code-Kommentare auf Englisch; UI-Texte über String Catalog (Deutsch und Englisch); Doku auf Deutsch, nur `README.md` auf Englisch.
-- Tests mit Swift Testing (`import Testing`). Jede Fehlerbehebung bekommt einen Test, der vorher fehlschlägt.
+- Tests mit Swift Testing (`import Testing`), Namen in lowerCamelCase. Jede Fehlerbehebung bekommt einen Test, der vorher fehlschlägt.
+- Stil nach dem Airbnb Swift Style Guide, durchgesetzt von `scripts/format.sh` (Konfiguration in `BuildTools/`). Ausnahmen nur mit `// swiftlint:disable:next <regel>` und Begründung in der Zeile davor. Passende Xcode-Einstellungen (Einrückung, Zeilenlänge) optional per [`xcode_settings.bash`](https://github.com/airbnb/swift/blob/master/resources/xcode_settings.bash).
 - Commits und PR-Titel nach Conventional Commits; der PR-Titel wird geprüft und wird per Squash-Merge zur Commit-Nachricht.
   - Typen: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`
   - Scopes: `core`, `store`, `ui`, `system`, `ado`, `analytics`, `calendar`, `app`, `release`, `deps`, `site`
@@ -69,11 +71,11 @@ Aktualisieren: mit `npx skills add <quelle> --skill <name>` global installieren,
 Vorrang: Die Architekturregeln oben, die übrigen Konventionen dieser Datei und `docs/DESIGN.md` gehen den Skills vor. Insbesondere:
 - Die Schichtung (App → TaktUI → Dienste → TaktStore → TaktCore) bleibt; der Architektur-Skill dient nur zur Einordnung, nicht zur Einführung von TCA, VIPER o. Ä.
 - Aussehen und Interaktion richten sich nach dem Design-Canvas und `docs/DESIGN.md` (native macOS-App, schlicht); `ui-ux-pro-max` hilft bei Prüfung und Entscheidungen, setzt aber keinen eigenen Stil durch. Seine Web-Regeln (Viewport, Breakpoints, Lazy Loading) gelten für `site/`, nicht für die App.
-- Tests bleiben bis zur Entscheidung in #97 in lowerCamelCase benannt.
+- Tests bleiben in lowerCamelCase benannt (Entscheidung in #97); die Raw-Identifier-Regel des Airbnb-Skills gilt hier nicht.
 
 ## Vor jedem PR
 
 1. `swift test --package-path Packages/TaktKit`
-2. `swift format lint --strict --recursive App Packages`
+2. `scripts/format.sh` (danach `scripts/format.sh --lint` ohne Befund)
 3. App-Build mit `xcodebuild` (siehe oben)
 4. PR-Vorlage ausfüllen, betroffene Anforderungs-IDs nennen, `Closes #<issue>`.
