@@ -67,6 +67,21 @@ struct EntryEditsTests {
   }
 
   @Test
+  func closeGapNeedsTwoConsecutiveSegmentsOfOneEntry() {
+    let entry = EntryID()
+    let first = Segment(entryID: entry, start: t(0), end: t(30))
+    let other = Segment(entryID: EntryID(), start: t(45), end: t(60))
+    let earlier = Segment(entryID: entry, start: t(-30), end: t(-10))
+    let open = Segment(entryID: entry, start: t(0))
+
+    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: other) }
+    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: earlier) }
+    #expect(throws: EntryEdits.EditError.invalidRange) {
+      try EntryEdits.closeGap(between: open, and: Segment(entryID: entry, start: t(45), end: t(60)))
+    }
+  }
+
+  @Test
   func closeGapTurnsPauseIntoWork() async throws {
     let entry = TimeEntry(title: "A", createdAt: t(0), updatedAt: t(0))
     let first = Segment(entryID: entry.id, start: t(0), end: t(30), source: .live)
@@ -77,7 +92,7 @@ struct EntryEditsTests {
       .segment(before: nil, after: second),
     ])
 
-    try await engine.apply(EntryEdits.closeGap(between: first, and: second))
+    try await engine.apply(try EntryEdits.closeGap(between: first, and: second))
 
     let segments = await segments(of: entry.id)
     #expect(segments.count == 1)

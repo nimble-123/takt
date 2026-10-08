@@ -30,7 +30,7 @@ public enum Exporter {
     defaultMode: CountingMode,
     calendar: Calendar,
   ) -> [Row] {
-    let entries = Dictionary(uniqueKeysWithValues: data.entries.map { ($0.id, $0.entry) })
+    let entries = Dictionary(data.entries.map { ($0.id, $0.entry) }) { first, _ in first }
     return report.slices.compactMap { slice in
       guard let entry = entries[slice.entryID] else { return nil }
       return Row(
@@ -70,13 +70,13 @@ public enum Exporter {
     let lines = rows.map { row in
       [
         row.date,
-        row.title,
-        row.project ?? "",
-        row.task ?? "",
-        row.category ?? "",
-        row.tags.joined(separator: "; "),
+        defused(row.title),
+        defused(row.project ?? ""),
+        defused(row.task ?? ""),
+        defused(row.category ?? ""),
+        defused(row.tags.joined(separator: "; ")),
         row.workItem.map(String.init) ?? "",
-        row.note ?? "",
+        defused(row.note ?? ""),
         row.countingMode,
         format(row.seconds),
         format(row.hours),
@@ -125,6 +125,13 @@ public enum Exporter {
 
   private static func format(_ value: Double) -> String {
     value == value.rounded() ? String(Int(value)) : String(value)
+  }
+
+  /// Spreadsheets run a field starting with = + - @, tab or CR as a formula; a leading apostrophe
+  /// keeps user text as text (CSV injection). Numbers are not passed through here.
+  private static func defused(_ field: String) -> String {
+    guard let first = field.first, "=+-@\t\r".contains(first) else { return field }
+    return "'" + field
   }
 
   private static func escape(_ field: String) -> String {

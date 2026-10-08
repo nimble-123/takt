@@ -84,7 +84,8 @@ extension ADOClient {
         return link(id: id, fields: fields, seenAt: now)
       }
     }
-    let order = Dictionary(uniqueKeysWithValues: ids.enumerated().map { ($1, $0) })
+    // An ID may be asked for twice; its first position counts.
+    let order = Dictionary(ids.enumerated().map { ($1, $0) }) { first, _ in first }
     return items.sorted { (order[$0.workItemID] ?? 0) < (order[$1.workItemID] ?? 0) }
   }
 

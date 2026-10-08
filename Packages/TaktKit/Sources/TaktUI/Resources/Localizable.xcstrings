@@ -891,6 +891,16 @@
         }
       }
     },
+    "End": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ende"
+          }
+        }
+      }
+    },
     "Entries": {
       "localizations": {
         "de": {
@@ -2137,6 +2147,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Teilen um"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginn"
           }
         }
       }

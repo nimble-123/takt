@@ -23,8 +23,10 @@ public final class MenuBarModel {
     workItems: (any WorkItemSource)? = nil,
     rules: RulesModel? = nil,
     gitBranches: (@Sendable () -> [GitBranch])? = nil,
+    actions: TimerActions? = nil,
     calendar: Calendar = .current,
   ) {
+    self.actions = actions ?? TimerActions(engine: engine, catalog: catalog, rules: rules, workItems: workItems)
     self.gitBranches = gitBranches
     self.workItems = workItems
     self.rules = rules
@@ -79,11 +81,13 @@ public final class MenuBarModel {
   /// Today's time per category, largest first (DESIGN: "Tagesfortschritt nach Kategorie").
   public private(set) var todayByCategory = [CategoryShare]()
   public private(set) var toast: Toast?
+  /// The user is typing a note in the toast.
+  public private(set) var isHoldingToast = false
   public private(set) var errorMessage: String?
   /// Opens the main window; set by the app.
   @ObservationIgnored public var openMainWindow: (() -> Void)?
-  /// Called after entries were stopped, e.g. to book them automatically (DO-21).
-  @ObservationIgnored public var onStopped: (([EntryID]) -> Void)?
+  /// Start and stop, shared with the main window; books after stopping (DO-21).
+  @ObservationIgnored public let actions: TimerActions
   /// Increments whenever the popover opens, so the view can focus the search field.
   public private(set) var openCount = 0
   /// Highlighted completion.
@@ -215,6 +219,9 @@ public final class MenuBarModel {
   public func popoverDidOpen() {
     openCount += 1
     query = ""
+    // ⌘Z reverts what was done in this opening, plus the stop the toast still offers to undo;
+    // never an action from hours ago.
+    undoStack = toast == nil ? [] : Array(undoStack.suffix(1))
     Task {
       await refresh()
       await loadSuggestedWorkItems()
@@ -265,15 +272,7 @@ public final class MenuBarModel {
 
   /// A timer for a work item: its title, linked, in the taken-over project (DO-10).
   public func draft(for item: WorkItemLink) -> EntryDraft {
-    let projects = catalog.activeProjects.filter {
-      $0.source == .ado && $0.adoOrganization == item.organization && $0.adoProject == item.project
-    }
-    let project = projects.first { $0.areaPath == nil } ?? projects.first
-    return EntryDraft(
-      title: item.cachedTitle ?? "#\(item.workItemID)",
-      projectID: project?.id,
-      workItemLinkID: item.id,
-    )
+    actions.draft(for: item)
   }
 
   /// Space on a selected work item opens or closes its detail preview. Returns whether it did.
@@ -351,18 +350,8 @@ public final class MenuBarModel {
 
   /// Starts `draft`; `tags` come from typed tokens and are merged with tags from rules.
   public func start(_ draft: EntryDraft, parallel: Bool, tags typed: [String] = []) async {
-    let workItem = await linkedWorkItem(of: draft)
-    let (ruled, ruleTags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
-    let tags = StartTokens.merged(typed, ruleTags)
-    var started: EntryID?
-    await perform { engine in
-      let result = try await engine.start(ruled, mode: parallel ? .parallel : .switchTo)
-      started = result.value
-      return result.undo
-    }
-    // Typed tags (MB-09) and tags from rules (ST-05); the entry is new, so it has none yet.
-    if let started, !tags.isEmpty {
-      await catalog.setTags(named: tags, on: [started])
+    await perform { [actions] _ in
+      try await actions.start(draft, mode: parallel ? .parallel : .switchTo, tags: typed)
     }
   }
 
@@ -376,9 +365,8 @@ public final class MenuBarModel {
 
   public func stop(_ id: EntryID) async {
     let title = snapshot.entry(id)?.entry.title ?? ""
-    if await perform({ try await $0.stop(id) }) {
+    if await perform({ [actions] _ in try await actions.stop(id) }) {
       showToast(Toast(id: id, title: title))
-      onStopped?([id])
     }
   }
 
@@ -393,15 +381,7 @@ public final class MenuBarModel {
 
   /// Stops every running and paused entry; one ⌘Z brings them all back.
   public func stopAll() async {
-    let ids = snapshot.entries.map(\.id)
-    let stopped = await perform { engine in
-      var undos = [TimerUndo]()
-      for id in ids {
-        undos.append(try await engine.stop(id))
-      }
-      return TimerUndo(combining: undos)
-    }
-    if stopped { onStopped?(ids) }
+    await perform { [actions] _ in try await actions.stopAll() }
   }
 
   /// Saves a note on a running, paused or just stopped entry (MB-07, TM-11).
@@ -438,11 +418,13 @@ public final class MenuBarModel {
   /// Keeps the toast while the user types a note.
   public func holdToast() {
     toastTask?.cancel()
+    isHoldingToast = true
   }
 
   public func dismissToast() {
     toastTask?.cancel()
     toast = nil
+    isHoldingToast = false
   }
 
   // MARK: Internal
@@ -500,6 +482,8 @@ public final class MenuBarModel {
 
   private func searchWorkItems() {
     searchTask?.cancel()
+    // The new search waits for the typing pause first; a cancelled one must not reset this later.
+    isSearchingWorkItems = false
     // Tokens are not part of the work item's title.
     let text = input.title
     guard let workItems, !text.isEmpty else {
@@ -514,7 +498,9 @@ public final class MenuBarModel {
       try? await Task.sleep(for: Self.searchDelay)
       guard !Task.isCancelled else { return }
       self?.isSearchingWorkItems = true
-      defer { self?.isSearchingWorkItems = false }
+      defer {
+        if !Task.isCancelled { self?.isSearchingWorkItems = false }
+      }
       do {
         let fresh = try await workItems.search(text)
         guard !Task.isCancelled else { return }
@@ -534,12 +520,6 @@ public final class MenuBarModel {
     return catalog.catalog.task(draft.taskID).map { "\(project.name) › \($0.name)" } ?? project.name
   }
 
-  /// The cached work item of a draft, for the rules.
-  private func linkedWorkItem(of draft: EntryDraft) async -> WorkItemLink? {
-    guard let id = draft.workItemLinkID, let workItems else { return nil }
-    return try? await workItems.link(id)
-  }
-
   /// Runs a command and remembers its undo. Returns whether it succeeded.
   @discardableResult
   private func perform(_ command: (TimerEngine) async throws -> TimerUndo) async -> Bool {
@@ -556,6 +536,7 @@ public final class MenuBarModel {
 
   private func showToast(_ toast: Toast) {
     self.toast = toast
+    isHoldingToast = false
     toastTask?.cancel()
     toastTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(8))

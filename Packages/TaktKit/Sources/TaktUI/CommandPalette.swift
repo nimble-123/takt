@@ -224,9 +224,7 @@ public final class CommandPaletteModel {
               subtitle: String(localized: "Start timer for #\(String(item.workItemID))", bundle: .module),
               symbol: "link",
             ) {
-              await window.startTimer(
-                EntryDraft(title: item.cachedTitle ?? "#\(item.workItemID)", workItemLinkID: item.id)
-              )
+              await window.startTimer(for: item)
             }
           )
         }

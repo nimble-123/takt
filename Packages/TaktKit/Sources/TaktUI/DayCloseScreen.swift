@@ -55,7 +55,10 @@ struct DayCloseScreen: View {
                 HStack {
                   Text(entry.entry.title).lineLimit(1)
                   Spacer()
-                  Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
+                  // Re-rendered every minute, so a running entry keeps counting.
+                  TimelineView(.everyMinute) { _ in
+                    Text(DurationText.hoursMinutes(entry.duration(at: model.now))).monospacedDigit()
+                  }
                   Button(String(localized: "Link …", bundle: .module)) {
                     model.selection = [entry.id]
                     model.section = .today
@@ -75,7 +78,11 @@ struct DayCloseScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
-    .task(id: model.dayRange.lowerBound) { await reload() }
+    .task(id: model.dayRange.lowerBound) {
+      // Results of booking another day do not belong to this one.
+      outcomes = [:]
+      await reload()
+    }
   }
 
   static func hours(_ seconds: Int, signed: Bool = false) -> String {
@@ -157,10 +164,15 @@ struct DayCloseScreen: View {
   }
 
   private func reload() async {
+    let day = model.dayRange
     do {
-      lines = try await booking.lines(for: model.dayRange)
+      let loaded = try await booking.lines(for: day)
+      // The day changed while loading: that day's own load sets the lines.
+      guard !Task.isCancelled, day == model.dayRange else { return }
+      lines = loaded
       loadFailed = false
     } catch {
+      guard !Task.isCancelled, day == model.dayRange else { return }
       loadFailed = true
     }
   }

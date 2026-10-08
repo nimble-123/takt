@@ -52,6 +52,8 @@ final class Composition {
       clock: clock,
     )
     let workItems = AzureDevOpsWorkItems(accounts: accounts, cache: cache, clock: clock)
+    let actions = TimerActions(engine: engine, catalog: catalog, rules: rules, workItems: workItems)
+    self.actions = actions
     menuBar = MenuBarModel(
       engine: engine,
       queries: queries,
@@ -64,6 +66,7 @@ final class Composition {
         let folders = UserDefaults.standard.stringArray(forKey: "gitFolders") ?? []
         return GitBranches(folders: folders.map { URL(filePath: $0) }).current()
       },
+      actions: actions,
     )
     mainWindow = MainWindowModel(
       engine: engine,
@@ -77,6 +80,7 @@ final class Composition {
       search: SearchIndex(database: database),
       rules: rules,
       database: database,
+      actions: actions,
       clock: clock,
     )
     idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
@@ -94,6 +98,7 @@ final class Composition {
   let rules: RulesModel
   let azureDevOps: AzureDevOpsModel
   let booking: BookingCoordinator
+  let actions: TimerActions
   let menuBar: MenuBarModel
   let mainWindow: MainWindowModel
   let idleMonitor: IdleMonitor
@@ -123,9 +128,10 @@ final class Composition {
         }
         await catalog.seedDefaults()
         await rules.reload()
-        // Bookings left pending by a crash or while offline (TECHNICAL_CONCEPT step 6).
-        await booking.processPending(force: true)
-        menuBar.onStopped = { [weak self] ids in self?.bookAutomatically(ids) }
+        actions.onStopped = { [weak self] ids in self?.bookAutomatically(ids) }
+        // Bookings left pending by a crash or while offline (TECHNICAL_CONCEPT step 6); network
+        // calls, so they must not hold back the menu bar and the window.
+        tasks.append(Task { await booking.processPending(force: true) })
         tasks.append(Task { await sendQueueWhenOnline() })
         tasks.append(Task { await menuBar.run() })
         tasks.append(Task { await mainWindow.run() })
