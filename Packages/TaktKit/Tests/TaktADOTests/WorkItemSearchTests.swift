@@ -31,6 +31,15 @@ struct WorkItemSearchTests {
   }
 
   @Test
+  func duplicateIDsDoNotCrash() async throws {
+    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("workitemsbatch")) }
+
+    let items = try await client.workItems([1234, 1200, 1234], seenAt: clock.now())
+
+    #expect(items.map(\.workItemID) == [1234, 1200])
+  }
+
+  @Test
   func idSearchFetchesTheItemDirectly() async throws {
     stub.respond { request in
       #expect(request.url?.path() == "/contoso/_apis/wit/workitemsbatch")

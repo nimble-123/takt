@@ -119,6 +119,19 @@ struct GRDBTimerStoreTests {
   }
 
   @Test
+  func segmentEndingAtItsStartIsAnInvalidValueLikeInMemory() async throws {
+    let entry = TimeEntry(title: "A", createdAt: clock.now(), updatedAt: clock.now())
+    let empty = Segment(entryID: entry.id, start: clock.now(), end: clock.now())
+
+    await #expect(throws: TimerStoreError.invalidValue) {
+      try await store.update { _ in
+        TimerUpdate(changes: [.entry(before: nil, after: entry), .segment(before: nil, after: empty)])
+      }
+    }
+    #expect(try await store.snapshot().entries.isEmpty)
+  }
+
+  @Test
   func insertingSegmentOfMissingEntryIsAConflict() async throws {
     await #expect(throws: TimerStoreError.conflict) {
       try await store.update { _ in
