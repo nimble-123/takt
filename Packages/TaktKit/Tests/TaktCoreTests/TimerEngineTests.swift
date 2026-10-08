@@ -15,6 +15,22 @@ struct TimerEngineTests {
   // MARK: Internal
 
   @Test
+  func stopAllStopsRunningAndPausedInOneCommand() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let b = try await engine.start(EntryDraft(title: "B"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let before = await store.tables
+
+    let result = try await engine.stopAll()
+
+    #expect(Set(result.value) == [a, b])
+    #expect(await snapshot().entries.isEmpty)
+    try await engine.undo(result.undo)
+    #expect(await store.tables == before)
+  }
+
+  @Test
   func startCreatesRunningEntryWithOpenSegment() async throws {
     let id = try await engine.start(EntryDraft(title: "Review"), mode: .switchTo).value
 

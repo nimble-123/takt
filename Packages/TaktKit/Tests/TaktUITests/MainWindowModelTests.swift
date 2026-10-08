@@ -13,7 +13,7 @@ struct MainWindowModelTests {
   // MARK: Lifecycle
 
   init() throws {
-    let database = try AppDatabase.inMemory()
+    database = try AppDatabase.inMemory()
     var calendar = Calendar(identifier: .gregorian)
     calendar.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
     calendar.firstWeekday = 2
@@ -37,6 +37,43 @@ struct MainWindowModelTests {
     #expect(model.selection == [id])
     #expect(model.entry(id)?.segments.first?.source == .manual)
     #expect(model.dayTotal == 3600)
+  }
+
+  @Test
+  func stopAllFromTheWindowBooksAutomatically() async throws {
+    var reported = [[EntryID]]()
+    model.actions.onStopped = { reported.append($0) }
+    _ = try await engine.start(EntryDraft(title: "A"), mode: .switchTo)
+    _ = try await engine.start(EntryDraft(title: "B"), mode: .parallel)
+
+    await model.stopAll()
+
+    #expect(reported.map(\.count) == [2])
+    #expect(try await engine.snapshot().entries.isEmpty)
+  }
+
+  @Test
+  func workItemTimerFromThePaletteIsInTheTakenOverProject() async throws {
+    await model.catalog.save(
+      Project(
+        name: "Portal",
+        color: "#2563EB",
+        source: .ado,
+        adoOrganization: "contoso",
+        adoProject: "Portal",
+        createdAt: clock.now(),
+      )
+    )
+    let stored = try await WorkItemCache(database: database).store([
+      WorkItemLink(organization: "contoso", project: "Portal", workItemID: 1234, cachedTitle: "Token")
+    ])
+    let item = try #require(stored.first)
+
+    await model.startTimer(for: item)
+
+    let running = try #require(try await engine.snapshot().running.first)
+    #expect(running.entry.projectID == model.catalog.catalog.projects.first?.id)
+    #expect(running.entry.workItemLinkID == item.id)
   }
 
   @Test
@@ -167,6 +204,7 @@ struct MainWindowModelTests {
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000)) // Wed 2026-10-07 10:00 Berlin
+  private let database: AppDatabase
   private let engine: TimerEngine
   private let model: MainWindowModel
   private let undoManager = UndoManager()
