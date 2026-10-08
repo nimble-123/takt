@@ -64,6 +64,28 @@ struct GRDBTimerStoreTests {
   }
 
   @Test
+  func subscriberEndsOnTheStoredStateWithConcurrentCommandsOnAPool() async throws {
+    let folder = FileManager.default.temporaryDirectory.appending(path: "takt-pool-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let pool = GRDBTimerStore(database: try AppDatabase.open(at: folder.appending(path: "takt.sqlite")))
+    let engine = TimerEngine(store: pool, clock: clock)
+    let stream = try await engine.updates()
+
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      for index in 0..<20 {
+        group.addTask { _ = try await engine.start(EntryDraft(title: "\(index)"), mode: .parallel) }
+      }
+      try await group.waitForAll()
+    }
+
+    // The buffer keeps the newest snapshot; it must be the stored state, not an older one.
+    let delivered = await stream.first { _ in true }
+    #expect(delivered == (try await pool.snapshot()))
+    #expect(delivered?.entries.count == 20)
+  }
+
+  @Test
   func undoRestoresTheStoredRows() async throws {
     let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)

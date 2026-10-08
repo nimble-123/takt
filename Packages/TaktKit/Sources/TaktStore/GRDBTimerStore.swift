@@ -1,4 +1,5 @@
 import GRDB
+import Synchronization
 import TaktCore
 
 /// `TimerStore` on SQLite. Each `update` is one write transaction.
@@ -18,13 +19,22 @@ public struct GRDBTimerStore: TimerStore {
 
   public func update<T: Sendable>(
     _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
-  ) async throws -> T {
+  ) async throws -> TimerCommit<T> {
     try await database.writer.write { db in
       let update = try body(try Self.snapshot(db))
       for change in update.changes {
         try Self.apply(change, db)
       }
-      return update.result
+      // Writes are serialised, so the sequence follows the order of the commits.
+      let sequence = writes.next()
+      return TimerCommit(value: update.result, snapshot: try Self.snapshot(db), sequence: sequence)
+    }
+  }
+
+  public func latest() async throws -> TimerCommit<Void> {
+    // Read through the writer, so no write can commit between the read and the sequence.
+    try await database.writer.write { db in
+      TimerCommit(value: (), snapshot: try Self.snapshot(db), sequence: writes.current())
     }
   }
 
@@ -38,6 +48,27 @@ public struct GRDBTimerStore: TimerStore {
   }
 
   // MARK: Internal
+
+  /// Counts the writes of this store; shared by its copies.
+  final class WriteCounter: Sendable {
+
+    // MARK: Internal
+
+    func next() -> Int {
+      count.withLock { value in
+        value += 1
+        return value
+      }
+    }
+
+    func current() -> Int {
+      count.withLock { $0 }
+    }
+
+    // MARK: Private
+
+    private let count = Mutex(0)
+  }
 
   static let heartbeatKey = "engine.heartbeat"
 
@@ -109,6 +140,7 @@ public struct GRDBTimerStore: TimerStore {
   // MARK: Private
 
   private let database: AppDatabase
+  private let writes = WriteCounter()
 
   /// Writes `after` only if the stored row equals `before`.
   private static func apply<Value: TableRow>(_ before: Value?, _ after: Value?, _ db: Database) throws {
