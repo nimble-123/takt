@@ -18,7 +18,7 @@ struct ADOClientTests {
   /// connectionData exists only as a preview API; plain 7.1 is rejected with 400.
   @Test
   func verifyReturnsTheUserAndSendsVersionAndAuth() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("connectionData")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("connectionData")) }
 
     let identity = try await client().verify()
 
@@ -32,7 +32,7 @@ struct ADOClientTests {
 
   @Test
   func anonymousIdentityMeansTheTokenWasNotAccepted() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("connectionData-anonymous")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("connectionData-anonymous")) }
     await #expect(throws: ADOError.unauthorized) { try await client().verify() }
   }
 
@@ -56,7 +56,7 @@ struct ADOClientTests {
 
   @Test
   func projectsAreSortedByName() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("projects")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("projects")) }
     let projects = try await client().projects()
     #expect(projects.map(\.name) == ["Backoffice", "Kundenportal"])
   }
@@ -65,7 +65,7 @@ struct ADOClientTests {
   func areaPathsAreFlattened() async throws {
     stub.respond { request in
       #expect(request.url?.path() == "/contoso/Kundenportal/_apis/wit/classificationnodes/areas")
-      return Stub.Response(status: 200, body: Stub.fixture("areas"))
+      return Stub.Response(status: 200, body: try Stub.fixture("areas"))
     }
     let paths = try await client().areaPaths(of: "Kundenportal")
     #expect(
@@ -96,7 +96,7 @@ struct ADOAccountsTests {
 
   @Test
   func connectVerifiesThenStoresTokenAndConnection() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("connectionData")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("connectionData")) }
     let expires = Date(timeIntervalSince1970: 1_800_000_000)
 
     let connection = try await accounts.connect(
@@ -124,7 +124,7 @@ struct ADOAccountsTests {
 
   @Test
   func removeDeletesTokenAndConnection() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("connectionData")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("connectionData")) }
     try await accounts.connect(organization: "contoso", token: "secret", expires: nil)
     try accounts.remove("contoso")
     #expect(accounts.connections.isEmpty)

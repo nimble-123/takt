@@ -136,8 +136,86 @@ public struct Analyzer: Sendable {
     by grouping: Grouping,
     mode: CountingMode? = nil,
   ) -> Report {
-    let entries = Dictionary(data.entries.map { ($0.id, $0) }) { first, _ in first }
-    let inputs = data.entries.flatMap { entry in
+    let intervals = Allocation.intervals(inputs(data.entries, now: now, mode: mode), in: range)
+    let days = dayStarts(in: range)
+    let tally = tally(intervals, days: days, range: range, data: data, grouping: grouping)
+    let focus = focusRuns(intervals)
+    return Report(
+      range: range,
+      grouping: grouping,
+      total: groupsTotal(tally.slices),
+      wallClock: tally.wallClock,
+      pauses: pauses(data.entries, in: range),
+      multitaskingShare: tally.wallClock > 0 ? tally.parallel / tally.wallClock : 0,
+      focusBlocks: focus.count,
+      focusTime: focus.reduce(0, +),
+      contextSwitchesPerDay: tally.activeDays.isEmpty
+        ? 0
+        : Double(tally.switches) / Double(tally.activeDays.count),
+      groups: sortedGroups(tally.groups),
+      days: zip(days, tally.dayGroups).map { Report.Day(start: $0, groups: $1) },
+      heatmap: tally.heatmap,
+      slices: tally.slices.sorted { $0.key < $1.key }.flatMap { day, entries in
+        entries.map { Report.Slice(entryID: $0.key, day: days[day], seconds: $0.value) }
+          .sorted { $0.entryID.uuidString < $1.entryID.uuidString }
+      },
+    )
+  }
+
+  // MARK: Private
+
+  /// Running sums while the intervals of a report are walked in order.
+  private struct Tally {
+
+    // MARK: Lifecycle
+
+    init(dayCount: Int) {
+      dayGroups = Array(repeating: [:], count: dayCount)
+    }
+
+    // MARK: Internal
+
+    var groups = [GroupKey: TimeInterval]()
+    var dayGroups: [[GroupKey: TimeInterval]]
+    /// Allocated seconds by day index and entry.
+    var slices = [Int: [EntryID: TimeInterval]]()
+    var heatmap = Array(repeating: Array(repeating: 0.0, count: 24), count: 7)
+    var wallClock: TimeInterval = 0
+    var parallel: TimeInterval = 0
+    var switches = 0
+    var activeDays = Set<Int>()
+    var lastActive = Set<EntryID>()
+    var lastDay = -1
+
+    mutating func add(_ seconds: TimeInterval, to keys: [GroupKey], onDay dayIndex: Int) {
+      for key in keys {
+        groups[key, default: 0] += seconds
+        dayGroups[dayIndex][key, default: 0] += seconds
+      }
+    }
+
+    /// Context switches: a newly active entry within the same day.
+    mutating func countSwitch(to active: Set<EntryID>, onDay dayIndex: Int) {
+      if dayIndex != lastDay {
+        lastDay = dayIndex
+      } else if !active.subtracting(lastActive).isEmpty {
+        switches += 1
+      }
+      lastActive = active
+    }
+  }
+
+  /// Largest first; equal totals in the order of `GroupKey.tiebreaker`, so reports are stable.
+  private func sortedGroups(_ groups: [GroupKey: TimeInterval]) -> [Report.GroupTotal] {
+    groups.map { Report.GroupTotal(key: $0.key, seconds: $0.value) }
+      .sorted { lhs, rhs in
+        if lhs.seconds != rhs.seconds { return lhs.seconds > rhs.seconds }
+        return lhs.key.tiebreaker < rhs.key.tiebreaker
+      }
+  }
+
+  private func inputs(_ entries: [EntryWithSegments], now: Timestamp, mode: CountingMode?) -> [Allocation.Input] {
+    entries.flatMap { entry in
       entry.segments.map {
         Allocation.Input(
           entryID: entry.id,
@@ -148,88 +226,55 @@ public struct Analyzer: Sendable {
         )
       }
     }
-    let intervals = Allocation.intervals(inputs, in: range)
-    let days = dayStarts(in: range)
-    let timeZone = calendar.timeZone
+  }
 
-    var groups = [GroupKey: TimeInterval]()
-    var dayGroups = Array(repeating: [GroupKey: TimeInterval](), count: days.count)
-    var slices = [Int: [EntryID: TimeInterval]]()
-    var heatmap = Array(repeating: Array(repeating: 0.0, count: 24), count: 7)
-    var wallClock: TimeInterval = 0
-    var parallel: TimeInterval = 0
-    var switches = 0
-    var activeDays = Set<Int>()
-    var lastActive = Set<EntryID>()
-    var lastDay = -1
+  /// Walks the intervals in pieces that end at the next local hour or day, whichever comes first.
+  private func tally(
+    _ intervals: [Allocation.Interval],
+    days: [Timestamp],
+    range: Range<Timestamp>,
+    data: AnalyticsData,
+    grouping: Grouping,
+  ) -> Tally {
+    let entries = Dictionary(data.entries.map { ($0.id, $0) }) { first, _ in first }
+    var tally = Tally(dayCount: days.count)
     var dayIndex = 0
-
     for interval in intervals {
       var pieceStart = interval.start
       while pieceStart < interval.end {
         while dayIndex + 1 < days.count, days[dayIndex + 1] <= pieceStart { dayIndex += 1 }
-        let offset = TimeInterval(timeZone.secondsFromGMT(for: pieceStart.date))
-        let localSeconds = TimeInterval(pieceStart.milliseconds) / 1000 + offset
-        let hour = Int((localSeconds / 3600).rounded(.down)) % 24
-        let nextHour = Timestamp(
-          milliseconds: Int64(((localSeconds / 3600).rounded(.down) + 1) * 3600 - offset) * 1000
-        )
+        let (hour, nextHour) = localHour(of: pieceStart)
         let dayEnd = dayIndex + 1 < days.count ? days[dayIndex + 1] : range.upperBound
         let pieceEnd = min(interval.end, nextHour, dayEnd)
         let length = pieceEnd.seconds(since: pieceStart)
-        let weekday = weekdayIndex(days[dayIndex])
+        let weekday = days[dayIndex].mondayBasedWeekday(in: calendar)
 
-        wallClock += length
-        if interval.shares.count > 1 { parallel += length }
-        heatmap[weekday - 1][(hour + 24) % 24] += length
-        activeDays.insert(dayIndex)
+        tally.wallClock += length
+        if interval.shares.count > 1 { tally.parallel += length }
+        tally.heatmap[weekday - 1][(hour + 24) % 24] += length
+        tally.activeDays.insert(dayIndex)
 
         for (entryID, share) in interval.shares {
           let seconds = length * share
-          slices[dayIndex, default: [:]][entryID, default: 0] += seconds
+          tally.slices[dayIndex, default: [:]][entryID, default: 0] += seconds
           guard let entry = entries[entryID] else { continue }
-          for key in keys(of: entry, grouping, data, day: days[dayIndex], weekday: weekday, hour: hour) {
-            groups[key, default: 0] += seconds
-            dayGroups[dayIndex][key, default: 0] += seconds
-          }
+          let keys = keys(of: entry, grouping, data, day: days[dayIndex], weekday: weekday, hour: hour)
+          tally.add(seconds, to: keys, onDay: dayIndex)
         }
         pieceStart = pieceEnd
       }
-
-      // Context switches: a newly active entry within the same day.
-      let active = Set(interval.shares.keys)
-      if dayIndex != lastDay {
-        lastDay = dayIndex
-        lastActive = active
-      } else {
-        if !active.subtracting(lastActive).isEmpty { switches += 1 }
-        lastActive = active
-      }
+      tally.countSwitch(to: Set(interval.shares.keys), onDay: dayIndex)
     }
-
-    let focus = focusRuns(intervals)
-    return Report(
-      range: range,
-      grouping: grouping,
-      total: groupsTotal(slices),
-      wallClock: wallClock,
-      pauses: pauses(data.entries, in: range),
-      multitaskingShare: wallClock > 0 ? parallel / wallClock : 0,
-      focusBlocks: focus.count,
-      focusTime: focus.reduce(0, +),
-      contextSwitchesPerDay: activeDays.isEmpty ? 0 : Double(switches) / Double(activeDays.count),
-      groups: groups.map { Report.GroupTotal(key: $0.key, seconds: $0.value) }
-        .sorted { $0.seconds > $1.seconds },
-      days: zip(days, dayGroups).map { Report.Day(start: $0, groups: $1) },
-      heatmap: heatmap,
-      slices: slices.sorted { $0.key < $1.key }.flatMap { day, entries in
-        entries.map { Report.Slice(entryID: $0.key, day: days[day], seconds: $0.value) }
-          .sorted { $0.entryID.uuidString < $1.entryID.uuidString }
-      },
-    )
+    return tally
   }
 
-  // MARK: Private
+  /// The local hour containing `time` and the start of the next local hour.
+  private func localHour(of time: Timestamp) -> (hour: Int, next: Timestamp) {
+    let offset = TimeInterval(calendar.timeZone.secondsFromGMT(for: time.date))
+    let localHours = ((TimeInterval(time.milliseconds) / 1000 + offset) / 3600).rounded(.down)
+    let next = Timestamp(milliseconds: Int64((localHours + 1) * 3600 - offset) * 1000)
+    return (Int(localHours) % 24, next)
+  }
 
   private func groupsTotal(_ slices: [Int: [EntryID: TimeInterval]]) -> TimeInterval {
     slices.values.reduce(0) { $0 + $1.values.reduce(0, +) }
@@ -264,12 +309,6 @@ public struct Analyzer: Sendable {
       day = day.upperBound.localDay(in: calendar)
     }
     return days.isEmpty ? [range.lowerBound] : days
-  }
-
-  /// 1 = Monday … 7 = Sunday, independent of the calendar's first weekday.
-  private func weekdayIndex(_ day: Timestamp) -> Int {
-    let weekday = calendar.component(.weekday, from: day.date) // 1 = Sunday
-    return (weekday + 5) % 7 + 1
   }
 
   private func pauses(_ entries: [EntryWithSegments], in range: Range<Timestamp>) -> TimeInterval {
@@ -309,5 +348,23 @@ public struct Analyzer: Sendable {
     }
     close()
     return runs
+  }
+}
+
+// MARK: - GroupKey + tiebreaker
+
+extension GroupKey {
+  /// Orders groups with equal totals: by kind, then by value; `.none` comes last.
+  fileprivate var tiebreaker: (kind: Int, number: Int64, id: String) {
+    switch self {
+    case .project(let id): (0, 0, id.uuidString)
+    case .category(let id): (1, 0, id.uuidString)
+    case .day(let day): (2, day.milliseconds, "")
+    case .weekday(let weekday): (3, Int64(weekday), "")
+    case .tag(let id): (4, 0, id.uuidString)
+    case .workItem(let id): (5, 0, id.uuidString)
+    case .hour(let hour): (6, Int64(hour), "")
+    case .none: (7, 0, "")
+    }
   }
 }

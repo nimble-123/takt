@@ -1,5 +1,4 @@
 import KeyboardShortcuts
-import SwiftUI
 
 extension KeyboardShortcuts.Name {
   /// Opens or closes the menu bar popover from any app (MB-02).
@@ -26,20 +25,4 @@ public enum GlobalShortcut: CaseIterable, Sendable {
   public func onKeyUp(_ action: @escaping @MainActor () -> Void) {
     KeyboardShortcuts.onKeyUp(for: name, action: action)
   }
-}
-
-// MARK: - ShortcutRecorder
-
-/// Lets the user record a new key combination for a global shortcut (MB-02).
-public struct ShortcutRecorder: View {
-  public init(_ shortcut: GlobalShortcut) {
-    self.shortcut = shortcut
-  }
-
-  public var body: some View {
-    KeyboardShortcuts.Recorder(for: shortcut.name)
-  }
-
-  private let shortcut: GlobalShortcut
-
 }

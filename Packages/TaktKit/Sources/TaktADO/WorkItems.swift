@@ -285,23 +285,27 @@ public actor WorkItemSearch {
   /// Without input: assigned to me in the current iteration of all my teams, then recently
   /// changed by me (PRD "Vorgeschlagene Items" 1 and 3). `projects` are the Azure DevOps projects to look in.
   public func suggestions(projects: [String]) async throws -> [WorkItemLink] {
-    var ids = [Int]()
-    for project in projects {
-      for team in (try? await client.myTeams(in: project)) ?? [] {
-        ids +=
-          (try? await client.wiql(
-            """
-            SELECT [System.Id] FROM WorkItems
-            WHERE [System.AssignedTo] = @Me AND [System.IterationPath] = @CurrentIteration
-            AND [System.State] IN ('Active', 'In Progress', 'Committed', 'Doing')
-            ORDER BY [Microsoft.VSTS.Common.Priority], [System.ChangedDate] DESC
-            """,
-            project: project,
-            team: team,
-            top: 10,
-          )) ?? []
-      }
+    let client = client
+    let teams = await Self.orderedMap(projects) { (project: String) async -> [String] in
+      (try? await client.myTeams(in: project)) ?? []
     }
+    let teamQueries = zip(projects, teams).flatMap { project, teams in
+      teams.map { TeamQuery(project: project, team: $0) }
+    }
+    let teamIDs = await Self.orderedMap(teamQueries) { (query: TeamQuery) async -> [Int] in
+      (try? await client.wiql(
+        """
+        SELECT [System.Id] FROM WorkItems
+        WHERE [System.AssignedTo] = @Me AND [System.IterationPath] = @CurrentIteration
+        AND [System.State] IN ('Active', 'In Progress', 'Committed', 'Doing')
+        ORDER BY [Microsoft.VSTS.Common.Priority], [System.ChangedDate] DESC
+        """,
+        project: query.project,
+        team: query.team,
+        top: 10,
+      )) ?? []
+    }
+    var ids = teamIDs.flatMap(\.self)
     ids += try await client.wiql(
       """
       SELECT [System.Id] FROM WorkItems
@@ -317,9 +321,38 @@ public actor WorkItemSearch {
 
   // MARK: Private
 
+  private struct TeamQuery: Sendable {
+    var project: String
+    var team: String
+  }
+
+  /// Requests `suggestions` keeps in flight at once.
+  private static let maxConcurrentRequests = 4
+
   private let client: ADOClient
   private let clock: any TaktClock
   private var fullTextAvailable: Bool?
+
+  /// `transform` of every element, with at most `maxConcurrentRequests` running at once; the
+  /// results keep the order of `elements`.
+  private static func orderedMap<Element: Sendable, Output: Sendable>(
+    _ elements: [Element],
+    _ transform: @escaping @Sendable (Element) async -> Output,
+  ) async -> [Output] {
+    await withTaskGroup(of: (index: Int, result: Output).self) { group in
+      var results = [Int: Output]()
+      for (index, element) in elements.enumerated() {
+        if index >= maxConcurrentRequests, let finished = await group.next() {
+          results[finished.index] = finished.result
+        }
+        group.addTask { (index, await transform(element)) }
+      }
+      for await finished in group {
+        results[finished.index] = finished.result
+      }
+      return elements.indices.compactMap { results[$0] }
+    }
+  }
 
   private func ids(matching text: String) async throws -> [Int] {
     if fullTextAvailable != false {

@@ -100,18 +100,18 @@ public enum TimerChange: Hashable, Sendable {
 // MARK: - TimerUpdate
 
 /// What a command decided: the rows to write and the value to return to the caller.
-public struct TimerUpdate<Result: Sendable>: Sendable {
-  public init(changes: [TimerChange], result: Result) {
+public struct TimerUpdate<Value: Sendable>: Sendable {
+  public init(changes: [TimerChange], result: Value) {
     self.changes = changes
     self.result = result
   }
 
   public var changes: [TimerChange]
-  public var result: Result
+  public var result: Value
 
 }
 
-extension TimerUpdate where Result == Void {
+extension TimerUpdate where Value == Void {
   public init(changes: [TimerChange]) {
     self.init(changes: changes, result: ())
   }

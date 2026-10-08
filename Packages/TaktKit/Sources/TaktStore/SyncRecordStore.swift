@@ -63,26 +63,11 @@ public struct SyncRecordStore: Sendable {
   // MARK: Public
 
   public func insert(_ record: SyncRecord) async throws {
-    try await database.writer.write { db in
-      let columns = record.columns.sorted { $0.key < $1.key }
-      try db.execute(
-        sql: """
-          INSERT INTO sync_record (\(columns.map(\.key).joined(separator: ", ")))
-          VALUES (\(databaseQuestionMarks(count: columns.count)))
-          """,
-        arguments: StatementArguments(columns.map(\.value)),
-      )
-    }
+    try await database.writer.write { db in try record.insertRow(into: db) }
   }
 
   public func update(_ record: SyncRecord) async throws {
-    try await database.writer.write { db in
-      let columns = record.columns.filter { $0.key != "id" }.sorted { $0.key < $1.key }
-      try db.execute(
-        sql: "UPDATE sync_record SET \(columns.map { "\($0.key) = ?" }.joined(separator: ", ")) WHERE id = ?",
-        arguments: StatementArguments(columns.map(\.value) + [record.id.uuidString]),
-      )
-    }
+    try await database.writer.write { db in try record.updateRow(id: record.id.uuidString, in: db) }
   }
 
   /// All records of the entries, oldest first.

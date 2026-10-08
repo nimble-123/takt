@@ -14,6 +14,50 @@ protocol TableRow: Equatable, Sendable {
   var columns: [String: (any DatabaseValueConvertible)?] { get }
 }
 
+extension TableRow {
+
+  // MARK: Internal
+
+  /// Inserts all columns as a new row.
+  func insertRow(into db: Database) throws {
+    let columns = sortedColumns
+    try db.execute(
+      sql: "INSERT INTO \(Self.table) (\(columns.map(\.key).joined(separator: ", "))) VALUES (\(databaseQuestionMarks(count: columns.count)))",
+      arguments: StatementArguments(columns.map(\.value)),
+    )
+  }
+
+  /// Overwrites every column but `id` of the row with the given ID.
+  func updateRow(id: String, in db: Database) throws {
+    let columns = sortedColumns.filter { $0.key != "id" }
+    try db.execute(
+      sql: "UPDATE \(Self.table) SET \(columns.map { "\($0.key) = ?" }.joined(separator: ", ")) WHERE id = ?",
+      arguments: StatementArguments(columns.map(\.value) + [id]),
+    )
+  }
+
+  /// Inserts the row, or overwrites every column but `id` if a row with its ID exists.
+  func upsertRow(into db: Database) throws {
+    let columns = sortedColumns
+    let updates = columns.filter { $0.key != "id" }.map { "\($0.key) = excluded.\($0.key)" }
+    try db.execute(
+      sql: """
+        INSERT INTO \(Self.table) (\(columns.map(\.key).joined(separator: ", ")))
+        VALUES (\(databaseQuestionMarks(count: columns.count)))
+        ON CONFLICT(id) DO UPDATE SET \(updates.joined(separator: ", "))
+        """,
+      arguments: StatementArguments(columns.map(\.value)),
+    )
+  }
+
+  // MARK: Private
+
+  /// Columns in a stable order, so statements and arguments line up.
+  private var sortedColumns: [(key: String, value: (any DatabaseValueConvertible)?)] {
+    columns.sorted { $0.key < $1.key }
+  }
+}
+
 // MARK: - RowDecodingError
 
 enum RowDecodingError: Error {
@@ -62,9 +106,14 @@ extension Row {
   }
 }
 
-func entryIDsJSON(_ ids: [EntryID]) -> String {
-  let data = (try? JSONEncoder().encode(ids.map(\.uuidString))) ?? Data("[]".utf8)
-  return String(decoding: data, as: UTF8.self)
+// MARK: - EntryID + JSON
+
+extension EntryID {
+  /// The `entry_ids` column format: a JSON array of UUID strings, read back by `Row.entryIDs(_:)`.
+  static func jsonArray(_ ids: [EntryID]) -> String {
+    let data = (try? JSONEncoder().encode(ids.map(\.uuidString))) ?? Data("[]".utf8)
+    return String(decoding: data, as: UTF8.self)
+  }
 }
 
 // MARK: - TimeEntry + TableRow
@@ -180,7 +229,7 @@ extension GlobalPause: TableRow {
     [
       "id": id.uuidString,
       "paused_at": pausedAt.milliseconds,
-      "entry_ids": entryIDsJSON(entryIDs),
+      "entry_ids": EntryID.jsonArray(entryIDs),
       "resumed_at": resumedAt?.milliseconds,
     ]
   }
@@ -216,7 +265,7 @@ extension IdleEvent: TableRow {
       "id": id.uuidString,
       "start_at": start.milliseconds,
       "end_at": end.milliseconds,
-      "entry_ids": entryIDsJSON(entryIDs),
+      "entry_ids": EntryID.jsonArray(entryIDs),
       "resolution": resolution?.rawValue,
       "entry_id": targetEntryID?.uuidString,
     ]
