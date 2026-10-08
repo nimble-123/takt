@@ -40,13 +40,12 @@ final class Stub: Sendable {
     return handler.withLock { $0 } ?? fallback
   }
 
-  /// A recorded response from `Fixtures/`.
-  static func fixture(_ name: String) -> Data {
-    guard
-      let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"),
-      let data = try? Data(contentsOf: url)
-    else { return Data() }
-    return data
+  /// A recorded response from `Fixtures/`; throws if it is missing, so a typo fails the test.
+  static func fixture(_ name: String) throws -> Data {
+    guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures") else {
+      throw MissingFixture(name: name)
+    }
+    return try Data(contentsOf: url)
   }
 
   func respond(_ handler: @escaping Handler) {
@@ -66,6 +65,12 @@ final class Stub: Sendable {
   private let handler: Mutex<Handler?> = Mutex(nil)
   private let recorded: Mutex<[URLRequest]> = Mutex([])
 
+}
+
+// MARK: - MissingFixture
+
+struct MissingFixture: Error {
+  var name: String
 }
 
 // MARK: - StubProtocol
