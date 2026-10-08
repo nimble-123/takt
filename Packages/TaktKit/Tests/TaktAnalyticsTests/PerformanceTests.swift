@@ -28,11 +28,13 @@ struct PerformanceTests {
     #expect(report.slices.count == 3000)
     #expect(report.total > 0)
     // Release builds must stay under 500 ms; debug builds are several times slower.
-    #if DEBUG
-    #expect(elapsed < .seconds(3), "took \(elapsed)")
-    #else
-    #expect(elapsed < .milliseconds(500), "took \(elapsed)")
-    #endif
+    if Self.checksWallClock {
+      #if DEBUG
+      #expect(elapsed < .seconds(3), "took \(elapsed)")
+      #else
+      #expect(elapsed < .milliseconds(500), "took \(elapsed)")
+      #endif
+    }
     // Reports the measured duration in the test log; tests are not shipped.
     // swiftlint:disable:next no_direct_standard_out_logs
     print(
@@ -41,6 +43,16 @@ struct PerformanceTests {
   }
 
   // MARK: Private
+
+  /// Shared Linux runners have outliers that make the limit flaky; there it is only checked with
+  /// `TAKT_CHECK_TIMING=1`. macOS always checks it.
+  private static var checksWallClock: Bool {
+    #if os(macOS)
+    true
+    #else
+    ProcessInfo.processInfo.environment["TAKT_CHECK_TIMING"] == "1"
+    #endif
+  }
 
   /// 250 working days × 12 entries × 12 segments = 36,000 segments, partly parallel.
   private func yearOfData() throws -> (AppDatabase, Range<Timestamp>) {

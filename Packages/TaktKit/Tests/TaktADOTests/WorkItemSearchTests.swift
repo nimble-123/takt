@@ -12,7 +12,7 @@ struct WorkItemSearchTests {
 
   @Test
   func batchDecodesThePreviewFields() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("workitemsbatch")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch")) }
 
     let items = try await client.workItems([1234, 1200], seenAt: clock.now())
 
@@ -32,7 +32,7 @@ struct WorkItemSearchTests {
 
   @Test
   func duplicateIDsDoNotCrash() async throws {
-    stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("workitemsbatch")) }
+    stub.respond { _ in Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch")) }
 
     let items = try await client.workItems([1234, 1200, 1234], seenAt: clock.now())
 
@@ -43,7 +43,7 @@ struct WorkItemSearchTests {
   func idSearchFetchesTheItemDirectly() async throws {
     stub.respond { request in
       #expect(request.url?.path() == "/contoso/_apis/wit/workitemsbatch")
-      return Stub.Response(status: 200, body: Stub.fixture("workitemsbatch"))
+      return Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch"))
     }
     _ = try await WorkItemSearch(client: client, clock: clock).search("#1234")
     #expect(stub.requests.count == 1)
@@ -54,9 +54,9 @@ struct WorkItemSearchTests {
   func fullTextSearchIsUsedWhenAvailable() async throws {
     stub.respond { request in
       if request.url?.host() == "almsearch.dev.azure.com" {
-        return Stub.Response(status: 200, body: Stub.fixture("workitemsearch"))
+        return Stub.Response(status: 200, body: try Stub.fixture("workitemsearch"))
       }
-      return Stub.Response(status: 200, body: Stub.fixture("workitemsbatch"))
+      return Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch"))
     }
     let items = try await WorkItemSearch(client: client, clock: clock).search("Token")
     #expect(items.first?.workItemID == 1234)
@@ -68,8 +68,8 @@ struct WorkItemSearchTests {
     stub.respond { request in
       switch request.url?.path() {
       case "/contoso/_apis/search/workitemsearchresults": Stub.Response(status: 404, body: Data())
-      case "/contoso/_apis/wit/wiql": Stub.Response(status: 200, body: Stub.fixture("wiql"))
-      default: Stub.Response(status: 200, body: Stub.fixture("workitemsbatch"))
+      case "/contoso/_apis/wit/wiql": Stub.Response(status: 200, body: try Stub.fixture("wiql"))
+      default: Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch"))
       }
     }
     let search = WorkItemSearch(client: client, clock: clock)
@@ -89,10 +89,10 @@ struct WorkItemSearchTests {
   func suggestionsAskEveryTeamForTheCurrentIteration() async throws {
     stub.respond { request in
       switch request.url?.path(percentEncoded: false) {
-      case "/contoso/_apis/projects/Kundenportal/teams": Stub.Response(status: 200, body: Stub.fixture("teams"))
+      case "/contoso/_apis/projects/Kundenportal/teams": Stub.Response(status: 200, body: try Stub.fixture("teams"))
       case "/contoso/Kundenportal/Team Login/_apis/wit/wiql", "/contoso/_apis/wit/wiql":
-        Stub.Response(status: 200, body: Stub.fixture("wiql"))
-      default: Stub.Response(status: 200, body: Stub.fixture("workitemsbatch"))
+        Stub.Response(status: 200, body: try Stub.fixture("wiql"))
+      default: Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch"))
       }
     }
     let items = try await WorkItemSearch(client: client, clock: clock).suggestions(projects: ["Kundenportal"])

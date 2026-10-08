@@ -154,12 +154,12 @@ struct BookingTests {
         return Stub.Response(status: 200, body: Data(#"{"count":0,"value":[]}"#.utf8))
       }
       if request.url?.path().contains("workitemtypes") == true {
-        return Stub.Response(status: 200, body: Stub.fixture("type-fields-task"))
+        return Stub.Response(status: 200, body: try Stub.fixture("type-fields-task"))
       }
       if request.httpMethod == "PATCH" {
-        return Stub.Response(status: 200, body: Stub.fixture("workitem-patched"))
+        return Stub.Response(status: 200, body: try Stub.fixture("workitem-patched"))
       }
-      return Stub.Response(status: 200, body: Stub.fixture("workitem-time"))
+      return Stub.Response(status: 200, body: try Stub.fixture("workitem-time"))
     }
     #expect(await service.processPending() == 0)
     #expect(try await records.pending().isEmpty)
@@ -176,8 +176,8 @@ struct BookingTests {
       request.httpMethod == "PATCH"
         ? Stub.Response(status: 401, body: Data())
         : request.url?.path().contains("workitemtypes") == true
-          ? Stub.Response(status: 200, body: Stub.fixture("type-fields-task"))
-          : Stub.Response(status: 200, body: Stub.fixture("workitem-time"))
+          ? Stub.Response(status: 200, body: try Stub.fixture("type-fields-task"))
+          : Stub.Response(status: 200, body: try Stub.fixture("workitem-time"))
     }
 
     #expect(await service.book(line) == .failed(.unauthorized))
@@ -229,7 +229,7 @@ struct BookingTests {
       createdAt: clock.now(),
     )
     try await records.insert(record)
-    let updates = String(decoding: Stub.fixture("updates"), as: UTF8.self).replacingOccurrences(
+    let updates = String(decoding: try Stub.fixture("updates"), as: UTF8.self).replacingOccurrences(
       of: "MARKER",
       with: record.marker,
     )
@@ -258,15 +258,15 @@ struct BookingTests {
     try await records.insert(record)
     stub.respond { request in
       if request.url?.path().hasSuffix("/updates") == true {
-        return Stub.Response(status: 200, body: Stub.fixture("updates")) // marker of another booking
+        return Stub.Response(status: 200, body: try Stub.fixture("updates")) // marker of another booking
       }
       if request.url?.path().contains("workitemtypes") == true {
-        return Stub.Response(status: 200, body: Stub.fixture("type-fields-task"))
+        return Stub.Response(status: 200, body: try Stub.fixture("type-fields-task"))
       }
       if request.httpMethod == "PATCH" {
-        return Stub.Response(status: 200, body: Stub.fixture("workitem-patched"))
+        return Stub.Response(status: 200, body: try Stub.fixture("workitem-patched"))
       }
-      return Stub.Response(status: 200, body: Stub.fixture("workitem-time"))
+      return Stub.Response(status: 200, body: try Stub.fixture("workitem-time"))
     }
 
     #expect(await service.processPending() == 0)
@@ -456,13 +456,13 @@ struct BookingTests {
       let path = request.url?.path(percentEncoded: false) ?? ""
       switch (request.httpMethod, path) {
       case ("GET", "/contoso/Kundenportal/_apis/wit/workitemtypes/Task/fields"):
-        return Stub.Response(status: 200, body: Stub.fixture("type-fields-task"))
+        return Stub.Response(status: 200, body: try Stub.fixture("type-fields-task"))
 
       case ("GET", "/contoso/Kundenportal/_apis/wit/workitemtypes/Epic/fields"):
-        return Stub.Response(status: 200, body: Stub.fixture("type-fields-epic"))
+        return Stub.Response(status: 200, body: try Stub.fixture("type-fields-epic"))
 
       case ("GET", "/contoso/_apis/wit/workitems/1234"):
-        return Stub.Response(status: 200, body: Stub.fixture("workitem-time"))
+        return Stub.Response(status: 200, body: try Stub.fixture("workitem-time"))
 
       case ("PATCH", "/contoso/_apis/wit/workitems/1234"):
         let attempt = patches.withLock { count in
@@ -472,7 +472,7 @@ struct BookingTests {
         let status = patchStatus(attempt)
         return Stub.Response(
           status: status,
-          body: status == 200 ? Stub.fixture("workitem-patched") : Stub.fixture("412-test-failed"),
+          body: try Stub.fixture(status == 200 ? "workitem-patched" : "412-test-failed"),
         )
 
       default:

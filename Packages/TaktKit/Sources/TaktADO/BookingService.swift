@@ -88,29 +88,30 @@ public enum BookingPlanner {
       var link: WorkItemLinkID
     }
     var targets = [Key: Int]()
-    var titles = [EntryID: (String, String?)]()
+    var titles = [EntryID: (title: String, note: String?)]()
     for entry in entries {
       titles[entry.id] = (entry.entry.title, entry.entry.note)
       guard let link = entry.entry.workItemLinkID, let seconds = allocated[entry.id] else { continue }
       targets[Key(entry: entry.id, link: link)] = Int(rounding.round(seconds).rounded())
     }
-    let dayRecords = records.filter { $0.localDay == localDay }
-    var keys = Set(targets.keys)
-    keys.formUnion(dayRecords.map { Key(entry: $0.entryID, link: $0.workItemLinkID) })
+    let recordsByKey = Dictionary(grouping: records.filter { $0.localDay == localDay }) {
+      Key(entry: $0.entryID, link: $0.workItemLinkID)
+    }
+    let keys = Set(targets.keys).union(recordsByKey.keys)
 
     return keys.compactMap { key -> BookingLine? in
       guard let workItem = workItems[key.link] else { return nil }
-      let mine = dayRecords.filter { $0.entryID == key.entry && $0.workItemLinkID == key.link }
+      let mine = recordsByKey[key] ?? []
       let booked = mine.filter { $0.status == .synced }.reduce(0) { $0 + $1.deltaSeconds }
       let inFlight = mine.filter { $0.status == .pending }.reduce(0) { $0 + $1.deltaSeconds }
       let failed = mine.last { $0.status == .failed }
       let lastFailedIsLatest =
         failed.map { failure in !mine.contains { $0.createdAt > failure.createdAt } } ?? false
-      let title = titles[key.entry]?.0 ?? deletedTitles[key.entry] ?? "?"
+      let title = titles[key.entry]?.title ?? deletedTitles[key.entry] ?? "?"
       return BookingLine(
         entryID: key.entry,
         title: title,
-        note: titles[key.entry]?.1,
+        note: titles[key.entry]?.note,
         workItem: workItem,
         localDay: localDay,
         target: targets[key] ?? 0,
@@ -217,6 +218,8 @@ public actor BookingService {
   public func processPending(force: Bool = false) async -> Int {
     if !force, let nextAttempt, clock.now() < nextAttempt { return (try? await records.pending().count) ?? 0 }
     guard let pending = try? await records.pending() else { return 0 }
+    // One keychain read per organization and run; nil means not connected.
+    var clients = [String: ADOClient?]()
     for record in pending {
       // Being sent right now by `book` or another run of the queue.
       guard recordsInFlight.insert(record.id).inserted else { continue }
@@ -225,8 +228,11 @@ public actor BookingService {
         _ = await fail(record, .workItemUnknown)
         continue
       }
+      if clients[link.organization] == nil {
+        clients[link.organization] = .some(try? accounts.client(for: link.organization))
+      }
       // Not connected (any more): stays pending until the organization is connected again.
-      guard let client = try? accounts.client(for: link.organization) else { continue }
+      guard let client = clients[link.organization] ?? nil else { continue }
       do {
         if let revision = try await client.revision(of: link.workItemID, withHistoryContaining: record.marker) {
           try await markSynced(record, revision: revision)
@@ -246,6 +252,9 @@ public actor BookingService {
   // MARK: Internal
 
   static let maxConflictRetries = 3
+  /// First wait of the offline queue; doubles with every failed attempt up to `maxBackoff`.
+  static let initialBackoff: TimeInterval = 30
+  static let maxBackoff: TimeInterval = 15 * 60
 
   // MARK: Private
 
@@ -258,7 +267,7 @@ public actor BookingService {
   private var fieldsByType = [String: Set<String>]()
   /// Exponential backoff for the offline queue; `Retry-After` wins if longer.
   private var nextAttempt: Timestamp?
-  private var backoff: TimeInterval = 30
+  private var backoff = initialBackoff
   /// Lines `book` is working on, by `BookingLine.id`.
   private var linesInProgress = Set<String>()
   /// Pending records that `book` or the queue is sending; nobody else touches them meanwhile.
@@ -286,16 +295,17 @@ public actor BookingService {
       return await fail(record, .workItemUnknown)
     }
     var record = record
+    let options = options()
     for _ in 0..<Self.maxConflictRetries {
       do {
         record.field = try await timeField(for: link, client: client)
         let current = try await client.timeValues(of: link.workItemID)
         let revision = try await client.patch(
           workItem: link.workItemID,
-          operations(for: record, current: current, note: note),
+          operations(for: record, current: current, note: note, options: options),
         )
         try await markSynced(record, revision: revision)
-        backoff = 30
+        backoff = Self.initialBackoff
         nextAttempt = nil
         return .booked
       } catch ADOError.conflict {
@@ -310,7 +320,12 @@ public actor BookingService {
     return await fail(record, .keepsChanging)
   }
 
-  private func operations(for record: SyncRecord, current: ADOClient.TimeValues, note: String?) -> [PatchOperation] {
+  private func operations(
+    for record: SyncRecord,
+    current: ADOClient.TimeValues,
+    note: String?,
+    options: Options,
+  ) -> [PatchOperation] {
     let hours = Double(record.deltaSeconds) / 3600
     var operations = [PatchOperation(op: "test", path: "/rev", value: .int(current.revision))]
     if record.field == TimeField.completedWork {
@@ -318,7 +333,7 @@ public actor BookingService {
       operations.append(
         PatchOperation(op: "add", path: "/fields/\(TimeField.completedWork)", value: .double(completed))
       )
-      if options().reduceRemainingWork, let remaining = current.remainingWork {
+      if options.reduceRemainingWork, let remaining = current.remainingWork {
         let reduced = Self.rounded(max(0, remaining - hours))
         operations.append(
           PatchOperation(op: "add", path: "/fields/\(TimeField.remainingWork)", value: .double(reduced))
@@ -329,7 +344,7 @@ public actor BookingService {
       PatchOperation(
         op: "add",
         path: "/fields/\(TimeField.history)",
-        value: .string(comment(record, hours: hours, note: note)),
+        value: .string(comment(record, hours: hours, note: options.includeNote ? note : nil)),
       )
     )
     return operations
@@ -340,11 +355,13 @@ public actor BookingService {
     let amount =
       (hours >= 0 ? "+" : "−")
         + abs(hours).formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "de_DE")))
-    let parts = record.localDay.split(separator: "-")
-    let day = parts.count == 3 ? "\(parts[2]).\(parts[1]).\(parts[0])" : record.localDay
+    let day =
+      Timestamp.localDayParts(record.localDay).map {
+        String(format: "%02d.%02d.%04d", $0.day, $0.month, $0.year)
+      } ?? record.localDay
     // German like the rest of the team's history in Azure DevOps (TECHNICAL_CONCEPT example).
     var text = "Takt: \(amount) h am \(day)"
-    if options().includeNote, let note, !note.isEmpty {
+    if let note, !note.isEmpty {
       text += " · " + note
     }
     return text + " [\(record.marker)]"
@@ -397,7 +414,7 @@ public actor BookingService {
 
   private func schedule(after seconds: TimeInterval) {
     nextAttempt = clock.now().adding(seconds: seconds)
-    backoff = min(backoff * 2, 15 * 60)
+    backoff = min(backoff * 2, Self.maxBackoff)
   }
 
   /// The entry's note for the history comment when a booking is sent again.

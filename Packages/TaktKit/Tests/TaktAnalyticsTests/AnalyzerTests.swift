@@ -122,6 +122,24 @@ struct AnalyzerTests {
   }
 
   @Test
+  func groupsWithEqualTotalsKeepAStableOrder() {
+    // One hour each on Friday, Tuesday and Wednesday, plus one entry without a project.
+    let entries = [
+      entry("Fr", [(4.0 * 24 + 9, 4.0 * 24 + 10)], project: ProjectID()),
+      entry("Tu", [(1.0 * 24 + 9, 1.0 * 24 + 10)]),
+      entry("We", [(2.0 * 24 + 9, 2.0 * 24 + 10)], project: ProjectID()),
+    ]
+    let data = AnalyticsData(entries: entries)
+
+    let byWeekday = analyzer.report(data, in: week, now: at(200), by: .weekday)
+    #expect(byWeekday.groups.map(\.key) == [.weekday(2), .weekday(3), .weekday(5)])
+
+    let projects = entries.compactMap(\.entry.projectID).sorted { $0.uuidString < $1.uuidString }
+    let byProject = analyzer.report(data, in: week, now: at(200), by: .project)
+    #expect(byProject.groups.map(\.key) == projects.map(GroupKey.project) + [GroupKey.none])
+  }
+
+  @Test
   func runningSegmentsCountUntilNow() {
     let running = TimeEntry(title: "A", state: .running, createdAt: monday, updatedAt: monday)
     let data = AnalyticsData(entries: [
