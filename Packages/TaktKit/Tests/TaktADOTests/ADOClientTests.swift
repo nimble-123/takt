@@ -15,6 +15,7 @@ struct ADOClientTests {
         #expect(header == "Basic " + Data(":abc".utf8).base64EncodedString())
     }
 
+    // connectionData exists only as a preview API; plain 7.1 is rejected with 400.
     @Test func verifyReturnsTheUserAndSendsVersionAndAuth() async throws {
         stub.respond { _ in Stub.Response(status: 200, body: Stub.fixture("connectionData")) }
 
@@ -22,7 +23,8 @@ struct ADOClientTests {
 
         #expect(identity.displayName == "Nils Lutz")
         let request = try #require(stub.requests.first)
-        #expect(request.url?.absoluteString == "https://dev.azure.com/contoso/_apis/connectionData?api-version=7.1")
+        #expect(
+            request.url?.absoluteString == "https://dev.azure.com/contoso/_apis/connectionData?api-version=7.1-preview")
         #expect(request.value(forHTTPHeaderField: "Authorization")?.hasPrefix("Basic ") == true)
     }
 
