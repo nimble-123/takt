@@ -137,6 +137,14 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func dayCloseStepsByOneDay() {
+    let start = model.dayRange.lowerBound
+    model.section = .dayClose
+    model.step(by: 1)
+    #expect(model.dayRange.lowerBound == start.adding(seconds: 24 * 3600))
+  }
+
+  @Test
   func openingAnEntryShowsTheInspectorWithOnlyThatEntry() async throws {
     let first = try await engine.start(EntryDraft(title: "A"), mode: .parallel).value
     let second = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
