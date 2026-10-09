@@ -182,6 +182,7 @@ public struct MainWindowView: View {
       [
         model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year()),
         model.holiday(on: model.dayRange.lowerBound)?.name,
+        model.absence(on: model.dayRange.lowerBound)?.name,
       ]
       .compactMap(\.self)
       .joined(separator: " · ")

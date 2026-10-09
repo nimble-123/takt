@@ -56,6 +56,23 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func absencesAreSetForTheShownDay() async {
+    let window = MainWindowModel(
+      engine: engine,
+      queries: EntryQueries(database: database),
+      catalog: model.catalog,
+      database: database,
+      clock: clock,
+      calendar: model.calendar,
+    )
+    await window.setAbsence(.sick, on: window.dayRange.lowerBound)
+    #expect(window.absence(on: window.dayRange.lowerBound) == .sick)
+
+    await window.setAbsence(nil, on: window.dayRange.lowerBound)
+    #expect(window.absence(on: window.dayRange.lowerBound) == nil)
+  }
+
+  @Test
   func stopAllFromTheWindowBooksAutomatically() async throws {
     var reported = [[EntryID]]()
     model.actions.onStopped = { reported.append($0) }

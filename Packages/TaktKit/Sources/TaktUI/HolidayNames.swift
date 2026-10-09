@@ -54,3 +54,24 @@ extension FederalState {
     }
   }
 }
+
+// MARK: - AbsenceKind + name
+
+extension AbsenceKind {
+  /// AZ-05.
+  nonisolated var name: String {
+    switch self {
+    case .vacation: String(localized: "Vacation", bundle: .module)
+    case .sick: String(localized: "Sick", bundle: .module)
+    case .off: String(localized: "Day off", bundle: .module)
+    }
+  }
+
+  nonisolated var symbol: String {
+    switch self {
+    case .vacation: "sun.max"
+    case .sick: "cross.case"
+    case .off: "calendar.badge.minus"
+    }
+  }
+}

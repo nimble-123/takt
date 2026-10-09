@@ -191,6 +191,16 @@
         }
       }
     },
+    "Absence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abwesenheit"
+          }
+        }
+      }
+    },
     "Add Condition": {
       "localizations": {
         "de": {
@@ -1201,6 +1211,16 @@
         }
       }
     },
+    "Day off": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frei"
+          }
+        }
+      }
+    },
     "Day total: %@": {
       "localizations": {
         "de": {
@@ -1507,6 +1527,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auge"
+          }
+        }
+      }
+    },
+    "Flex account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flexkonto"
+          }
+        }
+      }
+    },
+    "Flex account counts from": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flexkonto zählt ab"
+          }
+        }
+      }
+    },
+    "Flex account start balance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startsaldo Flexkonto"
+          }
+        }
+      }
+    },
+    "Flex time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gleitzeit"
           }
         }
       }
@@ -1901,6 +1961,16 @@
         }
       }
     },
+    "Mark Day as %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag als „%@“ markieren"
+          }
+        }
+      }
+    },
     "Mecklenburg-Western Pomerania": {
       "localizations": {
         "de": {
@@ -2087,6 +2157,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nächster Tag oder Woche"
+          }
+        }
+      }
+    },
+    "No Absence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Abwesenheit"
           }
         }
       }
@@ -2701,6 +2781,16 @@
         }
       }
     },
+    "Remove Absence": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abwesenheit entfernen"
+          }
+        }
+      }
+    },
     "Remove condition": {
       "localizations": {
         "de": {
@@ -3091,6 +3181,16 @@
         }
       }
     },
+    "Sick": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krank"
+          }
+        }
+      }
+    },
     "Skip": {
       "localizations": {
         "de": {
@@ -3177,6 +3277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Timer „%@“ starten"
+          }
+        }
+      }
+    },
+    "Start balance plus net working time minus target, from the start day through today. Vacation, sick days, days off and public holidays have no target.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startsaldo plus Netto-Arbeitszeit minus Soll, vom Stichtag bis heute. Urlaub, Krankheit, freie Tage und Feiertage haben kein Soll."
           }
         }
       }
@@ -3761,6 +3871,16 @@
         }
       }
     },
+    "Trust-based working time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertrauensarbeitszeit"
+          }
+        }
+      }
+    },
     "Try it now.": {
       "localizations": {
         "de": {
@@ -3827,6 +3947,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ h übernehmen (%2$@ h ÷ %3$lld Arbeitstage)"
+          }
+        }
+      }
+    },
+    "Vacation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub"
           }
         }
       }
@@ -4067,6 +4197,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeitszeit"
+          }
+        }
+      }
+    },
+    "Working time model": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitmodell"
           }
         }
       }

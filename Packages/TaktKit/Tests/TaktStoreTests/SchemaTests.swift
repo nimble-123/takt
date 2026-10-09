@@ -26,6 +26,7 @@ struct SchemaTests {
     }
     #expect(
       tables == [
+        "absence",
         "category",
         "entry_tag",
         "global_pause",
@@ -55,6 +56,7 @@ struct SchemaTests {
       "v5-remaining-delta",
       "v6-category-counts-as-work",
       "v7-segment-change-log",
+      "v8-absence",
     ])
   }
 

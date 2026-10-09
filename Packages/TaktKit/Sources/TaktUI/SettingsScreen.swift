@@ -92,6 +92,25 @@ struct SettingsScreen: View {
           }
         }
         .managed(settings.isLocked(.workDays))
+        Picker(String(localized: "Working time model", bundle: .module), selection: $settings.workTimeModel) {
+          Text("Flex time", bundle: .module).tag(AppSettings.WorkTimeModel.flexTime)
+          Text("Trust-based working time", bundle: .module).tag(AppSettings.WorkTimeModel.trust)
+        }
+        .managed(settings.isLocked(.workTimeModel))
+        if settings.workTimeModel == .flexTime {
+          HoursField(
+            title: String(localized: "Flex account start balance", bundle: .module),
+            value: $settings.flexStartBalanceHours,
+            range: AppSettings.flexStartBalanceRange,
+          )
+          .managed(settings.isLocked(.flexStartBalanceHours))
+          DatePicker(
+            String(localized: "Flex account counts from", bundle: .module),
+            selection: flexStartDay,
+            displayedComponents: .date,
+          )
+          .managed(settings.isLocked(.flexStartDay))
+        }
         Picker(String(localized: "Public holidays", bundle: .module), selection: $settings.federalState) {
           Text("None", bundle: .module).tag(FederalState?.none)
           ForEach(FederalState.allCases.sorted { $0.name < $1.name }, id: \.self) { state in
@@ -249,6 +268,17 @@ struct SettingsScreen: View {
   @State private var launchAtLogin = LoginItem.isEnabled
   @State private var message: String?
   @State private var confirmImport: URL?
+
+  /// AZ-05: the start day as a date; unset shows today until one is picked.
+  private var flexStartDay: Binding<Date> {
+    Binding {
+      settings.flexStartDay.flatMap(Timestamp.localDayParts).flatMap { parts in
+        Calendar.current.date(from: DateComponents(year: parts.year, month: parts.month, day: parts.day))
+      } ?? .now
+    } set: { date in
+      settings.flexStartDay = Timestamp(date).localDayString()
+    }
+  }
 
   /// A minute after midnight as a time of today, for the time pickers (TM-09).
   private func timeOfDay(_ minute: Binding<Int>) -> Binding<Date> {

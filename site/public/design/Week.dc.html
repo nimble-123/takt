@@ -171,7 +171,7 @@ class Component extends DCLogic {
           b('dev', '08:45', '09:45', '#4821 Login-Flow'), b('meet', '09:45', '10:00', 'Daily'),
           b('dev', '10:00', '12:00', '#4821 Login-Flow'), b('run', '12:45', '14:30', '#4655 Session-Timeout')
         ], { weight: '700', ink: '#0F766E', bg: 'rgba(15,118,110,0.035)', isToday: true }),
-        day('Fr., 9.', '0:00', []),
+        day('Fr., 9.', '0:00', [], { holiday: 'Urlaub', bg: '#FAFAFB' }),
         day('Sa., 10.', '0:00', [], { bg: '#FAFAFB' }),
         day('So., 11.', '0:00', [], { bg: '#FAFAFB' })
       ]

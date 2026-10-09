@@ -49,6 +49,7 @@ public struct AppDatabase: Sendable {
     migrator.registerMigration("v5-remaining-delta", migrate: Schema.v5)
     migrator.registerMigration("v6-category-counts-as-work", migrate: Schema.v6)
     migrator.registerMigration("v7-segment-change-log", migrate: Schema.v7)
+    migrator.registerMigration("v8-absence", migrate: Schema.v8)
     return migrator
   }
 }

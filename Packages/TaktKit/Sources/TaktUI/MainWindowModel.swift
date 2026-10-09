@@ -88,6 +88,9 @@ public final class MainWindowModel {
     fileprivate let answer: (String?) -> Void
   }
 
+  /// AZ-05: absences of the shown range by `YYYY-MM-DD`.
+  public private(set) var absences = [String: AbsenceKind]()
+
   public var selection = Set<EntryID>()
   /// The user's choice from the toolbar; `showsInspector` decides where it actually appears.
   public var isInspectorShown = true
@@ -200,6 +203,23 @@ public final class MainWindowModel {
     isInspectorShown && hasInspector
   }
 
+  /// AZ-05: the absence on the local day of `day`, if any.
+  public func absence(on day: Timestamp) -> AbsenceKind? {
+    absences[day.localDayString(in: calendar)]
+  }
+
+  /// AZ-05: marks a day as vacation, sick or off, or clears it with `nil`.
+  public func setAbsence(_ kind: AbsenceKind?, on day: Timestamp) async {
+    guard let database else { return }
+    do {
+      try await AbsenceStore(database: database).set(kind, on: day.localDayString(in: calendar))
+      await reloadAbsences()
+      await analytics?.reload()
+    } catch {
+      show(error)
+    }
+  }
+
   /// Answers the pending question; a blank reason counts as none.
   public func answerCorrectionReason(_ reason: String?) {
     let request = correctionReasonRequest
@@ -238,6 +258,7 @@ public final class MainWindowModel {
       data = loaded
       if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
+      await reloadAbsences()
       await reloadWorkTimeCheck()
     } catch {
       guard generation == reloadGeneration, range == shownRange else { return }
@@ -475,6 +496,19 @@ public final class MainWindowModel {
 
   var shownRange: Range<Timestamp> {
     section == .today || section == .dayClose ? dayRange : weekRange
+  }
+
+  /// AZ-05: the absences of the shown range.
+  func reloadAbsences() async {
+    guard let database else { return }
+    let range = shownRange
+    let last = Timestamp(milliseconds: range.upperBound.milliseconds - 1)
+    let loaded = try? await AbsenceStore(database: database).absences(
+      from: range.lowerBound.localDayString(in: calendar),
+      through: last.localDayString(in: calendar),
+    )
+    guard range == shownRange else { return }
+    absences = loaded ?? [:]
   }
 
   /// Checks the shown day with the 24 weeks before it, which the average needs (AZ-02).

@@ -210,6 +210,12 @@ CREATE TABLE segment_change (
   changed_at INTEGER NOT NULL,
   reason TEXT
 );
+
+-- Abwesenheiten (AZ-05, Migration v8-absence): Rohdaten je lokalem Tag
+CREATE TABLE absence (
+  day TEXT PRIMARY KEY,                     -- YYYY-MM-DD
+  kind TEXT NOT NULL CHECK (kind IN ('vacation', 'sick', 'off'))
+);
 ```
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
@@ -460,7 +466,9 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - *Grund:* Einstellung `askCorrectionReason` (Standard aus, MDM). Berührt eine Bearbeitung Zeiten, die älter als 7 Tage sind, fragt das Hauptfenster nach einem optionalen Grund (§ 17 MiLoG); leer = ohne Grund.
   - *Korrigiert:* `source = manual` oder mindestens ein Protokolleintrag; der Inspektor zeigt dann „korrigiert“ mit den Änderungen im Tooltip. JSON-Export, -Import und Backup enthalten die Tabelle wie jede andere.
   - *Grenze:* Takt ist lokal und Single-User; gegen Änderungen durch den Nutzer selbst (z. B. direkt in der Datenbank) schützt das nicht. Ziel ist Nachvollziehbarkeit, nicht Unveränderbarkeit.
-- **Flexkonto (AZ-05):** Saldo = Startsaldo (mit Stichtag) + Σ (Netto − Soll) bis einschließlich heute − Σ Vergütungen. Tagesmarker Urlaub, Krank, Frei als eigene Tabelle (Tag + Art) setzen das Soll auf 0. Abfeiern ist ein Tag mit weniger oder ohne Arbeitszeit und braucht keinen Marker.
+- **Flexkonto (AZ-05, umgesetzt in `TaktAnalytics.FlexAccount`):** Saldo = Startsaldo + Σ (Netto − Soll) vom Stichtag bis einschließlich heute (− Σ Vergütungen, kommt mit AZ-07). Netto aus `WorkDay`, Soll aus `TargetPlan`; der heutige Tag zählt mit vollem Soll, spätere Tage gar nicht. Einstellungen `workTimeModel` (Gleitzeit Standard, Vertrauensarbeitszeit blendet Soll, Soll/Ist und Flexkonto aus), `flexStartBalanceHours` (auch negativ) und `flexStartDay` (leer = erster erfasster Tag), alle MDM-verwaltbar.
+  - *Abwesenheiten:* Tabelle `absence` (Tag + Art), nur Urlaub, Krank, Frei. Alle setzen das Soll auf 0 (`TargetPlan.absences`), die Art dient der Dokumentation. Abfeiern ist ein Tag mit weniger oder ohne Arbeitszeit und braucht keinen Marker; halbe Tage gibt es bewusst nicht. Setzen per Kontextmenü am Tag (Timeline „Heute“, Kopf der Wochenspalte) und ⌘K für den angezeigten Tag.
+  - *Anzeige:* „Flexkonto“ als Kennzahl in den Analysen neben Soll/Ist, unabhängig vom gewählten Zeitraum immer bis heute.
 - **Urlaubskonto (AZ-06):** Anspruch und Übertrag aus den Einstellungen, genommen und geplant aus den Urlaubsmarkern an Arbeitstagen ohne Feiertag; der Übertrag in Folgejahre wird berechnet.
 - **Überstunden (AZ-07):** Überstunden des Tages = max(0, Netto − Soll). Vergütungen sind eigene Datensätze (Datum, Sekunden, Notiz) und mindern das Flexkonto. Das Quartalskontingent zählt nur Vergütungen, nach deren Datum.
 - **Übertragsgrenze (AZ-08):** Beim Jahreswechsel wird ein positiver Saldo auf die Grenze gekappt (Standard 220 h, leer = keine). Die Kappung ist eine Rechenregel, keine Buchung.

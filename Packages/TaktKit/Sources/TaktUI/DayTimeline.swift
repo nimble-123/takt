@@ -43,6 +43,7 @@ struct DayTimeline: View {
               .offset(x: gutter)
               .gesture(createGesture)
               .onTapGesture { model.selection = [] }
+              .contextMenu { AbsenceMenu(model: model, day: day.lowerBound) }
           }
           ForEach(layout.items) { item in
             block(item, width: width)

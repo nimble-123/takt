@@ -21,6 +21,9 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `dailyGoalHours` | Real | Default 8, 1–12 | Tagesziel im Popover; Nachkommastellen erlaubt (z. B. 7.6 bei 38 Wochenstunden) |
 | `weeklyHours` | Real | Default 40, 0–60 | Wochenstunden für Soll/Ist (AN-07); Nachkommastellen erlaubt |
 | `workDays` | Array of Integer | 1 = Montag … 7 = Sonntag, Default 1–5 | Arbeitstage für Soll/Ist |
+| `workTimeModel` | String | `flexTime` (Default), `trust` | Gleitzeit mit Soll und Flexkonto oder Vertrauensarbeitszeit ohne beides (AZ-05) |
+| `flexStartBalanceHours` | Real | Default 0, −999–999 | Stand des Flexkontos vor dem Stichtag, z. B. Übertrag aus dem Vorjahr |
+| `flexStartDay` | String | `YYYY-MM-DD`; leer = erster erfasster Tag (Default) | Stichtag, ab dem das Flexkonto zählt |
 | `federalState` | String | `BW`, `BY`, `BE`, `BB`, `HB`, `HH`, `HE`, `MV`, `NI`, `NW`, `RP`, `SL`, `SN`, `ST`, `SH`, `TH`; leer = keins (Default) | Gesetzliche Feiertage dieses Bundeslands haben kein Soll (AZ-03) |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |

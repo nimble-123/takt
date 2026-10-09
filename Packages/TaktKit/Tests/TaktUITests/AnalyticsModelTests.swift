@@ -166,3 +166,43 @@ extension AnalyticsModelTests {
     #expect(comparison.target == model.targetPlan.target(on: clock.now(), calendar: calendar))
   }
 }
+
+// MARK: - Flex account (AZ-05)
+
+extension AnalyticsModelTests {
+
+  // MARK: Internal
+
+  @Test
+  func flexAccountCountsFromTheStartDayWithoutAbsences() async throws {
+    settings.flexStartDay = "2026-10-05"
+    settings.flexStartBalanceHours = 2
+    try await track("A", hours: 1)
+    await model.reload()
+    // Monday to Wednesday: 2 h + 1 h − 3 × 8 h.
+    #expect(model.flexBalance == -21 * 3600)
+
+    try await AbsenceStore(database: database).set(.vacation, on: "2026-10-05")
+    await model.reload()
+    #expect(model.flexBalance == -13 * 3600)
+    #expect(model.targetHours(on: try day(2026, 10, 5)) == 0)
+    #expect(model.targetHours(on: try day(2026, 10, 6)) == 8)
+  }
+
+  @Test
+  func trustBasedWorkingTimeHasNoTargetAndNoAccount() async throws {
+    settings.workTimeModel = .trust
+    try await track("A", hours: 1)
+    await model.reload()
+
+    #expect(model.flexBalance == nil)
+    #expect(model.comparison == nil)
+    #expect(model.targetHours(on: try day(2026, 10, 6)) == 0)
+  }
+
+  // MARK: Private
+
+  private func day(_ year: Int, _ month: Int, _ day: Int) throws -> Timestamp {
+    Timestamp(try #require(calendar.date(from: DateComponents(year: year, month: month, day: day))))
+  }
+}
