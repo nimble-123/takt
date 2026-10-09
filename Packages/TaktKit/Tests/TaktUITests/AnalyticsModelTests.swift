@@ -180,11 +180,11 @@ extension AnalyticsModelTests {
     try await track("A", hours: 1)
     await model.reload()
     // Monday to Wednesday: 2 h + 1 h − 3 × 8 h.
-    #expect(model.flexBalance == -21 * 3600)
+    #expect(model.flexBalance == TimeInterval(-21 * 3600))
 
     try await AbsenceStore(database: database).set(.vacation, on: "2026-10-05")
     await model.reload()
-    #expect(model.flexBalance == -13 * 3600)
+    #expect(model.flexBalance == TimeInterval(-13 * 3600))
     #expect(model.targetHours(on: try day(2026, 10, 5)) == 0)
     #expect(model.targetHours(on: try day(2026, 10, 6)) == 8)
   }
