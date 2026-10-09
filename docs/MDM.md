@@ -1,6 +1,6 @@
 # Takt per MDM verteilen und konfigurieren
 
-Takt wird als signiertes und notarisiertes PKG über das MDM verteilt (siehe [RELEASING.md](RELEASING.md)). Teamweite Vorgaben kommen über ein Konfigurationsprofil mit der Preference-Domain `de.nilslutz.takt`. Takt liest die Werte über `UserDefaults`; jeder vom Profil gesetzte Wert ist in den Einstellungen gesperrt und mit einem Schloss markiert (`UserDefaults.objectIsForced`).
+Ziel ist die Verteilung als signiertes und notarisiertes PKG über das MDM (siehe [RELEASING.md](RELEASING.md)). **Aktueller Stand:** Es gibt noch kein signiertes PKG (#16, #53); Releases liefern unsignierte DMG/ZIP und einen Homebrew-Cask. Die Konfigurationsprofile unten funktionieren unabhängig davon. Teamweite Vorgaben kommen über ein Konfigurationsprofil mit der Preference-Domain `de.nilslutz.takt`. Takt liest die Werte über `UserDefaults`; jeder vom Profil gesetzte Wert ist in den Einstellungen gesperrt und mit einem Schloss markiert (`UserDefaults.objectIsForced`).
 
 Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test hält Profil, diese Tabelle und die App synchron.
 

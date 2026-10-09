@@ -19,7 +19,7 @@ Gespeichert werden nur rohe UTC-Zeitsegmente; alles Abgeleitete (Zählweise, Run
 | Zählweise & Rundung | Zur Abfragezeit berechnet, nie gespeichert | Rückwirkend änderbar, keine Datenmigration |
 | Nebenläufigkeit | Timer-Engine und Sync als `actor`; UI auf `@MainActor` | Serialisierte Zustandswechsel ohne Locks |
 | ADO-Anmeldung | PAT ab Release 1; Entra ID über MSAL, sobald die App-Registrierung freigegeben ist; Tokens im Schlüsselbund | Registrierung ist beantragt und dauert; PAT ermöglicht den Start sofort |
-| Verteilung | Privater Developer-ID-Account, Bundle-ID `de.nilslutz.takt`; notarisiert, Hardened Runtime, ohne App Sandbox; Rollout per MDM | Keine Sandbox-Hürden für Schlüsselbund, Login-Item und verwaltete Einstellungen |
+| Verteilung | Ziel: privater Developer-ID-Account, Bundle-ID `de.nilslutz.takt`; notarisiert, Hardened Runtime, ohne App Sandbox; Rollout per MDM. Aktuell unsignierte Builds (#16, #53), siehe „Signatur“ | Keine Sandbox-Hürden für Schlüsselbund, Login-Item und verwaltete Einstellungen |
 | Projektdatei | XcodeGen (`project.yml`), `.xcodeproj` nicht eingecheckt | Keine Merge-Konflikte in `project.pbxproj`, reproduzierbar in CI |
 | Abhängigkeiten | GRDB, KeyboardShortcuts, später MSAL; sonst nur Systemframeworks | Kleine Angriffsfläche, wenig Pflegeaufwand |
 
@@ -72,9 +72,12 @@ takt/
 │       ├── TaktCoreTests/
 │       ├── TaktStoreTests/
 │       ├── TaktAnalyticsTests/
-│       └── TaktADOTests/     # mit aufgezeichneten API-Antworten
-├── UITests/                  # XCUITest für Kernabläufe
-├── scripts/                  # Release-Skript (signieren, notarisieren, PKG)
+│       ├── TaktSystemTests/
+│       ├── TaktADOTests/     # mit aufgezeichneten API-Antworten
+│       └── TaktUITests/      # Modelle der Oberfläche
+├── BuildTools/               # SwiftFormat/SwiftLint (Airbnb-Stil)
+├── site/                     # Produktseite und UI-Galerie (GitHub Pages)
+├── scripts/                  # run-local, format, package-unsigned, release-local, Testdaten
 └── docs/
 ```
 
@@ -86,7 +89,7 @@ Kern sind `time_entry` und `segment`; ein laufender Timer ist ein Segment ohne E
 
 - IDs sind UUID-Strings (`TEXT`), damit Export und Import ohne Kollisionen funktionieren. Achtung: GRDB speichert `UUID` standardmäßig als 16-Byte-Blob; immer `uuidString` schreiben.
 - Zeiten sind UTC-Millisekunden (`INTEGER`); Anzeige und Tagesgrenzen rechnen in der lokalen Zeitzone.
-- Gelöscht wird weich über `deleted_at`, damit Undo und Differenzbuchungen funktionieren; endgültig gelöscht wird nach 30 Tagen.
+- Gelöscht wird weich über `deleted_at`, damit Undo und Differenzbuchungen funktionieren; ein endgültiges Löschen nach Frist ist noch nicht umgesetzt.
 - Jede Migration ist eine benannte Stufe im GRDB-`DatabaseMigrator` und wird mit Testdaten geprüft. Bestehende Migrationen werden nie geändert.
 
 ```sql
@@ -234,7 +237,9 @@ public protocol TimerStore: Sendable {
     func snapshot() async throws -> TimerSnapshot
     func update<T: Sendable>(
         _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
-    ) async throws -> T   // liest, ruft body, schreibt body.changes – eine Transaktion
+    ) async throws -> TimerCommit<T>   // liest, ruft body, schreibt body.changes – eine Transaktion
+    func latest() async throws -> TimerCommit<Void>   // aktueller Stand mit Commit-Folgenummer
+    func recordHeartbeat(_ timestamp: Timestamp) async throws   // Lebenszeichen, ohne Undo
 }
 ```
 
@@ -305,7 +310,7 @@ Die App läuft als Menüleisten-App ohne Dock-Symbol (`LSUIElement`); das Dock-S
 - **Zustand:** pro Bildschirm ein `@Observable`-ViewModel auf dem `@MainActor`. Es abonniert Daten über GRDB-`ValueObservation` bzw. `TimerEngine.updates()` und schickt Befehle an die Engine. Views rendern nur; Zustand und Ableitungen (z. B. im Tagesabschluss Gruppen, offene Zeilen und Summe in `DayCloseModel`) liegen im Model und sind getestet. Datei-I/O (Git-Branches, JSON-Sicherung) läuft per `@concurrent` außerhalb des Main Actors.
 - **Einstellungen:** Alle Teile lesen sie über `AppSettings`, nie mit eigenen Schlüsseln aus `UserDefaults`; die Standardwerte stehen nur dort. Dienste mit `@Sendable`-Closures (Inaktivität, Buchung, Git-Branches) lesen `AppSettings.snapshot`, eine thread-sichere Kopie, die jeder Änderung folgt.
 - **Gemeinsame Timer-Aktionen:** Starten (mit Regeln und Tags), Stoppen, „Alle stoppen“ und der Entwurf für ein Work Item laufen für Menüleiste, Hauptfenster und ⌘K über eine `TimerActions`-Instanz aus dem Composition Root. Ihr `onStopped` löst die automatische Buchung aus (DO-21), egal von wo gestoppt wurde. „Alle stoppen“ ist ein Engine-Befehl in einer Transaktion. Das Popover vergisst sein Undo beim nächsten Öffnen, außer für den Stopp im noch sichtbaren Toast.
-- **Suche:** ein `SearchCoordinator` fragt lokale Tasks, den Work-Item-Cache und die ADO-Suche parallel ab. Eingaben werden mit 250 ms entprellt; lokale Treffer erscheinen sofort, ADO-Treffer werden nachgeladen.
+- **Suche:** Das Popover (`MenuBarModel`) zeigt lokale Treffer (Zuletzt, Tasks, Work-Item-Cache) sofort und fragt die ADO-Suche über `WorkItemSource` mit 250 ms Entprellung nach; frische Treffer ergänzen die zwischengespeicherten.
 - **Erscheinungsbild:** Farben als Asset-Katalog mit Hell- und Dunkel-Variante (siehe [DESIGN.md](DESIGN.md)), Systemschrift und Systemmaterialien.
 - **Command Palette (HW-05):** ⌘K im Hauptfenster öffnet ein Sheet mit allen Aktionen (Timer, Ansichten, Blättern, Export, Tag buchen). Eine unscharfe Suche (Zeichen in Reihenfolge, Wortanfänge und zusammenhängende Treffer zählen mehr) sortiert die Aktionen; darunter stehen „Timer „…“ starten“ mit dem getippten Text, Treffer der Volltextsuche und gecachte Work Items. Timer-Befehle aus dem Hauptfenster landen im Undo des Fensters.
 - **Testbetrieb:** `TAKT_DATA_DIR` legt die Datenbank in ein anderes Verzeichnis. In Debug-Builds öffnet `-openPopover YES` das Popover beim Start und `-appearance dark|light` erzwingt das Erscheinungsbild – für Screenshots und UI-Tests.
@@ -439,9 +444,9 @@ Takt hat keine eigene Server-Komponente; das schützenswerte Gut sind die lokale
 - **Geheimnisse:** Tokens und PAT nur im Schlüsselbund, nie in Datei, Log oder Export.
 - **Logs:** Fehler öffentlich nur mit Typ und Code (`Error.logSummary`), die Beschreibung als `privacy: .private`, denn sie kann Titel, Notizen, URLs oder Antworten von Azure DevOps enthalten.
 - **Netzwerk:** nur HTTPS zu `dev.azure.com` (und in Phase 3 zu `graph.microsoft.com`). Keine Telemetrie.
-- **Signatur:** Developer ID (privater Account), Hardened Runtime, notarisiert und gestapelt. Vorerst lokal per `scripts/release-local.sh`, siehe [RELEASING.md](RELEASING.md).
-- **Rollout:** PKG über Intune oder Jamf. Neue Versionen verteilt ebenfalls das MDM; kein In-App-Updater.
-- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Schlüssel: `startMode` (`switch`/`parallel`), `countingMode` (`split`/`full`), `idleThresholdMinutes`, `lockCountsAsPause`, `roundingMinutes`, `bookingMode` (`manual`/`review`/`automatic`), `dailyGoalHours`, `showElapsedInMenuBar`. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen und das Onboarding zeigen ihn gesperrt mit Schloss, und `AppSettings` setzt einen gesperrten Wert bei jedem Schreibversuch auf den Profilwert zurück. Profiländerungen während der Laufzeit gelten erst nach einem Neustart. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
+- **Signatur:** Ziel ist Developer ID (privater Account), Hardened Runtime, notarisiert und gestapelt, lokal per `scripts/release-local.sh`. **Aktueller Stand:** Releases liefern ad-hoc signierte DMG/ZIP ohne Hardened Runtime und einen Homebrew-Cask (`scripts/package-unsigned.sh`); Signieren und Notarisieren sind offen (#16, #53). Siehe [RELEASING.md](RELEASING.md).
+- **Rollout:** Ziel ist ein PKG über Intune oder Jamf, neue Versionen ebenfalls per MDM. Automatische Updates außerhalb des MDM (Sparkle) sind als #55 geplant und hängen am Signieren.
+- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Die vollständige Schlüsselliste steht in [MDM.md](MDM.md); ein Test hält sie mit dem Code und dem Beispielprofil abgeglichen. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen und das Onboarding zeigen ihn gesperrt mit Schloss, und `AppSettings` setzt einen gesperrten Wert bei jedem Schreibversuch auf den Profilwert zurück. Profiländerungen während der Laufzeit gelten erst nach einem Neustart. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
 - **Logging:** `os.Logger` mit Subsystem `de.nilslutz.takt`; Titel, Notizen und Tokens werden als privat markiert.
 
 ## Teststrategie
@@ -455,7 +460,7 @@ Der Schwerpunkt liegt auf `TaktCore` und dem Buchungsablauf, weil Fehler dort fa
 | Persistenz | GRDB mit In-Memory-Datenbank | Jede Migration gegen Datenstände früherer Versionen; Fremdschlüssel und Constraints |
 | ADO | `URLProtocol`-Stub mit aufgezeichneten Antworten | Konflikt, Offline, 401, Wiederfinden nach Absturz, negative Differenz |
 | System | Fake-Implementierung der `TaktSystem`-Protokolle | Inaktivität, Ruhezustand, Sperre, Uhrzeitwechsel ohne echtes Warten |
-| UI | XCUITest | Timer starten, wechseln, pausieren, beenden, Tagesabschluss |
+| UI | Swift Testing gegen die Modelle (`TaktUITests`) | Hauptfenster, Popover, Tagesabschluss, Analysen, Einstellungen; XCUITest für Kernabläufe ist geplant, aber noch nicht vorhanden |
 | Performance | `measure` mit 12 Monaten Testdaten | Analyse < 500 ms, Popover-Daten < 50 ms |
 
 ## Entscheidungen & offene Punkte
