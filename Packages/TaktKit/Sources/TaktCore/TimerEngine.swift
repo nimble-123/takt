@@ -227,7 +227,11 @@ public actor TimerEngine {
       guard let event = snapshot.pendingIdleEvents.first(where: { $0.id == id }) else {
         throw TimerError.idleEventNotPending(id)
       }
-      let paused = snapshot.paused.filter { event.entryIDs.contains($0.id) }
+      // Only entries still paused by this event: one the user resumed and paused again since
+      // was paused later and stays as it is.
+      let paused = snapshot.paused.filter { active in
+        event.entryIDs.contains(active.id) && (active.lastEnd ?? event.start) <= event.start
+      }
       var resolved = event
       var changes = [TimerChange]()
       switch decision {

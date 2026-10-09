@@ -106,6 +106,16 @@ struct GRDBTimerStoreTests {
   }
 
   @Test
+  func pausedEntryKnowsWhenItWasPaused() async throws {
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let pausedAt = clock.now()
+    try await engine.pause(id)
+
+    #expect(try await store.snapshot().paused.first?.lastEnd == pausedAt)
+  }
+
+  @Test
   func staleUndoIsAConflictAndWritesNothing() async throws {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)
