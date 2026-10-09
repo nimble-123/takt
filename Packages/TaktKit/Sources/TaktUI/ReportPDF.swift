@@ -8,7 +8,6 @@ import TaktCore
 
 /// PDF report of the shown period (AN-07): A4, always light, same allocation and rounding as the
 /// view and the CSV/JSON export.
-@MainActor
 enum ReportPDF {
   static let pageSize = CGSize(width: 595, height: 842)
   static let rowsPerPage = 34

@@ -6,7 +6,7 @@ import Synchronization
 
 /// Colors for projects and categories. A stored hex picks a light/dark pair from this palette;
 /// unknown hex values are used as they are (ST-02, docs/DESIGN.md "Kategorien").
-public enum CategoryColors {
+nonisolated public enum CategoryColors {
 
   // MARK: Public
 
@@ -69,7 +69,7 @@ public enum CategoryColors {
   }
 }
 
-extension NSColor {
+nonisolated extension NSColor {
   /// `#RRGGBB`
   convenience init?(hex: String) {
     let digits = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))

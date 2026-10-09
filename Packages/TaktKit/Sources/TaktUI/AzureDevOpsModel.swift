@@ -5,7 +5,6 @@ import TaktADO
 import TaktCore
 
 /// Connecting Azure DevOps with a Personal Access Token and taking over projects (DO-01–DO-03, ST-03).
-@MainActor
 @Observable
 public final class AzureDevOpsModel {
 

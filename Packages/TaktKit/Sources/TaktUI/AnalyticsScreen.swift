@@ -670,7 +670,6 @@ private struct Heatmap: View {
 
 // MARK: - AnalyticsScreen + Export and charts
 
-@MainActor
 extension AnalyticsScreen {
 
   // MARK: Internal

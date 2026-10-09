@@ -4,7 +4,7 @@ import TaktStore
 
 /// The tokens of a start input (`@category`, `/project/task`, `#tag`) matched against the catalog (MB-09).
 /// Tokens without a match assign nothing; they show up as an unresolved chip instead.
-struct StartTokens: Equatable, Sendable {
+nonisolated struct StartTokens: Equatable, Sendable {
 
   // MARK: Lifecycle
 

@@ -6,7 +6,7 @@ import TaktStore
 
 /// Places a day's segments and pauses in side-by-side lanes (HW-01). Overlapping items get
 /// different lanes; each group of overlapping items shares the width equally.
-public struct TimelineLayout: Equatable, Sendable {
+nonisolated public struct TimelineLayout: Equatable, Sendable {
 
   // MARK: Lifecycle
 
@@ -115,7 +115,7 @@ public struct TimelineLayout: Equatable, Sendable {
   }
 }
 
-extension TimelineLayout {
+nonisolated extension TimelineLayout {
   /// Where a segment starts after dragging it `days` columns over and `seconds` along the day.
   /// Columns are calendar days, so the clock time stays the same across a DST change.
   static func movedStart(_ start: Timestamp, days: Int, seconds: TimeInterval, calendar: Calendar = .current) -> Timestamp {

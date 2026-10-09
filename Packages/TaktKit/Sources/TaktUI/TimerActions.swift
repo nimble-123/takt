@@ -3,7 +3,6 @@ import TaktCore
 
 /// Starting and stopping, shared by the menu bar, the main window and ⌘K, so every path applies
 /// the rules (ST-05), assigns a work item's project (DO-10) and books after stopping (DO-21).
-@MainActor
 public final class TimerActions {
 
   // MARK: Lifecycle

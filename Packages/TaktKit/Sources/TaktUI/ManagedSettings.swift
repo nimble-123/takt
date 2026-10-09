@@ -3,7 +3,7 @@ import TaktADO
 
 /// Every key a configuration profile (MDM) can set for `de.nilslutz.takt`; docs/MDM.md and
 /// docs/mdm/Takt.mobileconfig list the same keys, a test keeps them in sync.
-public enum ManagedSettings {
+nonisolated public enum ManagedSettings {
   public enum ValueType: String, Sendable {
     case string
     case integer

@@ -41,6 +41,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 - **ADO-Buchungen** sind immer Differenzen mit `sync_record` und `test /rev`, nie absolute Werte. Kennung `takt:<id>` in `System.History`.
 - **Geheimnisse** nur im Schlüsselbund. Titel, Notizen und Tokens in Logs mit `privacy: .private`.
 - **Swift 6 strikte Concurrency.** `@unchecked Sendable` nur mit Kommentar, warum es sicher ist. Kein Force-Unwrap außerhalb von Tests.
+- **TaktUI ist standardmäßig `MainActor`-isoliert** (`defaultIsolation` in `Package.swift`). Reine Werttypen und alles, was Dienste oder AppKit außerhalb des Main Actors aufrufen (z. B. `AppSettings.Snapshot`, `NSColor`-Provider), sind ausdrücklich `nonisolated`.
 
 ## Konventionen
 

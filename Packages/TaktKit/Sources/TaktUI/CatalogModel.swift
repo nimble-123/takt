@@ -7,7 +7,6 @@ import TaktStore
 // MARK: - CatalogModel
 
 /// Projects, tasks, categories and tags for all screens (ST-01–ST-04).
-@MainActor
 @Observable
 public final class CatalogModel {
 

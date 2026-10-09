@@ -5,7 +5,6 @@ import TaktCore
 import TaktStore
 
 /// Rules for all screens: evaluated when a timer starts and when a work item is linked (ST-05, DO-14).
-@MainActor
 @Observable
 public final class RulesModel {
 

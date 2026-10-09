@@ -9,7 +9,6 @@ import TaktStore
 
 /// Builds booking lines for days and books them; shared by the day close, the inspector and the
 /// automatic booking when stopping (DO-20, DO-21).
-@MainActor
 @Observable
 public final class BookingCoordinator {
 
