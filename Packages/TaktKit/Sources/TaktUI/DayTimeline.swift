@@ -267,9 +267,7 @@ struct DayTimeline: View {
     Color.clear
       .frame(height: 6)
       .contentShape(Rectangle())
-      .onHover { inside in
-        if inside { NSCursor.resizeUpDown.push() } else { NSCursor.pop() }
-      }
+      .pointerStyle(.frameResize(position: edge == .top ? .top : .bottom))
       .gesture(resizeGesture(segment, edge: edge))
   }
 
