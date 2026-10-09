@@ -196,18 +196,22 @@ public actor TimerEngine {
     try await store.recordHeartbeat(clock.now())
   }
 
-  /// Call once at launch (TM-07). If timers were running and the last heartbeat is older than
-  /// `idleThreshold`, the app was gone: the open segments end at the heartbeat, the entries are
-  /// paused and the gap becomes an idle event for the user to decide on.
+  /// Call once at launch (TM-07). If timers were running and the last sign of life is older than
+  /// `idleThreshold`, the app was gone: the open segments end at the last sign of life, the
+  /// entries are paused and the gap becomes an idle event for the user to decide on. The last
+  /// sign of life is the heartbeat or, if later, the newest segment start or end written since.
   @discardableResult
   public func recoverAfterLaunch(idleThreshold: TimeInterval) async throws -> IdleEvent? {
     let now = clock.now()
     let event = try await perform { snapshot -> TimerUpdate<IdleEvent?> in
       let running = snapshot.running
-      guard let beat = snapshot.lastHeartbeat, now.seconds(since: beat) > idleThreshold, !running.isEmpty
+      guard let beat = snapshot.lastHeartbeat else { return TimerUpdate(changes: [], result: nil) }
+      let written = snapshot.entries.flatMap { [$0.openSegment?.start, $0.lastEnd].compactMap { $0 } }
+      let alive = max(beat, written.max() ?? beat)
+      guard now.seconds(since: alive) > idleThreshold, !running.isEmpty
       else { return TimerUpdate(changes: [], result: nil) }
-      let event = IdleEvent(start: beat, end: now, entryIDs: running.map(\.id))
-      var changes = Self.closeChanges(running, state: .paused, at: beat, updatedAt: now)
+      let event = IdleEvent(start: alive, end: now, entryIDs: running.map(\.id))
+      var changes = Self.closeChanges(running, state: .paused, at: alive, updatedAt: now)
       changes.append(.idleEvent(before: nil, after: event))
       return TimerUpdate(changes: changes, result: event)
     }.value

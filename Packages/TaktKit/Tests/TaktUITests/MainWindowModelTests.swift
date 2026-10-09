@@ -223,6 +223,47 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func splitKeepsTheTags() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(9)))
+    await model.catalog.setTags(named: ["Review"], on: [id])
+
+    await model.split(id, at: at(8))
+
+    let later = try #require(model.selection.first)
+    #expect(await model.catalog.tags(of: [later])[later]?.map(\.name) == ["Review"])
+  }
+
+  @Test
+  func splitOfEntryInGlobalPauseIsResumedWithIt() async throws {
+    clock.set(at(7))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(at(9))
+    let pauseID = try #require(try await engine.pauseAll().value)
+    await model.reload()
+
+    await model.split(id, at: at(8))
+    let later = try #require(model.selection.first)
+    try await engine.resumeAll(pauseID)
+
+    #expect(try await engine.snapshot().running.map(\.id) == [later])
+  }
+
+  @Test
+  func splitOfEntryPausedByIdleIsResumedByTheDecision() async throws {
+    clock.set(at(7))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(at(9.5))
+    let event = try #require(try await engine.recordIdle(from: at(9), to: at(9.5)))
+    await model.reload()
+
+    await model.split(id, at: at(8))
+    let later = try #require(model.selection.first)
+    try await engine.resolveIdle(event.id, .discard)
+
+    #expect(try await engine.snapshot().running.map(\.id) == [later])
+  }
+
+  @Test
   func pausesBetweenSegmentsAreSummedForTheDay() async throws {
     clock.set(at(7))
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
