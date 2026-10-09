@@ -18,7 +18,10 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     let window = window ?? makeWindow()
     self.window = window
     NSApp.setActivationPolicy(.regular)
-    NSApp.activate()
+    // Explicit user action (status item menu, popover, ⌘0): bring Takt to the front. The cooperative
+    // `NSApp.activate()` is ignored when macOS does not attribute the action to Takt, e.g. after
+    // choosing "Open Takt" from the status item menu while another app is active.
+    NSApp.activate(ignoringOtherApps: true)
     window.makeKeyAndOrderFront(nil)
   }
 

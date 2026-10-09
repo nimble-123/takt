@@ -89,6 +89,9 @@ public final class MenuBarModel {
   public struct Toast: Equatable, Identifiable {
     public var id: EntryID
     public var title: String
+
+    /// Reverts exactly this stop, whatever was done after it.
+    var undo: TimerUndo
   }
 
   public private(set) var snapshot = TimerSnapshot()
@@ -119,8 +122,9 @@ public final class MenuBarModel {
   public private(set) var suggestionReasons = [WorkItemLinkID: String]()
   /// The work item whose detail preview is open (Space, DO-13).
   public private(set) var previewedItem: WorkItemLink?
-  /// Highlighted suggestion; `nil` means Enter starts the typed text.
-  public var selection: Int?
+  /// ID of the highlighted suggestion; `nil` means Enter starts the typed text. An ID, not an
+  /// index, so the highlight stays on its row when Azure DevOps hits arrive above it.
+  public var selection: Suggestion.ID?
   public let catalog: CatalogModel
   public let settings: AppSettings
 
@@ -238,9 +242,10 @@ public final class MenuBarModel {
   public func popoverDidOpen() {
     openCount += 1
     query = ""
+    selection = nil
     // ⌘Z reverts what was done in this opening, plus the stop the toast still offers to undo;
     // never an action from hours ago.
-    undoStack = toast == nil ? [] : Array(undoStack.suffix(1))
+    undoStack = toast.map { [$0.undo] } ?? []
     Task {
       await refresh()
       await loadSuggestedWorkItems()
@@ -310,14 +315,14 @@ public final class MenuBarModel {
       completionSelection = (completionSelection + offset + completions.count) % completions.count
       return
     }
-    let count = suggestions.count
-    guard count > 0 else { return }
-    guard let current = selection else {
-      selection = offset > 0 ? 0 : count - 1
+    let ids = suggestions.map(\.id)
+    guard !ids.isEmpty else { return }
+    guard let current = selection.flatMap(ids.firstIndex(of:)) else {
+      selection = offset > 0 ? ids.first : ids.last
       return
     }
     let next = current + offset
-    selection = next < 0 || next >= count ? nil : next
+    selection = ids.indices.contains(next) ? ids[next] : nil
   }
 
   /// Enter starts the highlighted suggestion or the typed text in the configured start mode;
@@ -327,9 +332,8 @@ public final class MenuBarModel {
     if acceptCompletion() { return }
     let title = input.title
     let draft: EntryDraft
-    let suggestions = suggestions
-    if let selection, suggestions.indices.contains(selection) {
-      draft = suggestions[selection].draft
+    if let suggestion = selectedSuggestion {
+      draft = suggestion.draft
     } else {
       guard !title.isEmpty else { return }
       draft = EntryDraft(title: title)
@@ -388,8 +392,8 @@ public final class MenuBarModel {
 
   public func stop(_ id: EntryID) async {
     let title = snapshot.entry(id)?.entry.title ?? ""
-    if await perform({ [actions] _ in try await actions.stop(id) }) {
-      showToast(Toast(id: id, title: title))
+    if let undo = await perform({ [actions] _ in try await actions.stop(id) }) {
+      showToast(Toast(id: id, title: title, undo: undo))
     }
   }
 
@@ -433,6 +437,18 @@ public final class MenuBarModel {
     do {
       try await engine.undo(last)
       toast = nil
+    } catch {
+      show(error)
+    }
+  }
+
+  /// "Undo" in the toast: reverts the stop it shows, not whatever was done last (TM-11).
+  public func undoToast() async {
+    guard let toast else { return }
+    do {
+      try await engine.undo(toast.undo)
+      if let index = undoStack.lastIndex(of: toast.undo) { undoStack.remove(at: index) }
+      dismissToast()
     } catch {
       show(error)
     }
@@ -500,10 +516,13 @@ public final class MenuBarModel {
   private var toastTask: Task<Void, Never>?
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "menu-bar")
 
+  private var selectedSuggestion: Suggestion? {
+    guard let selection else { return nil }
+    return suggestions.first { $0.id == selection }
+  }
+
   private var selectedWorkItem: WorkItemLink? {
-    let suggestions = suggestions
-    guard let selection, suggestions.indices.contains(selection) else { return nil }
-    return suggestions[selection].workItem
+    selectedSuggestion?.workItem
   }
 
   private func searchWorkItems() {
@@ -547,17 +566,17 @@ public final class MenuBarModel {
     return catalog.catalog.task(draft.taskID).map { "\(project.name) › \($0.name)" } ?? project.name
   }
 
-  /// Runs a command and remembers its undo. Returns whether it succeeded.
+  /// Runs a command and remembers its undo. Returns the undo, or `nil` if the command failed.
   @discardableResult
-  private func perform(_ command: (TimerEngine) async throws -> TimerUndo) async -> Bool {
+  private func perform(_ command: (TimerEngine) async throws -> TimerUndo) async -> TimerUndo? {
     do {
       let undo = try await command(engine)
       if !undo.isEmpty { undoStack.append(undo) }
       errorMessage = nil
-      return true
+      return undo
     } catch {
       show(error)
-      return false
+      return nil
     }
   }
 

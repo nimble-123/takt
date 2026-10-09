@@ -246,8 +246,17 @@ struct SettingsScreen: View {
   private func importArchive(_ url: URL) async {
     guard let database = model.database else { return }
     do {
-      try await DatabaseArchive.importReplacingAll(contentsOf: url, into: database)
-      message = String(localized: "Backup imported.", bundle: .module)
+      let summary = try await DatabaseArchive.importReplacingAll(contentsOf: url, into: database)
+      message =
+        summary.droppedBookings == 0
+          ? String(localized: "Backup imported.", bundle: .module)
+          : String(
+            localized: """
+              Backup imported. Bookings without an entry in the backup: \(summary.droppedBookings). \
+              Their time may still be in Azure DevOps.
+              """,
+            bundle: .module,
+          )
       await model.dataWasReplaced()
     } catch {
       message = String(localized: "The backup could not be imported. Nothing was changed.", bundle: .module)
