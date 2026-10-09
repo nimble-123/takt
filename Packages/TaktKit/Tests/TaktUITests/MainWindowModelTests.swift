@@ -112,6 +112,50 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func boundsThatOverlapAnotherSegmentAreRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (9, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.setBounds(of: before[1], start: at(7.5), end: at(10))
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func moveOntoAnotherSegmentIsRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (9, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.move(before[1], by: -1.5 * 3600)
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func closeGapOverAnotherSegmentIsRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (8.5, 9), (9.5, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.closeGap(between: before[0], and: before[2])
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func boundsWithoutEndKeepAClosedSegmentClosed() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let segment = try #require(model.entry(id)?.segments.first)
+
+    await model.setBounds(of: segment, start: at(7), end: nil)
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == [segment])
+  }
+
+  @Test
   func deleteRemovesSelectedEntries() async throws {
     let a = try #require(await model.createEntry(from: at(7), to: at(8)))
     let b = try #require(await model.createEntry(from: at(8), to: at(9)))
@@ -299,6 +343,15 @@ struct MainWindowModelTests {
 
   private func at(_ hours: Double) -> Timestamp {
     model.dayRange.lowerBound.adding(seconds: hours * 3600)
+  }
+
+  /// A stopped entry with closed manual segments from and to the given hours.
+  private func entry(withSegments hours: [(Double, Double)]) async throws -> EntryID {
+    let entry = TimeEntry(title: "A", createdAt: clock.now(), updatedAt: clock.now())
+    let segments = hours.map { Segment(entryID: entry.id, start: at($0.0), end: at($0.1), source: .manual) }
+    try await engine.apply([.entry(before: nil, after: entry)] + segments.map { .segment(before: nil, after: $0) })
+    await model.reload()
+    return entry.id
   }
 
   /// Runs one undo or redo step and waits until the engine has applied it.

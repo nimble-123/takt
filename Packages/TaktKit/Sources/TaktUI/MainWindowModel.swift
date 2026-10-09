@@ -306,18 +306,27 @@ public final class MainWindowModel {
   }
 
   public func setBounds(of segment: Segment, start: Timestamp, end: Timestamp?) async {
-    guard let changes = attempt({ try EntryEdits.setBounds(of: segment, start: start, end: end, now: clock.now()) })
+    let siblings = segments(of: segment.entryID)
+    guard
+      let changes = attempt({
+        try EntryEdits.setBounds(of: segment, start: start, end: end, among: siblings, now: clock.now())
+      })
     else { return }
     await apply(changes, name: String(localized: "Change Time", bundle: .module))
   }
 
   public func move(_ segment: Segment, by seconds: TimeInterval) async {
-    guard let changes = attempt({ try EntryEdits.move(segment, by: seconds, now: clock.now()) }) else { return }
+    let siblings = segments(of: segment.entryID)
+    guard
+      let changes = attempt({ try EntryEdits.move(segment, by: seconds, among: siblings, now: clock.now()) })
+    else { return }
     await apply(changes, name: String(localized: "Move Entry", bundle: .module))
   }
 
   public func closeGap(between first: Segment, and second: Segment) async {
-    guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second) }) else { return }
+    let siblings = segments(of: first.entryID)
+    guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second, among: siblings) })
+    else { return }
     await apply(changes, name: String(localized: "Convert Pause to Work", bundle: .module))
   }
 
@@ -435,6 +444,8 @@ public final class MainWindowModel {
         String(localized: "The entry was changed in the meantime.", bundle: .module)
       case EntryEdits.EditError.invalidRange:
         String(localized: "An entry must end after it starts and cannot end in the future.", bundle: .module)
+      case EntryEdits.EditError.overlapsSegment:
+        String(localized: "The times of an entry cannot overlap.", bundle: .module)
       case EntryEdits.EditError.splitOutsideEntry:
         String(localized: "Choose a time within the entry to split it.", bundle: .module)
       default:
@@ -512,6 +523,11 @@ public final class MainWindowModel {
       await reload()
       return false
     }
+  }
+
+  /// All loaded segments of an entry, to check an edit against the others.
+  private func segments(of id: EntryID) -> [Segment] {
+    entry(id)?.segments ?? []
   }
 
   private func attempt<T>(_ body: () throws -> T) -> T? {
