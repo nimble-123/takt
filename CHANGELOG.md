@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.5.0](https://github.com/nimble-123/takt/compare/v0.4.0...v0.5.0) (2026-10-09)
+
+
+### Neue Funktionen
+
+* **ui:** delete entries by right-click and move them across days in the week (HW-02, HW-03) ([#130](https://github.com/nimble-123/takt/issues/130)) ([b9ca66c](https://github.com/nimble-123/takt/commit/b9ca66ce6a260248f3c76573ca4a5a09a47d99b3))
+* **ui:** show tooltips in the analysis (AN-03, AN-04) ([#131](https://github.com/nimble-123/takt/issues/131)) ([842937d](https://github.com/nimble-123/takt/commit/842937d3685af8c385de544b49fa535469bf5c0b))
+
+
+### Fehlerbehebungen
+
+* **ado:** keep bookings with an unknown outcome pending (DO-24, DO-26) ([#141](https://github.com/nimble-123/takt/issues/141)) ([092f0b5](https://github.com/nimble-123/takt/commit/092f0b5d2959cd4d79de4d3e26f5b54ff0e6b178))
+* **ado:** stop double bookings and endless pending records (DO-26) ([#111](https://github.com/nimble-123/takt/issues/111)) ([882ec14](https://github.com/nimble-123/takt/commit/882ec14282e61f7222082cc87aa9d90554ba50bb))
+* **analytics:** harden duplicate IDs, idle detection, CSV export and store checks ([#117](https://github.com/nimble-123/takt/issues/117)) ([7356d03](https://github.com/nimble-123/takt/commit/7356d0338a4d0782de05cb5471772179c3ce5c32))
+* **core:** deliver timer snapshots in commit order ([#112](https://github.com/nimble-123/takt/issues/112)) ([2b0a5ed](https://github.com/nimble-123/takt/commit/2b0a5ed6daa4d8fd026b22f33289682131afa278))
+* **core:** leave entries paused again since an idle event alone (TM-06) ([#142](https://github.com/nimble-123/takt/issues/142)) ([6e44053](https://github.com/nimble-123/takt/commit/6e44053d8b7bebe83d9d46dfecdb2cf43ee99e5c))
+* **ui:** accessibility and localization of the main window ([#121](https://github.com/nimble-123/takt/issues/121)) ([82e0a7c](https://github.com/nimble-123/takt/commit/82e0a7c5830e0a512e45abc665bbcd92f30cc1d9))
+* **ui:** accessibility of the menu bar and command palette ([#120](https://github.com/nimble-123/takt/issues/120)) ([c9df824](https://github.com/nimble-123/takt/commit/c9df824df879491ca839c9a208d786c2bcc8b05a))
+* **ui:** book after every stop and share timer actions (DO-21, DO-10) ([#114](https://github.com/nimble-123/takt/issues/114)) ([13df4e8](https://github.com/nimble-123/takt/commit/13df4e8e2516fc6925b9b6ebb13f706a3c897232))
+* **ui:** book the current amounts in the day close (DO-20) ([#139](https://github.com/nimble-123/takt/issues/139)) ([ccd5823](https://github.com/nimble-123/takt/commit/ccd5823ab47d8bd2c22e6c88a75d2e61ce09bc62))
+* **ui:** do not write back values a field loaded without being edited ([#140](https://github.com/nimble-123/takt/issues/140)) ([32daf8e](https://github.com/nimble-123/takt/commit/32daf8e00660a0849c2587f864df5b2c5e9db539))
+* **ui:** drop reloads for a range that is no longer shown ([#115](https://github.com/nimble-123/takt/issues/115)) ([1119894](https://github.com/nimble-123/takt/commit/11198946d4ffcef238a301aab347e81bd3e6429d))
+* **ui:** keep the inspector binding honest across screens ([#127](https://github.com/nimble-123/takt/issues/127)) ([752f434](https://github.com/nimble-123/takt/commit/752f434a8bb03d097d845bb69089ec0d8cd63b45))
+* **ui:** keep typed edits, count live and save times once (HW-02) ([#116](https://github.com/nimble-123/takt/issues/116)) ([5999096](https://github.com/nimble-123/takt/commit/5999096b6e9639ecf080262c08270d8b25ef7d67))
+* **ui:** only delete with ⌫ where the selected entries are visible ([#138](https://github.com/nimble-123/takt/issues/138)) ([c49d7d2](https://github.com/nimble-123/takt/commit/c49d7d2503b9a38641a8da45eb92f620bbee0a98))
+
 ## [0.4.0](https://github.com/nimble-123/takt/compare/v0.3.0...v0.4.0) (2026-10-08)
 
 
