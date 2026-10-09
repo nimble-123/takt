@@ -85,6 +85,13 @@ quit_takt
 
 if [[ -n "${TEST_DIR}" ]]; then
   if ${CLEAN}; then
+    # Only a folder that holds nothing but Takt data is removed, never e.g. the home folder.
+    if [[ -d "${TEST_DIR}" ]] &&
+      find "${TEST_DIR}" -mindepth 1 -maxdepth 1 ! -name 'takt.sqlite*' ! -name 'Backups' ! -name '._*' |
+      grep -q .; then
+      echo "${TEST_DIR} enthält mehr als Takt-Daten; --clean leert nur Testordner von Takt." >&2
+      exit 1
+    fi
     echo "==> Testordner leeren: ${TEST_DIR}"
     rm -rf "${TEST_DIR}"
   fi
@@ -103,6 +110,10 @@ if ${SEED}; then
       sleep 0.1
     done
     quit_takt
+    [[ -f "${DB}" ]] || {
+      echo "Takt hat nach 10 s keine Datenbank in ${TEST_DIR} angelegt; Log: scripts/run-local.sh --no-build --logs" >&2
+      exit 1
+    }
   fi
   if [[ "$(sqlite3 "${DB}" "SELECT COUNT(*) FROM time_entry")" -gt 0 ]]; then
     echo "==> Testordner enthält schon Einträge, nichts angelegt (--clean leert ihn)."
