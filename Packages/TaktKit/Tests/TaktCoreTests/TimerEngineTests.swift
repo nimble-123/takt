@@ -89,7 +89,7 @@ struct TimerEngineTests {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 1)
     try await engine.pause(id)
-    let undo = try await engine.pause(id)
+    let undo = try await engine.pause(id).undo
     #expect(undo.isEmpty)
   }
 
@@ -215,7 +215,7 @@ struct TimerEngineTests {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)
     let before = await store.tables
-    let undo = try await engine.stop(id)
+    let undo = try await engine.stop(id).undo
     clock.advance(seconds: 5)
 
     try await engine.undo(undo)
@@ -228,10 +228,10 @@ struct TimerEngineTests {
   func redoReappliesTheCommand() async throws {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)
-    let undo = try await engine.pause(id)
+    let undo = try await engine.pause(id).undo
     let after = await store.tables
 
-    let redo = try await engine.undo(undo)
+    let redo = try await engine.undo(undo).undo
     try await engine.undo(redo)
 
     #expect(await store.tables == after)
@@ -245,11 +245,11 @@ struct TimerEngineTests {
     clock.advance(seconds: 10)
 
     let commands: [@Sendable () async throws -> TimerUndo] = [
-      { try await engine.pause(a) },
-      { try await engine.stop(b) },
+      { try await engine.pause(a).undo },
+      { try await engine.stop(b).undo },
       { try await engine.pauseAll().undo },
       { try await engine.start(EntryDraft(title: "C"), mode: .switchTo).undo },
-      { try await engine.resume(a, mode: .parallel) },
+      { try await engine.resume(a, mode: .parallel).undo },
     ]
     for command in commands {
       let before = await store.tables
@@ -264,7 +264,7 @@ struct TimerEngineTests {
   func staleUndoFailsWithoutChangingData() async throws {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)
-    let undoPause = try await engine.pause(id)
+    let undoPause = try await engine.pause(id).undo
     clock.advance(seconds: 60)
     try await engine.resume(id, mode: .switchTo)
     let before = await store.tables
@@ -311,7 +311,7 @@ extension TimerEngineTests {
 
     var noted = stopped
     noted.note = "Done"
-    let undo = try await engine.apply([.entry(before: stopped, after: noted)])
+    let undo = try await engine.apply([.entry(before: stopped, after: noted)]).undo
     #expect(await store.tables.entries[id]?.note == "Done")
 
     try await engine.undo(undo)
@@ -327,7 +327,7 @@ extension TimerEngineTests {
     clock.advance(seconds: 60)
     let before = await store.tables
 
-    let undo = TimerUndo(combining: [try await engine.stop(a), try await engine.stop(b)])
+    let undo = TimerUndo(combining: [try await engine.stop(a).undo, try await engine.stop(b).undo])
     try await engine.undo(undo)
 
     #expect(await store.tables == before)

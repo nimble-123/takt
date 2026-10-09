@@ -26,7 +26,8 @@ public struct TimerUndo: Hashable, Sendable {
 
 // MARK: - CommandResult
 
-/// The value of a command plus its undo.
+/// The value of a command plus its undo. Every undoable engine command returns one; commands
+/// without a value return `CommandResult<Void>`.
 public struct CommandResult<Value: Sendable>: Sendable {
   public var value: Value
   public var undo: TimerUndo
@@ -94,16 +95,16 @@ public actor TimerEngine {
   }
 
   @discardableResult
-  public func pause(_ id: EntryID) async throws -> TimerUndo {
+  public func pause(_ id: EntryID) async throws -> CommandResult<Void> {
     let now = clock.now()
     return try await perform { snapshot in
       let active = try Self.active(id, in: snapshot)
       return TimerUpdate(changes: Self.pauseChanges([active], at: now))
-    }.undo
+    }
   }
 
   @discardableResult
-  public func resume(_ id: EntryID, mode: StartMode) async throws -> TimerUndo {
+  public func resume(_ id: EntryID, mode: StartMode) async throws -> CommandResult<Void> {
     let now = clock.now()
     return try await perform { snapshot in
       let active = try Self.active(id, in: snapshot)
@@ -112,16 +113,16 @@ public actor TimerEngine {
       var changes = mode == .switchTo ? Self.pauseChanges(others, at: now) : []
       changes += Self.resumeChanges([active], at: now, updatedAt: now)
       return TimerUpdate(changes: changes)
-    }.undo
+    }
   }
 
   @discardableResult
-  public func stop(_ id: EntryID) async throws -> TimerUndo {
+  public func stop(_ id: EntryID) async throws -> CommandResult<Void> {
     let now = clock.now()
     return try await perform { snapshot in
       let active = try Self.active(id, in: snapshot)
       return TimerUpdate(changes: Self.closeChanges([active], state: .stopped, at: now, updatedAt: now))
-    }.undo
+    }
   }
 
   /// Stops every running and paused entry in one transaction. Returns their IDs.
@@ -161,7 +162,7 @@ public actor TimerEngine {
 
   /// Resumes the entries of the global pause that are still paused, in parallel.
   @discardableResult
-  public func resumeAll(_ pauseID: GlobalPauseID) async throws -> TimerUndo {
+  public func resumeAll(_ pauseID: GlobalPauseID) async throws -> CommandResult<Void> {
     let now = clock.now()
     return try await perform { snapshot in
       guard let open = snapshot.globalPause, open.id == pauseID else {
@@ -175,7 +176,7 @@ public actor TimerEngine {
           .globalPause(before: open, after: closed)
         ]
       )
-    }.undo
+    }
   }
 
   /// Records a sign of life. The app calls this once a minute while the engine runs.
@@ -220,7 +221,7 @@ public actor TimerEngine {
   /// Applies the user's decision on an idle event. Entries that were resumed or stopped
   /// in the meantime stay as they are.
   @discardableResult
-  public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> TimerUndo {
+  public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> CommandResult<Void> {
     let now = clock.now()
     return try await perform { snapshot in
       guard let event = snapshot.pendingIdleEvents.first(where: { $0.id == id }) else {
@@ -260,19 +261,19 @@ public actor TimerEngine {
       }
       changes.append(.idleEvent(before: event, after: resolved))
       return TimerUpdate(changes: changes)
-    }.undo
+    }
   }
 
   /// Writes edits made outside the timer commands, e.g. a note or a corrected segment.
   /// Each change must state the row as currently stored; otherwise nothing is written.
   @discardableResult
-  public func apply(_ changes: [TimerChange]) async throws -> TimerUndo {
-    try await perform { _ in TimerUpdate(changes: changes) }.undo
+  public func apply(_ changes: [TimerChange]) async throws -> CommandResult<Void> {
+    try await perform { _ in TimerUpdate(changes: changes) }
   }
 
-  /// Reverts a command. Returns the undo of the undo, i.e. the redo.
+  /// Reverts a command. The result's undo is the undo of the undo, i.e. the redo.
   @discardableResult
-  public func undo(_ undo: TimerUndo) async throws -> TimerUndo {
+  public func undo(_ undo: TimerUndo) async throws -> CommandResult<Void> {
     try await apply(undo.changes)
   }
 

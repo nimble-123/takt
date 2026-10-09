@@ -212,14 +212,16 @@ public actor TimerEngine {
     public enum StartMode: Sendable { case switchTo, parallel }
 
     public func start(_ draft: EntryDraft, mode: StartMode) async throws -> CommandResult<EntryID>
-    public func pause(_ id: EntryID) async throws -> TimerUndo
-    public func resume(_ id: EntryID, mode: StartMode) async throws -> TimerUndo
-    public func stop(_ id: EntryID) async throws -> TimerUndo
+    public func pause(_ id: EntryID) async throws -> CommandResult<Void>
+    public func resume(_ id: EntryID, mode: StartMode) async throws -> CommandResult<Void>
+    public func stop(_ id: EntryID) async throws -> CommandResult<Void>
+    public func stopAll() async throws -> CommandResult<[EntryID]>
     public func pauseAll() async throws -> CommandResult<GlobalPauseID?>
-    public func resumeAll(_ pause: GlobalPauseID) async throws -> TimerUndo
-    public func recordIdle(from start: Timestamp, to end: Timestamp) async throws -> IdleEvent?
-    public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> TimerUndo
-    public func undo(_ undo: TimerUndo) async throws -> TimerUndo   // liefert das Redo
+    public func resumeAll(_ pause: GlobalPauseID) async throws -> CommandResult<Void>
+    public func recordIdle(from start: Timestamp, to end: Timestamp) async throws -> IdleEvent?   // Systemereignis, kein Undo
+    public func resolveIdle(_ id: IdleEventID, _ decision: IdleDecision) async throws -> CommandResult<Void>
+    public func apply(_ changes: [TimerChange]) async throws -> CommandResult<Void>
+    public func undo(_ undo: TimerUndo) async throws -> CommandResult<Void>   // .undo ist das Redo
     public func updates() async throws -> AsyncStream<TimerSnapshot>
 }
 
@@ -245,7 +247,7 @@ Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand
 
 **Uhr.** Die Engine liest die Zeit nie direkt, sondern über ein injiziertes `TaktClock`-Protokoll. Tests nutzen eine manuelle Uhr.
 
-**Undo.** Jeder Befehl liefert seine Umkehrung (`TimerUndo`: die vertauschten Änderungen in umgekehrter Reihenfolge), die der `UndoManager` des Fensters bzw. der Undo-Stapel des Popovers aufnimmt. Im Hauptfenster registriert `EngineUndo` jede Änderung beim `UndoManager` des Fensters (Bearbeiten-Menü, ⌘Z/⇧⌘Z); weil die Engine asynchron arbeitet, registriert jeder Undo-Handler die Gegenrichtung sofort mit dem noch ausstehenden Ergebnis. Das Popover führt einen eigenen Stapel, weil die Befehle asynchron laufen und ein `UndoManager` das Redo nur synchron registrieren kann; mehrere Befehle einer Aktion („Alle stoppen“) werden zu einem Undo zusammengefasst. Wurde eine betroffene Zeile inzwischen anders geändert, schlägt das Undo mit einem Konflikt fehl, statt neuere Daten zu überschreiben. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
+**Undo.** Jeder Befehl liefert ein `CommandResult` mit Wert und Umkehrung (`TimerUndo`: die vertauschten Änderungen in umgekehrter Reihenfolge), die der `UndoManager` des Fensters bzw. der Undo-Stapel des Popovers aufnimmt. Im Hauptfenster registriert `EngineUndo` jede Änderung beim `UndoManager` des Fensters (Bearbeiten-Menü, ⌘Z/⇧⌘Z); weil die Engine asynchron arbeitet, registriert jeder Undo-Handler die Gegenrichtung sofort mit dem noch ausstehenden Ergebnis. Das Popover führt einen eigenen Stapel, weil die Befehle asynchron laufen und ein `UndoManager` das Redo nur synchron registrieren kann; mehrere Befehle einer Aktion („Alle stoppen“) werden zu einem Undo zusammengefasst. Wurde eine betroffene Zeile inzwischen anders geändert, schlägt das Undo mit einem Konflikt fehl, statt neuere Daten zu überschreiben. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
 
 **Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting` (Schlüssel `engine.heartbeat`, UTC-Millisekunden); die App ruft dazu `TimerEngine.heartbeat()` auf und beim Start einmal `recoverAfterLaunch(idleThreshold:)`. Findet sie beim Start offene Segmente und liegt der letzte Heartbeat länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente beim Heartbeat und erzeugt ein `idle_event`. Der Nutzer entscheidet dann im Inaktivitätsdialog.
 

@@ -40,7 +40,7 @@ public final class TimerActions {
   }
 
   public func stop(_ id: EntryID) async throws -> TimerUndo {
-    let undo = try await engine.stop(id)
+    let undo = try await engine.stop(id).undo
     onStopped?([id])
     return undo
   }
