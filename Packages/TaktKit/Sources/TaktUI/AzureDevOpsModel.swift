@@ -15,6 +15,10 @@ public final class AzureDevOpsModel {
     self.catalog = catalog
     self.clock = clock
     connections = accounts.connections
+    fetchProjects = { [accounts] organization in
+      guard let client = try accounts.client(for: organization) else { return nil }
+      return try await client.projects()
+    }
   }
 
   // MARK: Public
@@ -80,8 +84,10 @@ public final class AzureDevOpsModel {
     isWorking = true
     defer { isWorking = false }
     do {
-      guard let client = try accounts.client(for: organization) else { return }
-      remoteProjects = try await client.projects()
+      guard let projects = try await fetchProjects(organization) else { return }
+      // Switched to another organization while loading: its own load sets the list.
+      guard organization == importOrganization else { return }
+      remoteProjects = projects
       areaPaths = [:]
     } catch {
       show(error)
@@ -92,7 +98,9 @@ public final class AzureDevOpsModel {
     guard let organization = importOrganization, areaPaths[project] == nil else { return }
     do {
       guard let client = try accounts.client(for: organization) else { return }
-      areaPaths[project] = try await client.areaPaths(of: project)
+      let paths = try await client.areaPaths(of: project)
+      guard organization == importOrganization else { return }
+      areaPaths[project] = paths
     } catch {
       show(error)
     }
@@ -128,6 +136,9 @@ public final class AzureDevOpsModel {
   // MARK: Internal
 
   let accounts: ADOAccounts
+
+  /// The projects of an organization, `nil` without a token; tests replace it to decide when it answers.
+  @ObservationIgnored var fetchProjects: @Sendable (String) async throws -> [ADOClient.RemoteProject]?
 
   // MARK: Private
 

@@ -3,9 +3,14 @@ import Foundation
 /// Edits made after the fact in the main window (HW-02, UC-05). Each function returns the row
 /// changes for `TimerEngine.apply(_:)`, so every edit is checked for conflicts and can be undone.
 public enum EntryEdits {
+
+  // MARK: Public
+
   public enum EditError: Error, Equatable {
     /// A segment would end before it starts or run into the future.
     case invalidRange
+    /// A segment would overlap another segment of its entry.
+    case overlapsSegment
     /// The split time is not inside the entry's tracked time.
     case splitOutsideEntry
   }
@@ -23,37 +28,59 @@ public enum EntryEdits {
     return (entry, [.entry(before: nil, after: entry), .segment(before: nil, after: segment)])
   }
 
-  /// Sets new bounds. An open segment keeps running; only its start can move.
+  /// Sets new bounds. An open segment keeps running; only its start can move. A closed segment
+  /// needs an `end`. `segments` are the entry's segments; the new bounds must not overlap the others.
   public static func setBounds(
     of segment: Segment,
     start: Timestamp,
     end: Timestamp?,
+    among segments: [Segment],
     now: Timestamp,
   ) throws -> [TimerChange] {
     var edited = segment
     edited.start = start
-    edited.end = segment.isOpen ? nil : end
+    if !segment.isOpen {
+      guard let end else { throw EditError.invalidRange }
+      edited.end = end
+    }
     guard start <= now, edited.end.map({ $0 > start && $0 <= now }) ?? true else {
       throw EditError.invalidRange
+    }
+    guard isFree(from: edited.start, to: edited.end, in: segments, except: [segment.id]) else {
+      throw EditError.overlapsSegment
     }
     return edited == segment ? [] : [.segment(before: segment, after: edited)]
   }
 
   /// Moves a closed segment by `seconds`, keeping its length.
-  public static func move(_ segment: Segment, by seconds: TimeInterval, now: Timestamp) throws -> [TimerChange] {
+  public static func move(
+    _ segment: Segment,
+    by seconds: TimeInterval,
+    among segments: [Segment],
+    now: Timestamp,
+  ) throws -> [TimerChange] {
     guard let end = segment.end else { throw EditError.invalidRange }
     return try setBounds(
       of: segment,
       start: segment.start.adding(seconds: seconds),
       end: end.adding(seconds: seconds),
+      among: segments,
       now: now,
     )
   }
 
   /// "Pause in Arbeitszeit umwandeln": the gap between two segments of an entry becomes work.
-  public static func closeGap(between first: Segment, and second: Segment) throws -> [TimerChange] {
+  /// No other of the entry's `segments` may lie in the gap.
+  public static func closeGap(
+    between first: Segment,
+    and second: Segment,
+    among segments: [Segment],
+  ) throws -> [TimerChange] {
     guard first.entryID == second.entryID, let end = first.end, end <= second.start else {
       throw EditError.invalidRange
+    }
+    guard isFree(from: end, to: second.start, in: segments, except: [first.id, second.id]) else {
+      throw EditError.overlapsSegment
     }
     var merged = first
     merged.end = second.end
@@ -144,5 +171,20 @@ public enum EntryEdits {
     guard edited != entry else { return [] }
     edited.updatedAt = now
     return [.entry(before: entry, after: edited)]
+  }
+
+  // MARK: Private
+
+  /// Whether no segment but those in `ids` overlaps `start..<end`; `nil` ends run on (open).
+  /// Segments that only touch do not overlap.
+  private static func isFree(
+    from start: Timestamp,
+    to end: Timestamp?,
+    in segments: [Segment],
+    except ids: Set<SegmentID>,
+  ) -> Bool {
+    !segments.contains { other in
+      !ids.contains(other.id) && (end.map { other.start < $0 } ?? true) && (other.end.map { start < $0 } ?? true)
+    }
   }
 }

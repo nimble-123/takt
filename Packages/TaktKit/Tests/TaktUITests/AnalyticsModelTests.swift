@@ -43,6 +43,16 @@ struct AnalyticsModelTests {
   }
 
   @Test
+  func previousMonthIsTheCalendarMonthBefore() async {
+    model.period = .month
+    await model.reload()
+    #expect(model.report.map { Exporter.dayString($0.range.lowerBound, calendar: calendar) } == "2026-10-01")
+    let previous = model.previous?.range
+    #expect(previous.map { Exporter.dayString($0.lowerBound, calendar: calendar) } == "2026-09-01")
+    #expect(previous?.upperBound == model.range.lowerBound)
+  }
+
+  @Test
   func drilldownListsTheEntriesOfAGroup() async throws {
     let project = Project(name: "Portal", color: "#2563EB", createdAt: clock.now())
     try await CatalogStore(database: database).save(project)
@@ -68,6 +78,22 @@ struct AnalyticsModelTests {
     let csv = String(decoding: try model.export(.csv), as: UTF8.self)
     #expect(csv.contains("2026-10-07,A,"))
     #expect(model.exportFileName == "Takt 2026-10-07 – 2026-10-07")
+  }
+
+  @Test
+  func exportOfACustomPeriodUsesTheAppliedDates() async throws {
+    try await track("A", hours: 1)
+    model.period = .custom
+    model.customStart = clock.now().date
+    model.customEnd = clock.now().date
+    await model.reload()
+
+    // Picked, but not applied yet: the report still shows 7 October.
+    model.customStart = clock.now().adding(seconds: -2 * 86_400).date
+    let json = String(decoding: try model.export(.json), as: UTF8.self)
+
+    #expect(model.exportFileName == "Takt 2026-10-07 – 2026-10-07")
+    #expect(json.contains("\"from\" : \"2026-10-07\""))
   }
 
   @Test

@@ -112,6 +112,7 @@ public actor TimerEngine {
       let others = snapshot.running.filter { $0.id != id }
       var changes = mode == .switchTo ? Self.pauseChanges(others, at: now) : []
       changes += Self.resumeChanges([active], at: now, updatedAt: now)
+      changes += Self.leaveGlobalPause([id], in: snapshot, at: now)
       return TimerUpdate(changes: changes)
     }
   }
@@ -121,7 +122,10 @@ public actor TimerEngine {
     let now = clock.now()
     return try await perform { snapshot in
       let active = try Self.active(id, in: snapshot)
-      return TimerUpdate(changes: Self.closeChanges([active], state: .stopped, at: now, updatedAt: now))
+      return TimerUpdate(
+        changes: Self.closeChanges([active], state: .stopped, at: now, updatedAt: now)
+          + Self.leaveGlobalPause([id], in: snapshot, at: now)
+      )
     }
   }
 
@@ -130,15 +134,17 @@ public actor TimerEngine {
   public func stopAll() async throws -> CommandResult<[EntryID]> {
     let now = clock.now()
     return try await perform { snapshot in
-      TimerUpdate(
-        changes: Self.closeChanges(snapshot.entries, state: .stopped, at: now, updatedAt: now),
-        result: snapshot.entries.map(\.id),
+      let ids = snapshot.entries.map(\.id)
+      return TimerUpdate(
+        changes: Self.closeChanges(snapshot.entries, state: .stopped, at: now, updatedAt: now)
+          + Self.leaveGlobalPause(ids, in: snapshot, at: now),
+        result: ids,
       )
     }
   }
 
   /// Pauses all running entries and remembers them. Returns `nil` if nothing was running.
-  /// While a global pause is open, further entries are added to it.
+  /// While a global pause is open and still holds a paused entry, further entries are added to it.
   @discardableResult
   public func pauseAll() async throws -> CommandResult<GlobalPauseID?> {
     let now = clock.now()
@@ -147,12 +153,18 @@ public actor TimerEngine {
       guard !running.isEmpty else { return TimerUpdate(changes: [], result: nil) }
       var changes = Self.pauseChanges(running, at: now)
       let pause: GlobalPause
-      if let open = snapshot.globalPause {
+      if let open = snapshot.globalPause, Self.holdsPausedEntry(open, in: snapshot) {
         var extended = open
         extended.entryIDs += running.map(\.id).filter { !open.entryIDs.contains($0) }
         changes.append(.globalPause(before: open, after: extended))
         pause = extended
       } else {
+        // A pause whose entries were all deleted in the meantime ends here.
+        if let stale = snapshot.globalPause {
+          var closed = stale
+          closed.resumedAt = now
+          changes.append(.globalPause(before: stale, after: closed))
+        }
         pause = GlobalPause(pausedAt: now, entryIDs: running.map(\.id))
         changes.append(.globalPause(before: nil, after: pause))
       }
@@ -362,6 +374,24 @@ public actor TimerEngine {
       changes.append(.entry(before: active.entry, after: entry))
       return changes
     }
+  }
+
+  private static func holdsPausedEntry(_ pause: GlobalPause, in snapshot: TimerSnapshot) -> Bool {
+    pause.entryIDs.contains { snapshot.entry($0)?.entry.state == .paused }
+  }
+
+  /// Takes entries the user resumed or stopped out of the open global pause, so "Resume all"
+  /// only resumes what it paused. The pause ends once none of its entries is paused any more.
+  private static func leaveGlobalPause(
+    _ ids: [EntryID],
+    in snapshot: TimerSnapshot,
+    at now: Timestamp,
+  ) -> [TimerChange] {
+    guard let open = snapshot.globalPause, open.entryIDs.contains(where: ids.contains) else { return [] }
+    var updated = open
+    updated.entryIDs.removeAll(where: ids.contains)
+    if !holdsPausedEntry(updated, in: snapshot) { updated.resumedAt = now }
+    return [.globalPause(before: open, after: updated)]
   }
 
   /// Resumes entries with a new open segment from `start`.

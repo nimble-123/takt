@@ -18,6 +18,9 @@ struct DayCloseScreen: View {
 
   // MARK: Internal
 
+  /// ⌘↩, not Return: Return in an inspector field must not send bookings to Azure DevOps.
+  static let bookAllShortcut = KeyboardShortcut(.return, modifiers: .command)
+
   let model: MainWindowModel
   let booking: BookingCoordinator
 
@@ -45,10 +48,11 @@ struct DayCloseScreen: View {
             } rows: {
               ForEach(group.lines) { line in
                 BookingRow(line: line, outcome: dayClose.outcomes[line.id])
-                  .contentShape(Rectangle())
-                  .onTapGesture(count: 2) { model.openInspector(for: line.entryID) }
-                  // Double-click only, so VoiceOver gets the same action (#110).
+                  .selectable(model.selection.contains(line.entryID))
+                  .onTapGesture { click(line.entryID) }
+                  // Opening needs a double-click, so VoiceOver gets it as a named action (#110).
                   .accessibilityElement(children: .combine)
+                  .accessibilityAddTraits(model.selection.contains(line.entryID) ? .isSelected : [])
                   .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
                     model.openInspector(for: line.entryID)
                   }
@@ -80,9 +84,10 @@ struct DayCloseScreen: View {
                 }
                 .foregroundStyle(Palette.warning)
                 .padding(.vertical, 6)
-                .contentShape(Rectangle())
-                .onTapGesture(count: 2) { model.openInspector(for: entry.id) }
+                .selectable(model.selection.contains(entry.id))
+                .onTapGesture { click(entry.id) }
                 .accessibilityElement(children: .contain)
+                .accessibilityAddTraits(model.selection.contains(entry.id) ? .isSelected : [])
                 .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
                   model.openInspector(for: entry.id)
                 }
@@ -160,10 +165,36 @@ struct DayCloseScreen: View {
       .buttonStyle(.borderedProminent)
       .tint(Palette.accent)
       .disabled(dayClose.open.isEmpty || dayClose.isBooking)
-      .keyboardShortcut(.defaultAction)
+      .keyboardShortcut(Self.bookAllShortcut)
+      .help(Text("Book all open differences (⌘↩)", bundle: .module))
     }
   }
 
+  /// A click selects, a double-click also opens the inspector (docs/DESIGN.md). One gesture with
+  /// the event's click count, so a single click is not delayed.
+  private func click(_ id: EntryID) {
+    if DayTimeline.isDoubleClick {
+      model.openInspector(for: id)
+    } else {
+      model.selection = [id]
+    }
+  }
+
+}
+
+// MARK: - Selectable
+
+extension View {
+  /// A row that can be clicked anywhere and shows when it is selected.
+  fileprivate func selectable(_ selected: Bool) -> some View {
+    background {
+      if selected {
+        // Wider than the row, so its text stays aligned with the section header.
+        RoundedRectangle(cornerRadius: 6).fill(Palette.accentSurface).padding(.horizontal, -6)
+      }
+    }
+    .contentShape(Rectangle())
+  }
 }
 
 // MARK: - ReviewSection

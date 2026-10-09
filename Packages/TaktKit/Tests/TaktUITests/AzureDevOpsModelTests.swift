@@ -4,6 +4,7 @@ import TaktCore
 import TaktStore
 import Testing
 
+@testable import TaktADO
 @testable import TaktUI
 
 // MARK: - AzureDevOpsModelTests
@@ -33,6 +34,33 @@ struct AzureDevOpsModelTests {
     #expect(projects.allSatisfy { $0.source == .ado && $0.adoOrganization == "contoso" })
     #expect(Set(projects.map(\.name)) == ["Kundenportal", "Team Login"])
     #expect(model.isTakenOver("Kundenportal", areaPath: "Kundenportal\\Team Login"))
+  }
+
+  @Test
+  func switchingTheOrganizationWhileLoadingKeepsItsProjects() async throws {
+    let model = AzureDevOpsModel(
+      accounts: ADOAccounts(secrets: NoSecrets(), suiteName: "takt-ado-ui-\(UUID().uuidString)"),
+      catalog: CatalogModel(store: CatalogStore(database: try AppDatabase.inMemory()), clock: clock),
+      clock: clock,
+    )
+    let (release, releaseFirst) = AsyncStream.makeStream(of: Void.self)
+    model.fetchProjects = { @Sendable organization in
+      if organization == "first" {
+        // Answers after the organization was switched.
+        for await _ in release { break }
+      }
+      return [ADOClient.RemoteProject(id: organization, name: "Project of \(organization)")]
+    }
+
+    model.importOrganization = "first"
+    let first = Task { await model.loadProjects() }
+    await Task.yield()
+    model.importOrganization = "second"
+    await model.loadProjects()
+    releaseFirst.yield()
+    await first.value
+
+    #expect(model.remoteProjects.map(\.id) == ["second"])
   }
 
   // MARK: Private
