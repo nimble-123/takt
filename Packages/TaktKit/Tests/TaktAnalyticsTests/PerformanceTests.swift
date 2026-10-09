@@ -44,13 +44,16 @@ struct PerformanceTests {
 
   // MARK: Private
 
-  /// Shared Linux runners have outliers that make the limit flaky; there it is only checked with
-  /// `TAKT_CHECK_TIMING=1`. macOS always checks it.
+  /// Shared CI runners (and tests running in parallel there) have outliers that make the limit
+  /// flaky; on CI and on Linux it is only checked with `TAKT_CHECK_TIMING=1`. Local macOS runs
+  /// always check it.
   private static var checksWallClock: Bool {
+    let environment = ProcessInfo.processInfo.environment
+    if environment["TAKT_CHECK_TIMING"] == "1" { return true }
     #if os(macOS)
-    true
+    return environment["CI"] == nil
     #else
-    ProcessInfo.processInfo.environment["TAKT_CHECK_TIMING"] == "1"
+    return false
     #endif
   }
 
