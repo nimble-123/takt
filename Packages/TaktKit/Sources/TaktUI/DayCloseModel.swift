@@ -17,7 +17,7 @@ final class DayCloseModel {
   /// `lines` and `book` stand in for the `BookingCoordinator` in tests.
   init(
     lines: @escaping @MainActor (Range<Timestamp>) async throws -> [BookingLine],
-    book: @escaping @MainActor ([BookingLine]) async -> [String: BookingService.Outcome],
+    book: @escaping @MainActor ([BookingLine]) async -> [BookingLine.Key: BookingService.Outcome],
   ) {
     loadLines = lines
     bookLines = book
@@ -44,7 +44,7 @@ final class DayCloseModel {
 
   private(set) var lines = [BookingLine]()
   /// Results of the last "Book All", per line; cleared when the day changes.
-  private(set) var outcomes = [String: BookingService.Outcome]()
+  private(set) var outcomes = [BookingLine.Key: BookingService.Outcome]()
   private(set) var isBooking = false
   private(set) var loadFailed = false
 
@@ -101,7 +101,7 @@ final class DayCloseModel {
   // MARK: Private
 
   private let loadLines: @MainActor (Range<Timestamp>) async throws -> [BookingLine]
-  private let bookLines: @MainActor ([BookingLine]) async -> [String: BookingService.Outcome]
+  private let bookLines: @MainActor ([BookingLine]) async -> [BookingLine.Key: BookingService.Outcome]
   private var shownDay: Range<Timestamp>?
 
 }
