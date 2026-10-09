@@ -326,6 +326,18 @@ struct BookingTests {
   }
 
   @Test
+  func differenceBelowAHundredthOfAnHourIsNotBooked() async throws {
+    respondNormally()
+    let link = try await workItem()
+    _ = try await entry(link, minutes: 10.0 / 60)
+    let line = try #require(try await lines(link).first)
+
+    #expect(line.difference == 0)
+    #expect(await service.book(line) == .nothingToDo)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
+  @Test
   func queueSkipsABookingThatChangedWhileItRan() async throws {
     let link = try await workItem()
     let id = try await entry(link)
@@ -383,6 +395,22 @@ struct BookingTests {
     #expect(try await records.record(first.id)?.status == .synced)
     #expect(try await records.record(second.id)?.status == .failed)
     #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
+  @Test
+  func recordHoldsExactlyWhatWasBooked() async throws {
+    respondNormally()
+    let link = try await workItem()
+    // 50 seconds are 0.0139 h; Azure DevOps gets 0.01 h, so the record must say 36 seconds.
+    _ = try await entry(link, minutes: 50.0 / 60)
+    let line = try #require(try await lines(link).first)
+
+    #expect(line.difference == 36)
+    #expect(await service.book(line) == .booked)
+    #expect(value("/fields/\(TimeField.completedWork)", in: try patchBody()) as? Double == 7.51)
+    #expect(try await records.records(onDay: "2026-10-07").map(\.deltaSeconds) == [36])
+    // The 14 seconds left over stay below the threshold instead of piling up.
+    #expect(try await lines(link).first?.difference == 0)
   }
 
   @Test
