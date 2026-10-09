@@ -166,6 +166,14 @@ private struct KPIRow: View {
         String(localized: "Total", bundle: .module),
         DurationText.hoursMinutes(report.total),
         change: previous.map { change(report.total, $0.total) } ?? nil,
+        help: hint(
+          String(
+            localized: "Allocated time in the period; with full counting, parallel time counts more than once.",
+            bundle: .module,
+          ),
+          previous: previous.map { DurationText.hoursMinutes($0.total) },
+          difference: previous.map { AnalyticsHover.signedDuration(report.total - $0.total) },
+        ),
       )
       if let comparison, comparison.target > 0 {
         // AN-07: target from the weekly hours, counted up to today.
@@ -177,21 +185,58 @@ private struct KPIRow: View {
             "\(DurationText.hoursMinutes(comparison.actual)) of \(DurationText.hoursMinutes(comparison.target)) target",
             bundle: .module,
           ),
+          help: String(
+            localized: "Tracked time against the target from the weekly hours, counted up to today.",
+            bundle: .module,
+          ),
         )
       }
-      figure(String(localized: "Pauses", bundle: .module), DurationText.hoursMinutes(report.pauses))
+      figure(
+        String(localized: "Pauses", bundle: .module),
+        DurationText.hoursMinutes(report.pauses),
+        help: hint(
+          String(localized: "Gaps between segments of the same entry on the same day.", bundle: .module),
+          previous: previous.map { DurationText.hoursMinutes($0.pauses) },
+          difference: previous.map { AnalyticsHover.signedDuration(report.pauses - $0.pauses) },
+        ),
+      )
       figure(
         String(localized: "Multitasking", bundle: .module),
-        report.multitaskingShare.formatted(.percent.precision(.fractionLength(0))),
+        report.multitaskingShare.formatted(Self.percent),
+        help: hint(
+          String(localized: "Share of the tracked time in which entries ran in parallel.", bundle: .module),
+          previous: previous.map { $0.multitaskingShare.formatted(Self.percent) },
+          difference: previous.map {
+            (report.multitaskingShare - $0.multitaskingShare).formatted(Self.percent.sign(strategy: .always()))
+          },
+        ),
       )
       figure(
         String(localized: "Focus blocks", bundle: .module),
         "\(report.focusBlocks)",
         detail: DurationText.hoursMinutes(report.focusTime),
+        help: hint(
+          String(
+            localized: "Uninterrupted work on one entry, without a parallel one, of at least 25 minutes.",
+            bundle: .module,
+          ),
+          previous: previous.map { "\($0.focusBlocks) (\(DurationText.hoursMinutes($0.focusTime)))" },
+          difference: previous.map { (report.focusBlocks - $0.focusBlocks).formatted(.number.sign(strategy: .always())) },
+        ),
       )
       figure(
         String(localized: "Switches per day", bundle: .module),
-        report.contextSwitchesPerDay.formatted(.number.precision(.fractionLength(1))),
+        report.contextSwitchesPerDay.formatted(Self.decimal),
+        help: hint(
+          String(
+            localized: "Changes between entries, averaged over the days with tracked time; pauses do not count.",
+            bundle: .module,
+          ),
+          previous: previous.map { $0.contextSwitchesPerDay.formatted(Self.decimal) },
+          difference: previous.map {
+            (report.contextSwitchesPerDay - $0.contextSwitchesPerDay).formatted(Self.decimal.sign(strategy: .always()))
+          },
+        ),
       )
       Spacer()
     }
@@ -199,11 +244,26 @@ private struct KPIRow: View {
 
   // MARK: Private
 
+  private static let percent = FloatingPointFormatStyle<Double>.Percent().precision(.fractionLength(0))
+  private static let decimal = FloatingPointFormatStyle<Double>().precision(.fractionLength(1))
+
   private func change(_ now: TimeInterval, _ before: TimeInterval) -> Double? {
     before > 0 ? (now - before) / before : nil
   }
 
-  private func figure(_ title: String, _ value: String, change: Double? = nil, detail: String? = nil) -> some View {
+  /// Tooltip of a figure: what it means and, if there is one, the value of the previous period (#129).
+  private func hint(_ explanation: String, previous: String?, difference: String?) -> String {
+    guard let previous, let difference else { return explanation }
+    return explanation + "\n" + String(localized: "Previous period: \(previous) (\(difference))", bundle: .module)
+  }
+
+  private func figure(
+    _ title: String,
+    _ value: String,
+    change: Double? = nil,
+    detail: String? = nil,
+    help: String,
+  ) -> some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(title)
         .font(.system(size: 11, weight: .semibold))
@@ -227,28 +287,44 @@ private struct KPIRow: View {
       }
     }
     .accessibilityElement(children: .combine)
+    // A tooltip, and the hint VoiceOver reads.
+    .help(help)
   }
 }
 
 // MARK: - DayBars
 
 private struct DayBars: View {
+
+  // MARK: Internal
+
   let model: AnalyticsModel
   let report: Report
 
   var body: some View {
     let top = AnalyticsScreen.topGroups(report)
-    let other = String(localized: "Other", bundle: .module)
     VStack(alignment: .leading, spacing: 8) {
       SectionTitle(text: String(localized: "Per day", bundle: .module))
       Chart {
         ForEach(report.days, id: \.start) { day in
-          ForEach(Array(day.groups), id: \.key) { key, seconds in
-            BarMark(
-              x: .value("Day", day.start.date, unit: .day),
-              y: .value("Hours", seconds / 3600),
-            )
-            .foregroundStyle(by: .value("Group", top.contains(key) ? model.label(key) : other))
+          ForEach(AnalyticsHover.parts(of: day, top: top), id: \.self) { part in
+            // The hovered part carries a small label with its values (#129).
+            if hovered == Hovered(day: day, part: part) {
+              bar(day, part)
+                .annotation(
+                  position: .top,
+                  spacing: 4,
+                  overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart)),
+                ) {
+                  HoverLabel(lines: [
+                    model.label(.day(day.start)),
+                    "\(name(part.key)): \(DurationText.hoursMinutes(part.seconds))",
+                    dayTotal(day),
+                  ])
+                }
+            } else {
+              bar(day, part)
+            }
           }
           let target = model.targetHours(on: day.start)
           if target > 0 {
@@ -268,28 +344,114 @@ private struct DayBars: View {
       )
       .chartXScale(domain: report.range.lowerBound.date...report.range.upperBound.date)
       .chartYAxisLabel(String(localized: "Hours", bundle: .module))
+      .chartOverlay { proxy in
+        GeometryReader { geometry in
+          Rectangle()
+            .fill(.clear)
+            .contentShape(Rectangle())
+            .onContinuousHover { phase in
+              hover(phase, at: proxy, in: geometry, top: top)
+            }
+        }
+      }
       .frame(height: 240)
     }
+  }
+
+  // MARK: Private
+
+  private struct Hovered: Equatable {
+    var day: Report.Day
+    var part: AnalyticsHover.BarPart
+  }
+
+  @State private var hovered: Hovered?
+
+  private var other: String {
+    String(localized: "Other", bundle: .module)
+  }
+
+  private func name(_ key: GroupKey?) -> String {
+    key.map(model.label) ?? other
+  }
+
+  private func dayTotal(_ day: Report.Day) -> String {
+    String(localized: "Day total: \(DurationText.hoursMinutes(day.total))", bundle: .module)
+  }
+
+  private func bar(_ day: Report.Day, _ part: AnalyticsHover.BarPart) -> some ChartContent {
+    BarMark(
+      x: .value("Day", day.start.date, unit: .day),
+      yStart: .value("Hours", part.start),
+      yEnd: .value("Hours", part.end),
+    )
+    .foregroundStyle(by: .value("Group", name(part.key)))
+    .accessibilityLabel(Text(verbatim: "\(model.label(.day(day.start))), \(name(part.key))"))
+    .accessibilityValue(Text(verbatim: "\(DurationText.hoursMinutes(part.seconds)), \(dayTotal(day))"))
+  }
+
+  private func hover(_ phase: HoverPhase, at proxy: ChartProxy, in geometry: GeometryProxy, top: [GroupKey]) {
+    guard case .active(let location) = phase, let plotFrame = proxy.plotFrame else {
+      hovered = nil
+      return
+    }
+    let frame = geometry[plotFrame]
+    guard
+      let date = proxy.value(atX: location.x - frame.minX, as: Date.self),
+      let hours = proxy.value(atY: location.y - frame.minY, as: Double.self),
+      let day = AnalyticsHover.day(at: date, in: report.days, end: report.range.upperBound.date),
+      let part = AnalyticsHover.part(at: hours, in: AnalyticsHover.parts(of: day, top: top))
+    else {
+      hovered = nil
+      return
+    }
+    hovered = Hovered(day: day, part: part)
   }
 }
 
 // MARK: - Distribution
 
 private struct Distribution: View {
+
+  // MARK: Internal
+
   let model: AnalyticsModel
   let report: Report
 
   var body: some View {
+    let shown = Array(report.groups.prefix(8))
     VStack(alignment: .leading, spacing: 8) {
       SectionTitle(text: model.grouping.title)
-      Chart(Array(report.groups.prefix(8).enumerated()), id: \.element.key) { index, group in
-        SectorMark(angle: .value("Hours", group.seconds), innerRadius: .ratio(0.6), angularInset: 1)
+      Chart(Array(shown.enumerated()), id: \.element.key) { index, group in
+        SectorMark(angle: .value("Hours", group.seconds), innerRadius: .ratio(Self.hole), angularInset: 1)
           .foregroundStyle(AnalyticsScreen.color(group.key, index: index, model))
           .opacity(model.drilldown == nil || model.drilldown == group.key ? 1 : 0.35)
+          .accessibilityLabel(Text(model.label(group.key)))
+          .accessibilityValue(Text(verbatim: value(group)))
+      }
+      .chartBackground { proxy in
+        GeometryReader { geometry in
+          if let hovered, let plotFrame = proxy.plotFrame {
+            let frame = geometry[plotFrame]
+            centerLabel(hovered)
+              .frame(maxWidth: min(frame.width, frame.height) * Self.hole * 0.9)
+              .position(x: frame.midX, y: frame.midY)
+          }
+        }
+      }
+      .chartOverlay { proxy in
+        GeometryReader { geometry in
+          Rectangle()
+            .fill(.clear)
+            .contentShape(Rectangle())
+            .onContinuousHover { phase in
+              hover(phase, at: proxy, in: geometry, shown: shown)
+            }
+        }
       }
       .frame(height: 140)
       VStack(alignment: .leading, spacing: 2) {
-        ForEach(Array(report.groups.prefix(8).enumerated()), id: \.element.key) { index, group in
+        ForEach(Array(shown.enumerated()), id: \.element.key) { index, group in
           Button {
             model.drilldown = model.drilldown == group.key ? nil : group.key
           } label: {
@@ -311,9 +473,82 @@ private struct Distribution: View {
             .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
+          .help(Text(verbatim: "\(model.label(group.key)) · \(value(group))"))
         }
       }
     }
+  }
+
+  // MARK: Private
+
+  /// Inner radius of the donut as a share of the outer one.
+  private static let hole = 0.6
+
+  @State private var hovered: Report.GroupTotal?
+
+  /// "12:30 · 42 %"; the share is of all groups, so it matches the donut.
+  private func value(_ group: Report.GroupTotal) -> String {
+    let total = report.groups.lazy.map(\.seconds).reduce(0, +)
+    return "\(DurationText.hoursMinutes(group.seconds)) · \(AnalyticsHover.share(group.seconds, of: total))"
+  }
+
+  private func centerLabel(_ group: Report.GroupTotal) -> some View {
+    VStack(spacing: 1) {
+      Text(model.label(group.key))
+        .fontWeight(.semibold)
+        .lineLimit(1)
+      Text(verbatim: value(group))
+        .monospacedDigit()
+        .foregroundStyle(Palette.textSecondary)
+    }
+    .font(.system(size: 11))
+    .minimumScaleFactor(0.8)
+    .accessibilityHidden(true)
+  }
+
+  private func hover(_ phase: HoverPhase, at proxy: ChartProxy, in geometry: GeometryProxy, shown: [Report.GroupTotal]) {
+    guard case .active(let location) = phase, let plotFrame = proxy.plotFrame else {
+      hovered = nil
+      return
+    }
+    let frame = geometry[plotFrame]
+    let center = CGPoint(x: frame.midX, y: frame.midY)
+    let outer = min(frame.width, frame.height) / 2
+    let radius = hypot(location.x - center.x, location.y - center.y)
+    guard
+      radius >= outer * Self.hole,
+      radius <= outer,
+      let index = AnalyticsHover.sector(
+        atAngle: AnalyticsHover.angle(of: location, around: center),
+        values: shown.map(\.seconds),
+      )
+    else {
+      hovered = nil
+      return
+    }
+    hovered = shown[index]
+  }
+}
+
+// MARK: - HoverLabel
+
+/// Small label next to the hovered part of a chart (#129).
+private struct HoverLabel: View {
+  let lines: [String]
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 1) {
+      ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
+        Text(line).fontWeight(index == 0 ? .semibold : .regular)
+      }
+    }
+    .font(.system(size: 11))
+    .monospacedDigit()
+    .padding(.horizontal, 8)
+    .padding(.vertical, 5)
+    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
+    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Palette.separator))
+    .fixedSize()
   }
 }
 
@@ -380,7 +615,7 @@ private struct Heatmap: View {
                 .help(
                   Text(
                     verbatim:
-                    "\(weekdays[(day + 1) % 7]) \(calendar.hourLabel(hour)) · \(DurationText.hoursMinutes(seconds))"
+                    "\(weekdays[(day + 1) % 7]) \(calendar.hourLabel(hour)) · \(DurationText.span(seconds))"
                   )
                 )
             }
@@ -396,7 +631,15 @@ private struct Heatmap: View {
           }
         }
       }
-      .accessibilityElement(children: .ignore)
+      // VoiceOver gets one element per weekday with the minutes of each hour instead of 112 cells (#129).
+      .accessibilityChildren {
+        ForEach(0..<7, id: \.self) { day in
+          Text(calendar.weekdaySymbols[(day + 1) % 7])
+            .accessibilityValue(
+              Text(verbatim: AnalyticsHover.heatmapRow(report.heatmap[day], hours: Self.hours) { calendar.hourLabel($0) })
+            )
+        }
+      }
       .accessibilityLabel(Text("Weekday × hour", bundle: .module))
       .accessibilityValue(summary)
     }
@@ -408,7 +651,7 @@ private struct Heatmap: View {
 
   private let calendar = Calendar.current
 
-  /// The cells are hidden from VoiceOver; it reads the weekday and hour with the most time instead (#110).
+  /// VoiceOver reads the weekday and hour with the most time first (#110).
   private var summary: Text {
     let days = report.heatmap.map { $0.reduce(0, +) }
     let hours = (0..<24).map { hour in report.heatmap.reduce(0) { $0 + $1[hour] } }
