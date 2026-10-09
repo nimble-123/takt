@@ -14,6 +14,11 @@ struct DayTimeline: View {
 
   static let snap: TimeInterval = 5 * 60
 
+  /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
+  static var isDoubleClick: Bool {
+    NSApp.currentEvent?.clickCount == 2
+  }
+
   let model: MainWindowModel
   let day: Range<Timestamp>
   var interactive = true
@@ -70,11 +75,6 @@ struct DayTimeline: View {
   }
 
   private static let space = "timeline"
-
-  /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
-  private static var isDoubleClick: Bool {
-    NSApp.currentEvent?.clickCount == 2
-  }
 
   @State private var drag: Drag?
 
