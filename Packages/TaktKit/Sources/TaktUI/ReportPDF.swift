@@ -88,7 +88,7 @@ private struct PageFrame<Content: View>: View {
   // MARK: Private
 
   private var period: String {
-    let range = model.range
+    let range = model.reportRange
     let last = Timestamp(milliseconds: range.upperBound.milliseconds - 1).date
     return
       "\(range.lowerBound.date.formatted(date: .long, time: .omitted)) – \(last.formatted(date: .long, time: .omitted))"

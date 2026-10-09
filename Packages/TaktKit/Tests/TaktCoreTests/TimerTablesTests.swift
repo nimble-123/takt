@@ -35,6 +35,15 @@ struct TimerTablesTests {
   }
 
   @Test
+  func weightMustNotBeNaN() {
+    var tables = TimerTables()
+    let entry = TimeEntry(title: "A", weight: .nan, createdAt: now, updatedAt: now)
+    #expect(throws: TimerStoreError.invalidValue) {
+      try tables.apply([.entry(before: nil, after: entry)])
+    }
+  }
+
+  @Test
   func weightMustBePositive() {
     var tables = TimerTables()
     let entry = TimeEntry(title: "A", weight: 0, createdAt: now, updatedAt: now)

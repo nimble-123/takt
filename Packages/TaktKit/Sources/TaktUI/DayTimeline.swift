@@ -14,6 +14,11 @@ struct DayTimeline: View {
 
   static let snap: TimeInterval = 5 * 60
 
+  /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
+  static var isDoubleClick: Bool {
+    NSApp.currentEvent?.clickCount == 2
+  }
+
   let model: MainWindowModel
   let day: Range<Timestamp>
   var interactive = true
@@ -70,11 +75,6 @@ struct DayTimeline: View {
   }
 
   private static let space = "timeline"
-
-  /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
-  private static var isDoubleClick: Bool {
-    NSApp.currentEvent?.clickCount == 2
-  }
 
   @State private var drag: Drag?
 
@@ -191,7 +191,7 @@ struct DayTimeline: View {
     let entry = model.entry(item.entryID)
     let selected = model.selection.contains(item.entryID)
     switch item.kind {
-    case .pause:
+    case .pause(let after, let before):
       Hatched(color: Palette.warning.opacity(0.7), background: .clear)
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .frame(width: frame.width, height: frame.height)
@@ -201,6 +201,16 @@ struct DayTimeline: View {
             model.openInspector(for: item.entryID)
           } else {
             model.selection = [item.entryID]
+          }
+        }
+        // Right-click as on the entry's blocks, plus what the inspector offers for a pause.
+        .contextMenu {
+          Button(String(localized: "Count as Work", bundle: .module)) {
+            Task { await model.closeGap(between: after, and: before) }
+          }
+          Button(String(localized: "Delete", bundle: .module), role: .destructive) {
+            let ids = model.contextTargets(for: item.entryID)
+            Task { await model.delete(ids) }
           }
         }
         .accessibilityLabel(Text("Pause", bundle: .module))

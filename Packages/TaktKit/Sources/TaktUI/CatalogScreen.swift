@@ -329,7 +329,7 @@ struct AppearanceMenu: View {
                   if swatch.hex == hex {
                     Image(systemName: "checkmark")
                       .font(.system(size: 10, weight: .bold))
-                      .foregroundStyle(.white)
+                      .foregroundStyle(CategoryColors.onColor(swatch.hex))
                   }
                 }
             }
