@@ -22,7 +22,7 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 </div>
 
 > [!NOTE]
-> Takt is pre-release: phases 1–3 are implemented, except Entra ID sign-in and the Outlook calendar. Phase 4 (a working time record under German labor law, with flextime, overtime and vacation accounts) is planned. Releases ship an unsigned Apple Silicon build; see [Install](#install).
+> Takt is pre-release: phases 1–3 are largely implemented; still open are Entra ID sign-in, the Outlook calendar, signed and notarized builds with automatic updates, and a desktop widget. Phase 4 (a working time record under German labor law, with flextime, overtime and vacation accounts) is planned. Releases ship an unsigned Apple Silicon build; see [Install](#install).
 
 <div align="center">
 
@@ -65,6 +65,7 @@ Time tracking usually happens after the fact and from memory, because starting, 
 | | |
 | --- | --- |
 | **Menu bar first** | Start, switch, pause and stop from a popover. Open it with a global shortcut (default `⌥⇧T`), search, press Enter. |
+| **Main window** | Day timeline and week grid: draw, drag and resize entries, move them to another day, delete by right-click, undo with `⌘Z`. Plus an editable entry list, full-text search and a `⌘K` command palette. |
 | **Parallel timers** | Run several timers at once and count overlapping time as *full* or *split* by weight (e.g. 70/30), globally or per entry. |
 | **Pauses and idle detection** | Per-timer and global pauses. When you come back from an idle period, keep, discard, count as pause or reassign the time. |
 | **Rules** | Assign category, project and tags automatically, for example "work item type Bug → category Support". |
