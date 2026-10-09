@@ -141,6 +141,30 @@ public final class CommandPaletteModel {
         symbol: "chevron.right",
       ) { [window] in window.step(by: 1) },
     ]
+    // AZ-05: the shown day; a day's context menu offers the same.
+    if window.database != nil {
+      let day = window.dayRange.lowerBound
+      for kind in AbsenceKind.allCases {
+        items.append(
+          PaletteItem(
+            id: "absence-\(kind.rawValue)",
+            title: String(localized: "Mark Day as \(kind.name)", bundle: .module),
+            symbol: kind.symbol,
+            keywords: ["absence", "abwesenheit", kind.rawValue],
+          ) { [window] in await window.setAbsence(kind, on: day) }
+        )
+      }
+      if window.absence(on: day) != nil {
+        items.append(
+          PaletteItem(
+            id: "absence-none",
+            title: String(localized: "Remove Absence", bundle: .module),
+            symbol: "calendar",
+            keywords: ["absence", "abwesenheit"],
+          ) { [window] in await window.setAbsence(nil, on: day) }
+        )
+      }
+    }
     for section in window.sections {
       items.append(
         PaletteItem(

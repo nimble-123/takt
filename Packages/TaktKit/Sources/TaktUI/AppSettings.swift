@@ -47,6 +47,9 @@ public final class AppSettings {
     workdayEndMinute = stored.workdayEndMinute
     federalState = stored.federalState
     askCorrectionReason = stored.askCorrectionReason
+    workTimeModel = stored.workTimeModel
+    flexStartBalanceHours = stored.flexStartBalanceHours
+    flexStartDay = stored.flexStartDay
   }
 
   // MARK: Public
@@ -72,6 +75,15 @@ public final class AppSettings {
     case workdayEndMinute
     case federalState
     case askCorrectionReason
+    case workTimeModel
+    case flexStartBalanceHours
+    case flexStartDay
+  }
+
+  /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
+  public enum WorkTimeModel: String, CaseIterable, Sendable {
+    case flexTime
+    case trust
   }
 
   /// When booked time goes to Azure DevOps (DO-21).
@@ -108,6 +120,7 @@ public final class AppSettings {
   public static let dailyGoalRange: ClosedRange<Double> = 1...12
   public static let weeklyHoursRange: ClosedRange<Double> = 0...60
   public static let noTimerReminderRange = 5...120
+  public static let flexStartBalanceRange: ClosedRange<Double> = -999...999
 
   /// Enter starts with this mode; ⌥↩ with the other (TM-05).
   public var startMode: TimerEngine.StartMode {
@@ -195,6 +208,25 @@ public final class AppSettings {
   /// AZ-04: ask for an optional reason when times older than 7 days change (§ 17 MiLoG).
   public var askCorrectionReason: Bool {
     didSet { write(.askCorrectionReason, askCorrectionReason) }
+  }
+
+  /// AZ-05: flex time (default) or trust-based working time.
+  public var workTimeModel: WorkTimeModel {
+    didSet { write(.workTimeModel, workTimeModel.rawValue) }
+  }
+
+  /// AZ-05: the flex account's balance before `flexStartDay`, e.g. carried over; may be negative.
+  public var flexStartBalanceHours: Double {
+    didSet {
+      let hours = Self.hours(flexStartBalanceHours, in: Self.flexStartBalanceRange)
+      if hours != flexStartBalanceHours, !isLocked(.flexStartBalanceHours) { flexStartBalanceHours = hours }
+      write(.flexStartBalanceHours, flexStartBalanceHours)
+    }
+  }
+
+  /// AZ-05: the first day the flex account counts, `YYYY-MM-DD`; `nil` = the first tracked day.
+  public var flexStartDay: String? {
+    didSet { write(.flexStartDay, flexStartDay ?? "") }
   }
 
   /// Folders whose Git repositories suggest work items by branch name.
@@ -340,6 +372,13 @@ public final class AppSettings {
 
     case .askCorrectionReason:
       if askCorrectionReason != stored.askCorrectionReason { askCorrectionReason = stored.askCorrectionReason }
+
+    case .workTimeModel: if workTimeModel != stored.workTimeModel { workTimeModel = stored.workTimeModel }
+
+    case .flexStartBalanceHours:
+      if flexStartBalanceHours != stored.flexStartBalanceHours { flexStartBalanceHours = stored.flexStartBalanceHours }
+
+    case .flexStartDay: if flexStartDay != stored.flexStartDay { flexStartDay = stored.flexStartDay }
     }
   }
 }
@@ -374,6 +413,11 @@ private struct Stored {
     workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 17 * 60
     federalState = defaults.string(forKey: AppSettings.Key.federalState.rawValue).flatMap(FederalState.init)
     askCorrectionReason = defaults.bool(forKey: AppSettings.Key.askCorrectionReason.rawValue)
+    workTimeModel = defaults.string(forKey: AppSettings.Key.workTimeModel.rawValue)
+      .flatMap(AppSettings.WorkTimeModel.init) ?? .flexTime
+    flexStartBalanceHours = defaults.object(forKey: AppSettings.Key.flexStartBalanceHours.rawValue) as? Double ?? 0
+    flexStartDay = defaults.string(forKey: AppSettings.Key.flexStartDay.rawValue)
+      .flatMap { Timestamp.localDayParts($0) != nil ? $0 : nil }
   }
 
   // MARK: Internal
@@ -398,6 +442,9 @@ private struct Stored {
   let workdayEndMinute: Int
   let federalState: FederalState?
   let askCorrectionReason: Bool
+  let workTimeModel: AppSettings.WorkTimeModel
+  let flexStartBalanceHours: Double
+  let flexStartDay: String?
 
   // MARK: Private
 

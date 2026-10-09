@@ -196,6 +196,20 @@ public struct EntryQueries: Sendable {
   }
 
   /// All linked work items by ID; the table holds one row per work item.
+  /// Start of the earliest segment of an entry that is not deleted; `nil` without any.
+  public func firstSegmentStart() async throws -> Timestamp? {
+    try await database.writer.read { db in
+      try Int64.fetchOne(
+        db,
+        sql: """
+          SELECT MIN(s.start_at) FROM segment s
+          JOIN time_entry e ON e.id = s.entry_id
+          WHERE e.deleted_at IS NULL
+          """,
+      ).map(Timestamp.init(milliseconds:))
+    }
+  }
+
   public func workItemLinks() async throws -> [WorkItemLinkID: WorkItemLink] {
     try await database.writer.read { db in
       let links = try Row.fetchAll(db, sql: "SELECT * FROM work_item_link").map(WorkItemLink.init(row:))

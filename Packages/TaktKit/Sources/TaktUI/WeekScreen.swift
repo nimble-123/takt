@@ -20,8 +20,8 @@ struct WeekScreen: View {
             Text(day.lowerBound.date, format: .dateTime.weekday(.abbreviated).day())
               .font(.system(size: 12, weight: day.contains(model.now) ? .bold : .regular))
               .foregroundStyle(day.contains(model.now) ? Palette.accentText : Palette.textPrimary)
-            if let holiday = model.holiday(on: day.lowerBound) {
-              Text(holiday.name)
+            if let label = model.absence(on: day.lowerBound)?.name ?? model.holiday(on: day.lowerBound)?.name {
+              Text(label)
                 .font(.system(size: 10))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
@@ -37,6 +37,7 @@ struct WeekScreen: View {
           .frame(maxWidth: .infinity)
           .contentShape(Rectangle())
           .onTapGesture(count: 2) { open(day) }
+          .contextMenu { AbsenceMenu(model: model, day: day.lowerBound) }
           // Double-click only, so VoiceOver gets the same action (#110).
           .accessibilityElement(children: .combine)
           .accessibilityAddTraits(.isButton)

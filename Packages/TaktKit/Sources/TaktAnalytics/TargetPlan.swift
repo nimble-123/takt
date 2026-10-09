@@ -30,12 +30,15 @@ public struct TargetPlan: Hashable, Sendable {
   public private(set) var workDays: Set<Int>
   /// Public holidays of this state have no target (AZ-03); `nil` knows no holidays.
   public private(set) var federalState: FederalState?
+  /// Days off by `YYYY-MM-DD`; they have no target (AZ-05). Loaded with the data, not a setting.
+  public var absences = [String: AbsenceKind]()
 
   /// Target seconds of a local day: the weekly hours spread evenly over the working days; 0 on a
-  /// public holiday.
+  /// public holiday and on a day off.
   public func target(on day: Timestamp, calendar: Calendar) -> TimeInterval {
     guard !workDays.isEmpty, workDays.contains(day.mondayBasedWeekday(in: calendar)) else { return 0 }
     if let federalState, PublicHoliday.on(day, state: federalState, calendar: calendar) != nil { return 0 }
+    if absences[day.localDayString(in: calendar)] != nil { return 0 }
     return weeklyHours * 3600 / Double(workDays.count)
   }
 

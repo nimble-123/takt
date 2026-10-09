@@ -188,4 +188,16 @@ enum Schema {
         """
     )
   }
+
+  /// Vacation, sick and other days off; they have no target (AZ-05).
+  static func v8(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE absence (
+          day TEXT PRIMARY KEY,
+          kind TEXT NOT NULL CHECK (kind IN ('vacation', 'sick', 'off'))
+        )
+        """
+    )
+  }
 }

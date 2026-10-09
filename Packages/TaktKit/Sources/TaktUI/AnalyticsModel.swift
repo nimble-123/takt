@@ -52,6 +52,10 @@ public final class AnalyticsModel {
   public private(set) var data = AnalyticsData(entries: [])
   public private(set) var errorMessage: String?
 
+  /// AZ-05: the flex account at the end of today; `nil` with trust-based working time or before
+  /// the first load.
+  public private(set) var flexBalance: TimeInterval?
+
   public var period = Period.week {
     didSet { reloadSoon() }
   }
@@ -70,14 +74,22 @@ public final class AnalyticsModel {
     didSet { recompute() }
   }
 
-  /// AN-07: from the settings (or an MDM profile).
+  /// AN-07: from the settings (or an MDM profile), with the absences of the shown period.
   public var targetPlan: TargetPlan {
-    settings.targetPlan
+    var plan = settings.targetPlan
+    plan.absences = absences
+    return plan
+  }
+
+  /// Whether targets show at all; trust-based working time has none (AZ-05).
+  public var showsTarget: Bool {
+    settings.workTimeModel == .flexTime
   }
 
   /// Target against tracked time of the shown period, up to today.
   public var comparison: TargetPlan.Comparison? {
-    report.map { targetPlan.compare($0, now: clock.now(), calendar: calendar) }
+    guard showsTarget else { return nil }
+    return report.map { targetPlan.compare($0, now: clock.now(), calendar: calendar) }
   }
 
   public var range: Range<Timestamp> {
@@ -124,7 +136,8 @@ public final class AnalyticsModel {
 
   /// Target hours of a day, for the line in the bar chart.
   public func targetHours(on day: Timestamp) -> Double {
-    targetPlan.target(on: day, calendar: calendar) / 3600
+    guard showsTarget else { return 0 }
+    return targetPlan.target(on: day, calendar: calendar) / 3600
   }
 
   public func step(by count: Int) {
@@ -148,7 +161,11 @@ public final class AnalyticsModel {
     do {
       let loaded = try await source.load(range, now: now)
       let previousLoaded = try await source.load(previousRange, now: now)
+      let loadedAbsences = try await source.absences(range, calendar: calendar)
+      let balance = try await loadFlexBalance(now: now)
       guard range == self.range else { return }
+      absences = loadedAbsences
+      flexBalance = balance
       data = loaded
       previousData = previousLoaded
       loadedRange = range
@@ -208,6 +225,7 @@ public final class AnalyticsModel {
   // MARK: Private
 
   private var previousData = AnalyticsData(entries: [])
+  private var absences = [String: AbsenceKind]()
   /// The range `data` belongs to; differs from `range` while a reload is running.
   private var loadedRange: Range<Timestamp>?
   /// The comparison range `previousData` belongs to (AN-01).
@@ -226,6 +244,27 @@ public final class AnalyticsModel {
     case .month: .month
     case .custom: nil
     }
+  }
+
+  /// AZ-05: from the start day (or the first tracked day) through today.
+  private func loadFlexBalance(now: Timestamp) async throws -> TimeInterval? {
+    guard showsTarget else { return nil }
+    let configured = settings.flexStartDay.flatMap(Timestamp.localDayParts).flatMap { parts in
+      calendar.date(from: DateComponents(year: parts.year, month: parts.month, day: parts.day)).map(Timestamp.init)
+    }
+    let first = configured == nil ? try await source.firstTrackedTime() : nil
+    guard let start = configured ?? first else { return settings.flexStartBalanceHours * 3600 }
+    let range = start.localDay(in: calendar).lowerBound..<now.localDay(in: calendar).upperBound
+    var plan = settings.targetPlan
+    plan.absences = try await source.absences(range, calendar: calendar)
+    let data = try await source.load(range, now: now)
+    let account = FlexAccount(
+      plan: plan,
+      startBalance: settings.flexStartBalanceHours * 3600,
+      startDay: start,
+      calendar: calendar,
+    )
+    return account.balance(WorkDay.days(in: range, from: data, now: now, calendar: calendar), now: now)
   }
 
   private func reloadSoon() {

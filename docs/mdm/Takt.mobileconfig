@@ -55,6 +55,12 @@
       </array>
       <key>federalState</key>
       <string></string>
+      <key>workTimeModel</key>
+      <string>flexTime</string>
+      <key>flexStartBalanceHours</key>
+      <real>0</real>
+      <key>flexStartDay</key>
+      <string></string>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

@@ -20,7 +20,7 @@ struct AnalyticsScreen: View {
       VStack(alignment: .leading, spacing: 20) {
         controls
         if let report = model.report {
-          KPIRow(report: report, previous: model.previous, comparison: model.comparison)
+          KPIRow(report: report, previous: model.previous, comparison: model.comparison, flexBalance: model.flexBalance)
           HStack(alignment: .top, spacing: 20) {
             DayBars(model: model, report: report)
               .frame(maxWidth: .infinity)
@@ -159,6 +159,7 @@ private struct KPIRow: View {
   let report: Report
   let previous: Report?
   let comparison: TargetPlan.Comparison?
+  let flexBalance: TimeInterval?
 
   var body: some View {
     HStack(spacing: 28) {
@@ -187,6 +188,17 @@ private struct KPIRow: View {
           ),
           help: String(
             localized: "Tracked time against the target from the weekly hours, counted up to today.",
+            bundle: .module,
+          ),
+        )
+      }
+      if let flexBalance {
+        // AZ-05: independent of the shown period, always through today.
+        figure(
+          String(localized: "Flex account", bundle: .module),
+          (flexBalance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(flexBalance)),
+          help: String(
+            localized: "Start balance plus net working time minus target, from the start day through today. Vacation, sick days, days off and public holidays have no target.",
             bundle: .module,
           ),
         )

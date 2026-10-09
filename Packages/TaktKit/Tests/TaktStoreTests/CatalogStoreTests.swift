@@ -3,6 +3,8 @@ import Testing
 
 @testable import TaktStore
 
+// MARK: - CatalogStoreTests
+
 struct CatalogStoreTests {
 
   // MARK: Lifecycle
@@ -107,4 +109,22 @@ struct CatalogStoreTests {
   private let catalog: CatalogStore
   private let now = Timestamp(milliseconds: 1_790_000_000_000)
 
+}
+
+// MARK: - AbsenceStoreTests
+
+struct AbsenceStoreTests {
+  @Test
+  func absencesAreSetReplacedAndRemoved() async throws {
+    let database = try AppDatabase.inMemory()
+    let store = AbsenceStore(database: database)
+
+    try await store.set(.vacation, on: "2026-10-05")
+    try await store.set(.sick, on: "2026-10-06")
+    try await store.set(.off, on: "2026-10-05")
+    try await store.set(.vacation, on: "2026-11-01")
+    try await store.set(nil, on: "2026-10-06")
+
+    #expect(try await store.absences(from: "2026-10-01", through: "2026-10-31") == ["2026-10-05": .off])
+  }
 }
