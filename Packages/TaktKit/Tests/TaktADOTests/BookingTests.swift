@@ -216,6 +216,41 @@ struct BookingTests {
   }
 
   @Test
+  func correctionRestoresOnlyTheRemainingWorkThatWasTaken() async throws {
+    respondNormally()
+    let normal = stub.currentHandler
+    let values = Mutex((completed: 7.5, remaining: 0.5))
+    stub.respond { request in
+      guard request.httpMethod == "GET", request.url?.path() == "/contoso/_apis/wit/workitems/1234" else {
+        return try normal(request)
+      }
+      let (completed, remaining) = values.withLock { $0 }
+      let body = """
+        {"id":1234,"rev":57,"fields":{"\(TimeField.completedWork)":\(completed),"\(TimeField.remainingWork)":\(remaining)}}
+        """
+      return Stub.Response(status: 200, body: Data(body.utf8))
+    }
+    let link = try await workItem()
+    let id = try await entry(link, minutes: 60)
+
+    // 1 h booked on 0.5 h remaining: Remaining Work stops at 0, only 0.5 h was taken.
+    #expect(await service.book(try #require(try await lines(link).first)) == .booked)
+    #expect(value("/fields/\(TimeField.remainingWork)", in: try patchBody(0)) as? Double == 0.0)
+    #expect(try await records.records(onDay: "2026-10-07").first?.remainingDeltaSeconds == -1800)
+
+    values.withLock { $0 = (completed: 8.5, remaining: 0.0) }
+    let stored = try #require(try await EntryQueries(database: database).entry(id))
+    try await TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+      .apply(EntryEdits.delete(stored, openSegment: nil, now: clock.now()))
+    #expect(await service.book(try #require(try await lines(link).first)) == .booked)
+
+    let correction = try patchBody(1)
+    #expect(value("/fields/\(TimeField.completedWork)", in: correction) as? Double == 7.5)
+    // Back to the 0.5 h it was, not to 1 h.
+    #expect(value("/fields/\(TimeField.remainingWork)", in: correction) as? Double == 0.5)
+  }
+
+  @Test
   func crashAfterSendingIsRecoveredFromTheHistory() async throws {
     let link = try await workItem()
     let id = try await entry(link)
