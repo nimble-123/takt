@@ -389,6 +389,99 @@ struct BookingTests {
     #expect(await service.book(try #require(try await lines(link).first)) == .failed(.unauthorized))
   }
 
+  @Test
+  func serverErrorAfterPatchStaysPendingAndIsNotSentAgain() async throws {
+    // A 502 from a gateway says nothing about whether the patch was applied behind it.
+    respondNormally { _ in 502 }
+    let link = try await workItem()
+    _ = try await entry(link)
+    let line = try #require(try await lines(link).first)
+
+    #expect(await service.book(line) == .queued)
+    #expect(try await records.pending().count == 1)
+    #expect(await service.book(try #require(try await lines(link).first)) == .nothingToDo)
+    #expect(await service.book(line) == .nothingToDo)
+    #expect(stub.requests.count(where: { $0.httpMethod == "PATCH" }) == 1)
+  }
+
+  @Test
+  func undecodableAnswerToPatchStaysPending() async throws {
+    respondNormally()
+    let normal = stub.currentHandler
+    stub.respond { request in
+      if request.httpMethod == "PATCH" {
+        return Stub.Response(status: 200, body: Data("<html>Proxy</html>".utf8))
+      }
+      return try normal(request)
+    }
+    let link = try await workItem()
+    _ = try await entry(link)
+
+    #expect(await service.book(try #require(try await lines(link).first)) == .queued)
+    let record = try #require(try await records.records(onDay: "2026-10-07").first)
+    #expect(record.status == .pending)
+    #expect(try await lines(link).first?.difference == 0)
+  }
+
+  @Test(arguments: [401, 500])
+  func failedHistoryLookupKeepsTheBookingPending(status: Int) async throws {
+    let link = try await workItem()
+    let id = try await entry(link)
+    let record = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 1800,
+      createdAt: clock.now(),
+    )
+    try await records.insert(record)
+    stub.respond { _ in Stub.Response(status: status, body: Data()) }
+
+    #expect(await service.processPending() == 1)
+    #expect(try await records.record(record.id)?.status == .pending)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+    // Backoff: the next regular run does not ask again right away.
+    let lookups = stub.requests.count
+    #expect(await service.processPending() == 1)
+    #expect(stub.requests.count == lookups)
+  }
+
+  @Test
+  func markerOnALaterHistoryPageIsFound() async throws {
+    respondNormally()
+    let normal = stub.currentHandler
+    let link = try await workItem()
+    let id = try await entry(link)
+    let record = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 1800,
+      createdAt: clock.now(),
+    )
+    try await records.insert(record)
+    // A full first page of other changes; the booking is on the second page.
+    let others = (1...200).map { #"{"rev":\#($0),"fields":{}}"# }.joined(separator: ",")
+    let firstPage = Data(#"{"count":200,"value":[\#(others)]}"#.utf8)
+    let secondPage = Data(
+      String(decoding: try Stub.fixture("updates"), as: UTF8.self)
+        .replacingOccurrences(of: "MARKER", with: record.marker).utf8
+    )
+    stub.respond { request in
+      guard let url = request.url, url.path().hasSuffix("/updates") else { return try normal(request) }
+      let skip = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+        .queryItems?.first { $0.name == "$skip" }?.value
+      return Stub.Response(status: 200, body: skip == "200" ? secondPage : firstPage)
+    }
+
+    #expect(await service.processPending() == 0)
+    let recovered = try #require(try await records.record(record.id))
+    #expect(recovered.status == .synced && recovered.adoRevision == 58)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
   // MARK: Private
 
   private let stub = Stub()

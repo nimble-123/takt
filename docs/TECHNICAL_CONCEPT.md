@@ -330,7 +330,7 @@ Takt bucht nie absolute Werte, sondern immer die Differenz zwischen dem Soll aus
 | Felder eines Typs | `GET {org}/{project}/_apis/wit/workitemtypes/{type}/fields` |
 | Lesen vor dem Buchen | `GET {org}/_apis/wit/workitems/{id}?fields=…` liefert Feldwerte und `rev` |
 | Buchen | `PATCH {org}/_apis/wit/workitems/{id}` als JSON Patch (`application/json-patch+json`) |
-| Wiederfinden nach Absturz | `GET {org}/_apis/wit/workitems/{id}/updates` |
+| Wiederfinden nach Absturz | `GET {org}/_apis/wit/workitems/{id}/updates?$top=200&$skip=…`, seitenweise bis zur letzten Seite |
 
 Eine Buchung ist ein einziger JSON-Patch. Der Kommentar steht im selben Patch und landet damit in derselben Revision wie die Zeit:
 
@@ -358,8 +358,8 @@ Eine Buchung ist ein einziger JSON-Patch. Der Kommentar steht im selben Patch un
 2. Gebucht = Summe der `delta_seconds` aller erfolgreichen `sync_record` zu diesem Paar.
 3. Differenz = Soll − Gebucht; bei 0 passiert nichts. Eine negative Differenz (Eintrag gekürzt oder gelöscht) reduziert Completed Work wieder.
 4. `sync_record` mit Status `pending` anlegen, dann Work Item lesen und den Patch mit `test /rev` senden.
-5. Erfolg: Status `synced` mit neuer Revision. Revisionskonflikt: neu lesen und bis zu dreimal wiederholen. Keine Verbindung: Datensatz bleibt `pending`; die Warteschlange sendet erneut, sobald `NWPathMonitor` Netz meldet (exponentielles Backoff, `Retry-After` wird beachtet). Andere Fehler: Status `failed`, sichtbar im Tagesabschluss.
-6. Beim App-Start werden `pending`-Datensätze zuerst im Verlauf des Work Items gesucht (Kennung `takt:<id>`). Gefunden heißt bereits gebucht, sonst wird neu gesendet.
+5. Erfolg: Status `synced` mit neuer Revision. Revisionskonflikt: neu lesen und bis zu dreimal wiederholen. Keine Verbindung: Datensatz bleibt `pending`; die Warteschlange sendet erneut, sobald `NWPathMonitor` Netz meldet (exponentielles Backoff, `Retry-After` wird beachtet). Unklarer Ausgang nach dem Senden des Patches (5xx, nicht lesbare 2xx-Antwort, Verbindungsabbruch, `synced` lässt sich lokal nicht speichern): Datensatz bleibt ebenfalls `pending`, die Warteschlange klärt ihn über die Kennung (Schritt 6), nie durch blindes Neusenden. `failed` nur, wenn der Patch nachweislich nicht angewendet wurde: Fehler vor dem Senden (Felder, Werte lesen) oder Ablehnung des Patches (4xx wie 400, 401/403, 404). Sichtbar im Tagesabschluss.
+6. Beim App-Start und in der Warteschlange werden `pending`-Datensätze zuerst im Verlauf des Work Items gesucht (Kennung `takt:<id>`, alle Seiten der Updates). Gefunden heißt bereits gebucht, sonst wird neu gesendet. Schlägt die Suche selbst fehl, bleibt der Datensatz `pending` (Backoff); ein abgelehntes Token stellt die Organisation bis zur nächsten Runde zurück. Nur ein gelöschtes Work Item (404) beendet den Datensatz als `failed`.
 
 **Umsetzung.** `BookingPlanner` (TaktADO) bildet die Zeilen je Eintrag, Work Item und lokalem Tag und rechnet direkt mit `TaktCore.Allocation` (Dienste hängen nicht voneinander ab). Ein Eintrag mit noch ausstehender Buchung bekommt keine zweite; gelöschte Einträge und geänderte Verknüpfungen erscheinen über ihre alten Datensätze mit Soll 0 und werden zurückgebucht. Das Zeitfeld wird erst beim Senden je Projekt und Typ gelesen, damit auch offline vorgemerkt werden kann; hat ein Typ kein `CompletedWork`, geht nur der Kommentar raus (eine Rückfrage beim Nutzer entfällt vorerst). Der Kommentar steht auf Deutsch („Takt: +0,25 h am 06.10.2026 · Notiz [takt:…]“). Fehler werden als Code in `sync_record.error` gespeichert und in der Oberfläche übersetzt. Die Warteschlange läuft beim Start, wenn `NWPathMonitor` Netz meldet, und minütlich mit exponentiellem Backoff (30 s bis 15 min, `Retry-After` hat Vorrang). Einstellungen: `reduceRemainingWork` (DO-22) und `bookingIncludesNote` (DO-23).
 
@@ -375,8 +375,8 @@ flowchart LR
     E --> F{"Antwort?"}
     F -- Erfolg --> G["Gebucht<br/>synced, rev merken"]
     F -- "Konflikt, max. 3×" --> D
-    F -- offline --> Q["Warteschlange<br/>bei Netz erneut"]
-    F -- sonstiger Fehler --> X["Fehler<br/>im Tagesabschluss"]
+    F -- "offline, 5xx, unklar" --> Q["Warteschlange<br/>Kennung suchen, ggf. erneut"]
+    F -- "abgelehnt (4xx)" --> X["Fehler<br/>im Tagesabschluss"]
 ```
 
 ## Analysen

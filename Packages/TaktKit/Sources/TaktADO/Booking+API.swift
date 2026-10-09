@@ -80,7 +80,8 @@ extension ADOClient {
     return response.rev
   }
 
-  /// The revision whose history comment contains `marker`, if any (crash recovery).
+  /// The revision whose history comment contains `marker`, if any (crash recovery). Reads every page
+  /// of the updates, since Azure DevOps returns at most 200 per request.
   public func revision(of workItem: Int, withHistoryContaining marker: String) async throws -> Int? {
     struct Response: Decodable {
       struct Update: Decodable {
@@ -91,9 +92,19 @@ extension ADOClient {
 
       var value: [Update]
     }
-    let response: Response = try await get("_apis/wit/workitems/\(workItem)/updates")
-    return response.value.first { update in
-      update.fields?[TimeField.history]?.newValue?.string?.contains(marker) == true
-    }?.rev
+    let pageSize = 200
+    var skip = 0
+    while true {
+      let page: Response = try await get(
+        "_apis/wit/workitems/\(workItem)/updates",
+        query: [URLQueryItem(name: "$top", value: "\(pageSize)"), URLQueryItem(name: "$skip", value: "\(skip)")],
+      )
+      let match = page.value.first { update in
+        update.fields?[TimeField.history]?.newValue?.string?.contains(marker) == true
+      }
+      if let match { return match.rev }
+      guard page.value.count >= pageSize else { return nil }
+      skip += page.value.count
+    }
   }
 }
