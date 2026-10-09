@@ -46,7 +46,7 @@ struct EntryEditsTests {
     let before = await store.tables
     let segment = try #require(await segments(of: entry.id).first)
 
-    let undo = try await engine.apply(try EntryEdits.move(segment, by: 15 * 60, now: t(600)))
+    let undo = try await engine.apply(try EntryEdits.move(segment, by: 15 * 60, now: t(600))).undo
     let moved = try #require(await segments(of: entry.id).first)
     #expect(moved.start == t(75) && moved.end == t(135))
 

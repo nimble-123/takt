@@ -99,7 +99,7 @@ struct IdleTests {
   func resolveCanBeUndone() async throws {
     let (_, event) = try await awayScenario()
     let before = await store.tables
-    let undo = try await engine.resolveIdle(event.id, .keep)
+    let undo = try await engine.resolveIdle(event.id, .keep).undo
     try await engine.undo(undo)
     #expect(await store.tables == before)
   }

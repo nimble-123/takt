@@ -377,11 +377,11 @@ public final class MenuBarModel {
   }
 
   public func pause(_ id: EntryID) async {
-    await perform { try await $0.pause(id) }
+    await perform { try await $0.pause(id).undo }
   }
 
   public func resume(_ id: EntryID) async {
-    await perform { try await $0.resume(id, mode: .switchTo) }
+    await perform { try await $0.resume(id, mode: .switchTo).undo }
   }
 
   public func stop(_ id: EntryID) async {
@@ -396,7 +396,7 @@ public final class MenuBarModel {
     if !snapshot.running.isEmpty {
       await perform { try await $0.pauseAll().undo }
     } else if let pause = snapshot.globalPause {
-      await perform { try await $0.resumeAll(pause.id) }
+      await perform { try await $0.resumeAll(pause.id).undo }
     }
   }
 
@@ -414,7 +414,7 @@ public final class MenuBarModel {
       edited.note = trimmed.isEmpty ? nil : trimmed
       guard edited != stored else { return }
       edited.updatedAt = clock.now()
-      await perform { try await $0.apply([.entry(before: stored, after: edited)]) }
+      await perform { try await $0.apply([.entry(before: stored, after: edited)]).undo }
     } catch {
       show(error)
     }
@@ -422,7 +422,7 @@ public final class MenuBarModel {
 
   public func resolveIdle(_ decision: IdleDecision) async {
     guard let event = pendingIdle else { return }
-    await perform { try await $0.resolveIdle(event.id, decision) }
+    await perform { try await $0.resolveIdle(event.id, decision).undo }
   }
 
   /// ⌘Z: reverts the last action of the popover.

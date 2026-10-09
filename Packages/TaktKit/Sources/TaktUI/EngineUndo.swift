@@ -35,7 +35,7 @@ final class EngineUndo {
         let next = Task { @MainActor () -> TimerUndo? in
           guard let undo = await pending.value else { return nil }
           do {
-            return try await engine.undo(undo)
+            return try await engine.undo(undo).undo
           } catch {
             target.onError(error)
             return nil

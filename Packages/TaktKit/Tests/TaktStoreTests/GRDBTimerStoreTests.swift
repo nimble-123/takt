@@ -109,7 +109,7 @@ struct GRDBTimerStoreTests {
   func staleUndoIsAConflictAndWritesNothing() async throws {
     let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
     clock.advance(seconds: 60)
-    let undoPause = try await engine.pause(id)
+    let undoPause = try await engine.pause(id).undo
     clock.advance(seconds: 60)
     try await engine.resume(id, mode: .switchTo)
     let before = try await store.snapshot()

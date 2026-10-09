@@ -295,7 +295,7 @@ public final class MainWindowModel {
     await command(String(localized: "Pause All", bundle: .module)) { engine in
       let snapshot = try await engine.snapshot()
       if !snapshot.running.isEmpty { return try await engine.pauseAll().undo }
-      if let pause = snapshot.globalPause { return try await engine.resumeAll(pause.id) }
+      if let pause = snapshot.globalPause { return try await engine.resumeAll(pause.id).undo }
       return TimerUndo(combining: [])
     }
   }
@@ -496,7 +496,7 @@ public final class MainWindowModel {
   private func apply(_ changes: [TimerChange], name: String) async -> Bool {
     guard !changes.isEmpty else { return false }
     do {
-      let undo = try await engine.apply(changes)
+      let undo = try await engine.apply(changes).undo
       self.undo.register(undo, actionName: name, on: undoManager)
       errorMessage = nil
       await reload()
