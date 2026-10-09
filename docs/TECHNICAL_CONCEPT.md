@@ -243,7 +243,7 @@ Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand
 | `pause` | Offenes Segment schließen, Zustand `paused` |
 | `resume` | Neues Segment ab jetzt, Zustand `running`; bei `switchTo` andere pausieren |
 | `stop` | Offenes Segment schließen, Zustand `stopped` |
-| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen |
+| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen. Ein einzeln fortgesetzter oder gestoppter Eintrag (`resume`, `stop`, `stopAll`) verlässt die offene Pause; ist keiner ihrer Einträge mehr pausiert, endet sie (`resumed_at`). `pauseAll` erweitert eine offene Pause nur, solange sie noch einen pausierten Eintrag hält, sonst beginnt eine neue |
 
 **Uhr.** Die Engine liest die Zeit nie direkt, sondern über ein injiziertes `TaktClock`-Protokoll. Tests nutzen eine manuelle Uhr.
 
