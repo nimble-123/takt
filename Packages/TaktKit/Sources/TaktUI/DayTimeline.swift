@@ -6,7 +6,8 @@ import TaktStore
 // MARK: - DayTimeline
 
 /// Vertical timeline of one day with parallel lanes (HW-01). Interactive: draw a new entry on
-/// empty space, drag a block to move it, drag its edges to change start or end (HW-02).
+/// empty space, drag a block to move it, drag its edges to change start or end (HW-02). In the
+/// week grid blocks also move to other days (`movableDays`, HW-03). Right-click deletes (#128).
 struct DayTimeline: View {
 
   // MARK: Internal
@@ -18,6 +19,8 @@ struct DayTimeline: View {
   var interactive = true
   var hourHeight: CGFloat = 56
   var gutter: CGFloat = 52
+  /// How many day columns a block may move left (negative) or right; columns are as wide as this one.
+  var movableDays: ClosedRange<Int> = 0...0
 
   var body: some View {
     TimelineView(.everyMinute) { context in
@@ -48,6 +51,8 @@ struct DayTimeline: View {
       .frame(height: height(dayLength))
     }
     .coordinateSpace(.named(Self.space))
+    // The preview of a block dragged to another day draws over the neighbouring columns.
+    .zIndex(drag == nil ? 0 : 1)
   }
 
   static func snapped(_ time: Timestamp) -> Timestamp {
@@ -59,7 +64,8 @@ struct DayTimeline: View {
 
   private enum Drag: Equatable {
     case create(from: Timestamp, to: Timestamp)
-    case move(Segment, by: TimeInterval)
+    /// `days` columns over, `seconds` along the day (snapped).
+    case move(Segment, days: Int, by: TimeInterval)
     case resize(Segment, start: Timestamp, end: Timestamp?)
   }
 
@@ -91,16 +97,22 @@ struct DayTimeline: View {
       }
   }
 
-  private var previewRange: (start: Timestamp, end: Timestamp)? {
+  /// The dragged range, where it is drawn in this column, and how many columns over.
+  private var preview: (start: Timestamp, end: Timestamp, top: Timestamp, days: Int)? {
     switch drag {
     case .create(let from, let to):
-      (from, to)
-    case .move(let segment, let delta):
-      segment.end.map { (segment.start.adding(seconds: delta), $0.adding(seconds: delta)) }
+      return (from, to, from, 0)
+
+    case .move(let segment, let days, let seconds):
+      guard let end = segment.end else { return nil }
+      let start = TimelineLayout.movedStart(segment.start, days: days, seconds: seconds)
+      return (start, start.adding(seconds: end.seconds(since: segment.start)), segment.start.adding(seconds: seconds), days)
+
     case .resize(_, let start, let end):
-      (start, end ?? model.now)
+      return (start, end ?? model.now, start, 0)
+
     case nil:
-      nil
+      return nil
     }
   }
 
@@ -219,7 +231,13 @@ struct DayTimeline: View {
       }
       .offset(x: frame.minX, y: frame.minY)
       .onTapGesture { select(item.entryID) }
-      .gesture(interactive && !running ? moveGesture(segment) : nil)
+      .gesture(running ? nil : moveGesture(segment, columnWidth: width))
+      .contextMenu {
+        Button(String(localized: "Delete", bundle: .module), role: .destructive) {
+          let ids = model.contextTargets(for: item.entryID)
+          Task { await model.delete(ids) }
+        }
+      }
       // Opening needs a double-click, so VoiceOver gets it as a named action (#110).
       .accessibilityAction { model.selection = [item.entryID] }
       .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
@@ -240,7 +258,7 @@ struct DayTimeline: View {
 
   private func isDragging(_ segment: Segment) -> Bool {
     switch drag {
-    case .move(let dragged, _), .resize(let dragged, _, _): dragged.id == segment.id
+    case .move(let dragged, _, _), .resize(let dragged, _, _): dragged.id == segment.id
     case .create, nil: false
     }
   }
@@ -255,16 +273,19 @@ struct DayTimeline: View {
       .gesture(resizeGesture(segment, edge: edge))
   }
 
-  private func moveGesture(_ segment: Segment) -> some Gesture {
+  private func moveGesture(_ segment: Segment, columnWidth: CGFloat) -> some Gesture {
     DragGesture(minimumDistance: 4, coordinateSpace: .named(Self.space))
       .onChanged { value in
         let seconds = TimeInterval(value.translation.height / hourHeight) * 3600
         let snappedStart = Self.snapped(segment.start.adding(seconds: seconds))
-        drag = .move(segment, by: snappedStart.seconds(since: segment.start))
+        let columns = columnWidth > 0 ? Int((value.translation.width / columnWidth).rounded()) : 0
+        let days = min(max(columns, movableDays.lowerBound), movableDays.upperBound)
+        drag = .move(segment, days: days, by: snappedStart.seconds(since: segment.start))
       }
       .onEnded { _ in
-        guard case .move(let segment, let delta) = drag else { return }
+        guard case .move(let segment, let days, let seconds) = drag else { return }
         drag = nil
+        let delta = TimelineLayout.movedStart(segment.start, days: days, seconds: seconds).seconds(since: segment.start)
         guard delta != 0 else { return }
         Task { await model.move(segment, by: delta) }
       }
@@ -288,24 +309,26 @@ struct DayTimeline: View {
 
   @ViewBuilder
   private func dragPreview(width: CGFloat) -> some View {
-    if let range = previewRange {
-      let top = y(range.start)
+    if let range = preview {
+      let top = y(range.top)
+      let shift = CGFloat(range.days) * width
       let blockHeight = max(3, height(range.end.seconds(since: range.start)))
       RoundedRectangle(cornerRadius: 6)
         .strokeBorder(Palette.accent, style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
         .background(Palette.accentSurface.opacity(0.5), in: RoundedRectangle(cornerRadius: 6))
         .frame(width: width - 4, height: blockHeight)
-        .offset(x: gutter + 2, y: top)
+        .offset(x: gutter + 2 + shift, y: top)
         .allowsHitTesting(false)
       Text(
-        "\(range.start.date, format: .dateTime.hour().minute()) – \(range.end.date, format: .dateTime.hour().minute())"
+        "\(range.start.date, format: range.days == 0 ? .dateTime.hour().minute() : .dateTime.weekday().hour().minute()) – \(range.end.date, format: .dateTime.hour().minute())"
       )
       .font(.system(size: 11, weight: .semibold))
       .monospacedDigit()
+      .fixedSize()
       .padding(.horizontal, 6)
       .padding(.vertical, 3)
       .background(.thickMaterial, in: Capsule())
-      .offset(x: gutter + 8, y: max(0, top - 24))
+      .offset(x: gutter + 8 + shift, y: max(0, top - 24))
       .allowsHitTesting(false)
     }
   }

@@ -21,7 +21,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Menüleiste | Regeltermin Start/Ende (Phase 3) | Hinweis zum Terminbeginn mit „Timer starten“; Toast zum Ende mit „Verlängern“ |
 | Hauptfenster | Heute | Seitenleiste Heute, Tagesabschluss, Woche, Einträge, Analysen, Projekte, Einstellungen; KPI-Zeile (Erfasst, Pausen, Einträge); Timeline über 24 h, scrollt zur aktuellen Stunde, parallele Spur, Pausen und Inaktivität schraffiert, „jetzt“-Linie; rechts der Inspektor des gewählten Eintrags |
 | Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ |
-| Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn |
+| Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
 | Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
 | Hauptfenster | Einstellungen | Allgemein, Erfassung, Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
@@ -71,6 +71,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 - Undo statt Rückfrage: Stoppen, Löschen, Verschieben sind sofort und per ⌘Z rückgängig zu machen.
 - Pausen und Inaktivität werden schraffiert dargestellt, nie als leere Lücke.
 - Doppelklick auf einen Eintrag (Heute, Tagesabschluss, Woche, Einträge) wählt ihn aus und öffnet den Inspektor; Einfachklick wählt nur aus. Inspektor ein- und ausblenden mit ⌥⌘I.
+- Rechtsklick auf einen Eintrag (Heute, Woche, Einträge) bietet „Löschen“: gelöscht wird der ganze Eintrag, bei Mehrfachauswahl alle ausgewählten; ⌘Z macht es rückgängig.
 - Fehlende Zuordnung (kein Work Item) ist Amber, nicht Rot.
 - Eine Hauptaktion pro Ansicht; Primärbutton immer `accent`.
 - Touch-Ziele mindestens 28 pt in der Menüleiste, 32 pt im Hauptfenster; alle Icon-Buttons mit Accessibility-Label.
