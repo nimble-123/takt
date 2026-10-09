@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.5.1](https://github.com/nimble-123/takt/compare/v0.5.0...v0.5.1) (2026-10-09)
+
+
+### Fehlerbehebungen
+
+* **ado:** book differences in steps of 0.01 h (DO-20, DO-24) ([#157](https://github.com/nimble-123/takt/issues/157)) ([4a7ea10](https://github.com/nimble-123/takt/commit/4a7ea10b96c3ec2bde3d358b08a1271319b0045d))
+* **ado:** give back only the Remaining Work a booking took (DO-22) ([#161](https://github.com/nimble-123/takt/issues/161)) ([7a14bee](https://github.com/nimble-123/takt/commit/7a14bee2740bae49aa0c1113763efb13e41d8842))
+* **ado:** send only still pending records and skip backoff only when the network returns (DO-26) ([#152](https://github.com/nimble-123/takt/issues/152)) ([bd4aa30](https://github.com/nimble-123/takt/commit/bd4aa30d845c2ab03b3a978cce5623a7229ab977))
+* **analytics:** compare with the previous calendar day, week or month (AN-01) ([#151](https://github.com/nimble-123/takt/issues/151)) ([24883c9](https://github.com/nimble-123/takt/commit/24883c9e5d89342d7070a653dfca740eeeb6a8d8))
+* **app:** bring Takt to the front when opened from the menu bar menu ([#169](https://github.com/nimble-123/takt/issues/169)) ([0378b0a](https://github.com/nimble-123/takt/commit/0378b0a048227a202804d173ec87156a153abeb6))
+* **app:** write the heartbeat apart from backup and network chores (TM-07) ([#167](https://github.com/nimble-123/takt/issues/167)) ([f7c14e2](https://github.com/nimble-123/takt/commit/f7c14e23205b161d62a118143581186a5f78e9a3))
+* **core:** end the global pause once none of its entries is paused (TM-02) ([#154](https://github.com/nimble-123/takt/issues/154)) ([7474638](https://github.com/nimble-123/takt/commit/74746387087bf2af1de4ffc78ffd8937e5e3ec0d))
+* **core:** fix launch recovery, split associations and NaN weights (TM-07) ([#163](https://github.com/nimble-123/takt/issues/163)) ([7335a91](https://github.com/nimble-123/takt/commit/7335a9185aed35f83b920b5a323f33d571a049a9))
+* **core:** keep the segments of an entry from overlapping (HW-02) ([#159](https://github.com/nimble-123/takt/issues/159)) ([440e655](https://github.com/nimble-123/takt/commit/440e65552d9817518d862b960536067e8f317f06))
+* keep full-text search after a rejected query, skip dates in branch names, log error details privately ([#168](https://github.com/nimble-123/takt/issues/168)) ([5f2b2f6](https://github.com/nimble-123/takt/commit/5f2b2f6b3a061f3312c9e4acef358e5af6f16efa))
+* **store:** allow one open segment per entry and index segments by entry (TM-01) ([#166](https://github.com/nimble-123/takt/issues/166)) ([6135142](https://github.com/nimble-123/takt/commit/613514293ceb03e41e53bc28ab6ad2530ca702a9))
+* **store:** keep the booking log when importing a backup (DO-24) ([#165](https://github.com/nimble-123/takt/issues/165)) ([f5c615c](https://github.com/nimble-123/takt/commit/f5c615c0a7e3a5c97c69e48208e41067ce6f7260))
+* **ui:** book the day close with ⌘↩ and select rows with one click (DO-20) ([#160](https://github.com/nimble-123/takt/issues/160)) ([21a49b0](https://github.com/nimble-123/takt/commit/21a49b050c0d3314fbf7c31621ce6cecdc62b878))
+* **ui:** context menu on pauses and readable badges in dark mode (HW-02) ([#164](https://github.com/nimble-123/takt/issues/164)) ([51abd4e](https://github.com/nimble-123/takt/commit/51abd4e22b046c6c8e98150780937e047fb34eec))
+* **ui:** drop stale results of overlapping loads (HW-01, AN-06, ST-03) ([#162](https://github.com/nimble-123/takt/issues/162)) ([c1f27d9](https://github.com/nimble-123/takt/commit/c1f27d958bb42f80d7dc3ccd4aa260c981b32276))
+* **ui:** keep popover undo and selection on what they refer to (TM-11, MB-05) ([#156](https://github.com/nimble-123/takt/issues/156)) ([37ae847](https://github.com/nimble-123/takt/commit/37ae84798295c945a5324a403d3007a9672eb949))
+* **ui:** keep typed inspector text when another field saves (HW-02) ([#153](https://github.com/nimble-123/takt/issues/153)) ([ec3c73e](https://github.com/nimble-123/takt/commit/ec3c73e21ed70042250064fa642fafd496af8d27))
+* **ui:** keep values set by a configuration profile in the session ([#155](https://github.com/nimble-123/takt/issues/155)) ([b39ed3b](https://github.com/nimble-123/takt/commit/b39ed3b668c18779b354cebc03f899873db30110))
+
 ## [0.5.0](https://github.com/nimble-123/takt/compare/v0.4.0...v0.5.0) (2026-10-09)
 
 
