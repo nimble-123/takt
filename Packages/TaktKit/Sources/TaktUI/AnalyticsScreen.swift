@@ -113,6 +113,14 @@ struct AnalyticsScreen: View {
         Button(String(localized: "Export as CSV …", bundle: .module)) { export(.csv) }
         Button(String(localized: "Export as JSON …", bundle: .module)) { export(.json) }
         Button(String(localized: "Export as PDF Report …", bundle: .module)) { export(.pdf) }
+        Divider()
+        // AZ-09: the record under the Working Hours Act, of the shown period.
+        Button(String(localized: "Working Time Record as PDF …", bundle: .module)) {
+          Self.saveTimeRecord(model, csv: false)
+        }
+        Button(String(localized: "Working Time Record as CSV …", bundle: .module)) {
+          Self.saveTimeRecord(model, csv: true)
+        }
       } label: {
         Label(String(localized: "Export", bundle: .module), systemImage: "square.and.arrow.up")
       }
@@ -702,6 +710,37 @@ extension AnalyticsScreen {
       try model.export(format).write(to: url, options: .atomic)
     } catch {
       NSAlert(error: error).runModal()
+    }
+  }
+
+  /// AZ-09: asks where to save, with the option to leave out the name, then writes the working
+  /// time record of the shown period.
+  static func saveTimeRecord(_ model: AnalyticsModel, csv: Bool) {
+    let panel = NSSavePanel()
+    panel.allowedContentTypes = [csv ? .commaSeparatedText : .pdf]
+    panel.nameFieldStringValue = String(localized: "Working time record", bundle: .module) + " " + model.exportFileName
+      .replacingOccurrences(of: "Takt ", with: "")
+    let omitName = NSButton(
+      checkboxWithTitle: String(localized: "Leave out my name, e.g. for the works council", bundle: .module),
+      target: nil,
+      action: nil,
+    )
+    panel.accessoryView = omitName
+    guard panel.runModal() == .OK, let url = panel.url else { return }
+    let name = omitName.state == .on ? nil : NSFullUserName().nilIfBlank
+    Task {
+      do {
+        let export = TimeRecordExport(
+          record: try await model.timeRecord(),
+          name: name,
+          created: .now,
+          version: TimeRecordExport.appVersion,
+          calendar: .current,
+        )
+        try (csv ? export.csv() : export.pdf()).write(to: url, options: .atomic)
+      } catch {
+        NSAlert(error: error).runModal()
+      }
     }
   }
 

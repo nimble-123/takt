@@ -11,6 +11,7 @@ public struct AnalyticsSource: Sendable {
     queries = EntryQueries(database: database)
     catalog = CatalogStore(database: database)
     absenceStore = AbsenceStore(database: database)
+    changeStore = SegmentChangeStore(database: database)
   }
 
   // MARK: Public
@@ -39,10 +40,16 @@ public struct AnalyticsSource: Sendable {
     try await queries.firstSegmentStart()
   }
 
+  /// The change log of the times in `range` (AZ-09).
+  public func changes(affecting range: Range<Timestamp>) async throws -> [SegmentChangeRecord] {
+    try await changeStore.records(affecting: range)
+  }
+
   // MARK: Private
 
   private let queries: EntryQueries
   private let catalog: CatalogStore
   private let absenceStore: AbsenceStore
+  private let changeStore: SegmentChangeStore
 
 }

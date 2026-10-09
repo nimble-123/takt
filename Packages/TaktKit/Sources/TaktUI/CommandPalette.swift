@@ -95,6 +95,8 @@ public final class CommandPaletteModel {
 
   /// Saves an export; provided by the view, which owns the save panel.
   @ObservationIgnored var export: ((AnalyticsModel.ExportFormat) -> Void)?
+  /// AZ-09: `true` for CSV, `false` for PDF.
+  @ObservationIgnored var exportTimeRecord: ((Bool) -> Void)?
 
   /// Loads the search hits; tests await it.
   @ObservationIgnored private(set) var hitTask: Task<Void, Never>?
@@ -198,6 +200,22 @@ public final class CommandPaletteModel {
           symbol: "doc.richtext",
           keywords: ["export", "report", "bericht"],
         ) { [weak self] in self?.export?(.pdf) }
+      )
+      items.append(
+        PaletteItem(
+          id: "time-record-pdf",
+          title: String(localized: "Export Working Time Record as PDF …", bundle: .module),
+          symbol: "doc.text",
+          keywords: ["export", "arbeitszeitnachweis", "nachweis", "arbzg"],
+        ) { [weak self] in self?.exportTimeRecord?(false) }
+      )
+      items.append(
+        PaletteItem(
+          id: "time-record-csv",
+          title: String(localized: "Export Working Time Record as CSV …", bundle: .module),
+          symbol: "tablecells",
+          keywords: ["export", "arbeitszeitnachweis", "nachweis", "arbzg"],
+        ) { [weak self] in self?.exportTimeRecord?(true) }
       )
     }
     if let booking = window.booking {

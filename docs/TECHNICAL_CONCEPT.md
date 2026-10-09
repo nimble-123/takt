@@ -472,7 +472,13 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
 - **Urlaubskonto (AZ-06):** Anspruch und Übertrag aus den Einstellungen, genommen und geplant aus den Urlaubsmarkern an Arbeitstagen ohne Feiertag; der Übertrag in Folgejahre wird berechnet.
 - **Überstunden (AZ-07):** Überstunden des Tages = max(0, Netto − Soll). Vergütungen sind eigene Datensätze (Datum, Sekunden, Notiz) und mindern das Flexkonto. Das Quartalskontingent zählt nur Vergütungen, nach deren Datum.
 - **Übertragsgrenze (AZ-08):** Beim Jahreswechsel wird ein positiver Saldo auf die Grenze gekappt (Standard 220 h, leer = keine). Die Kappung ist eine Rechenregel, keine Buchung.
-- **Arbeitszeitnachweis (AZ-09):** Eine Zeile je Kalendertag; Zeiten auf Minuten, ohne `roundingMinutes`. Die Prüfsumme ist SHA-256 über eine kanonische Darstellung der Tageszeilen und des Änderungsprotokolls und steht im Kopf. PDF wie der bestehende Bericht über `ImageRenderer`; CSV über den `Exporter`.
+- **Arbeitszeitnachweis (AZ-09, umgesetzt in `TaktAnalytics.TimeRecord` und `TaktUI.TimeRecordExport`):** Eine Zeile je Kalendertag des angezeigten Analysezeitraums: Datum, Wochentag, Feiertag/Abwesenheit, Beginn, Ende, Pause, Netto, Ruhezeit zum Vortag, Befunde (AZ-02), Marker „korrigiert“ (manuelles Segment, Protokolleintrag oder gelöschtes Segment an dem Tag). Bei Gleitzeit zusätzlich Soll, Tagessaldo und Flexkonto nach dem Tag (ab dem Stichtag, bis heute). Summen: Netto, Arbeit über 8 h je Tag (§ 16 Abs. 2), Sonn-/Feiertagsarbeit, Befunde je Regel. Anhang: Protokolleinträge, deren alte oder neue Zeiten im Zeitraum liegen.
+  - *Daten:* `AnalyticsModel.timeRecord()` lädt den Zeitraum plus 24 Wochen davor (Ruhezeit, Durchschnitt) bzw. ab dem Stichtag des Flexkontos (Anfangssaldo).
+  - *Zeiten* auf Minuten, ohne `roundingMinutes`.
+  - *Prüfsumme:* SHA-256 (CryptoKit, in TaktUI) über `TimeRecord.canonical`: Tageszeilen und Änderungsprotokoll in fester Reihenfolge und sprachunabhängigem Format; Name, Erstellzeitpunkt und Version gehen nicht ein, damit derselbe Datenstand dieselbe Summe ergibt.
+  - *Kopf:* Name (`NSFullUserName`, im Speichern-Dialog weglassbar, § 80 Abs. 2 BetrVG), Zeitraum, Erstellzeitpunkt, Takt-Version, Prüfsumme.
+  - *Formate:* PDF (A4 quer, immer hell, `ImageRenderer`: Tagestabelle, Summen, Änderungsprotokoll) und CSV (Kopfzeilen, Tagestabelle, Summen, Protokoll). XLSX kommt mit AN-08 (#62).
+  - *Aufruf:* Export-Menü der Analysen und ⌘K. Der Nachweis unterstützt die Nachweispflichten, sichert aber keine Rechtssicherheit zu; der Hinweis steht im PDF.
 - **Grenze:** Gegen Änderungen durch den Nutzer selbst schützt das nicht; Ziel ist Nachvollziehbarkeit gegenüber Prüforganen.
 
 ## Sicherheit, Verteilung und Updates

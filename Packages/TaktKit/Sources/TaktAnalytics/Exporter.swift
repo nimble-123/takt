@@ -112,6 +112,20 @@ public enum Exporter {
     timestamp.localDayString(in: calendar)
   }
 
+  // MARK: Internal
+
+  /// Spreadsheets run a field starting with = + - @, tab or CR as a formula; a leading apostrophe
+  /// keeps user text as text (CSV injection). Numbers are not passed through here.
+  static func defused(_ field: String) -> String {
+    guard let first = field.first, "=+-@\t\r".contains(first) else { return field }
+    return "'" + field
+  }
+
+  static func escape(_ field: String) -> String {
+    guard field.contains(where: { $0 == "," || $0 == "\"" || $0 == "\n" || $0 == "\r" }) else { return field }
+    return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+  }
+
   // MARK: Private
 
   private static func hours(_ seconds: TimeInterval) -> Double {
@@ -120,18 +134,6 @@ public enum Exporter {
 
   private static func format(_ value: Double) -> String {
     value == value.rounded() ? String(Int(value)) : String(value)
-  }
-
-  /// Spreadsheets run a field starting with = + - @, tab or CR as a formula; a leading apostrophe
-  /// keeps user text as text (CSV injection). Numbers are not passed through here.
-  private static func defused(_ field: String) -> String {
-    guard let first = field.first, "=+-@\t\r".contains(first) else { return field }
-    return "'" + field
-  }
-
-  private static func escape(_ field: String) -> String {
-    guard field.contains(where: { $0 == "," || $0 == "\"" || $0 == "\n" || $0 == "\r" }) else { return field }
-    return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
   }
 
 }

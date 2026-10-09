@@ -83,6 +83,13 @@ public struct MainWindowView: View {
           AnalyticsScreen.saveExport(analytics, format)
         }
       }
+      palette.exportTimeRecord = { [model] csv in
+        guard let analytics = model.analytics else { return }
+        Task {
+          await analytics.reload()
+          AnalyticsScreen.saveTimeRecord(analytics, csv: csv)
+        }
+      }
     }
     .navigationTitle(title)
     .toolbar {

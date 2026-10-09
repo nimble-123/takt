@@ -206,3 +206,46 @@ extension AnalyticsModelTests {
     Timestamp(try #require(calendar.date(from: DateComponents(year: year, month: month, day: day))))
   }
 }
+
+// MARK: - Working time record (AZ-09)
+
+extension AnalyticsModelTests {
+  @Test
+  func timeRecordOfTheShownWeek() async throws {
+    try await track("A", hours: 2)
+    model.period = .week
+    await model.reload()
+
+    let record = try await model.timeRecord()
+
+    #expect(record.rows.count == 7)
+    let wednesday = try #require(record.rows.first { $0.date == "2026-10-07" })
+    #expect(wednesday.net == 2 * 3600)
+    #expect(TimeRecord.time(wednesday.start, calendar: calendar) == "10:00")
+    #expect(!wednesday.corrected)
+    // Flex time by default, counted from the first tracked day: 2 h − 8 h.
+    #expect(record.rows.first?.cumulative == nil)
+    #expect(wednesday.cumulative == TimeInterval(-6 * 3600))
+  }
+
+  @Test
+  func timeRecordExportHasAStableChecksumAndPages() async throws {
+    try await track("A", hours: 2)
+    model.period = .week
+    await model.reload()
+    let record = try await model.timeRecord()
+    let created = Date(timeIntervalSince1970: 1_791_400_000)
+
+    let named = TimeRecordExport(record: record, name: "Nils", created: created, version: "1.0", calendar: calendar)
+    let anonymous = TimeRecordExport(record: record, name: nil, created: created, version: "1.0", calendar: calendar)
+
+    #expect(named.checksum.count == 64)
+    #expect(named.checksum == anonymous.checksum)
+    let csv = String(decoding: anonymous.csv(), as: UTF8.self)
+    #expect(csv.hasPrefix("record,working_time_record\r\nname,\r\n"))
+    #expect(csv.contains("sha256,\(named.checksum)"))
+    let pdf = try #require(CGPDFDocument(CGDataProvider(data: named.pdf() as CFData)!))
+    // One page of days and one with the totals; no change log without changes.
+    #expect(pdf.numberOfPages == 2)
+  }
+}

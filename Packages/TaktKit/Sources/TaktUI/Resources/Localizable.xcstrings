@@ -181,6 +181,36 @@
         }
       }
     },
+    "> 10 h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 10 h"
+          }
+        }
+      }
+    },
+    "> 6 h in a row": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 6 h am Stück"
+          }
+        }
+      }
+    },
+    "> 8 h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "> 8 h"
+          }
+        }
+      }
+    },
     "A name is required.": {
       "localizations": {
         "de": {
@@ -237,6 +267,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notiz des Eintrags in den Kommentar übernehmen"
+          }
+        }
+      }
+    },
+    "After": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachher"
           }
         }
       }
@@ -531,6 +571,16 @@
         }
       }
     },
+    "Before": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorher"
+          }
+        }
+      }
+    },
     "Berlin": {
       "localizations": {
         "de": {
@@ -657,6 +707,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Brandenburg"
+          }
+        }
+      }
+    },
+    "Break": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
           }
         }
       }
@@ -827,6 +887,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gewicht ändern"
+          }
+        }
+      }
+    },
+    "Change log": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Änderungsprotokoll"
+          }
+        }
+      }
+    },
+    "Changed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geändert"
           }
         }
       }
@@ -1011,6 +1091,16 @@
         }
       }
     },
+    "Corr.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korr."
+          }
+        }
+      }
+    },
     "Count a locked screen as a pause without asking": {
       "localizations": {
         "de": {
@@ -1087,6 +1177,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Erstellt %@"
+          }
+        }
+      }
+    },
+    "Created %@ · Takt %@ · SHA-256 %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellt %1$@ · Takt %2$@ · SHA-256 %3$@"
           }
         }
       }
@@ -1481,6 +1581,26 @@
         }
       }
     },
+    "Export Working Time Record as CSV …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als CSV exportieren …"
+          }
+        }
+      }
+    },
+    "Export Working Time Record as PDF …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als PDF exportieren …"
+          }
+        }
+      }
+    },
     "Export and Azure DevOps": {
       "localizations": {
         "de": {
@@ -1527,6 +1647,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Auge"
+          }
+        }
+      }
+    },
+    "Findings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befunde"
           }
         }
       }
@@ -1881,12 +2011,32 @@
         }
       }
     },
+    "Kind": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Art"
+          }
+        }
+      }
+    },
     "Labour Day": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Tag der Arbeit"
+          }
+        }
+      }
+    },
+    "Leave out my name, e.g. for the works council": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meinen Namen weglassen, z. B. für den Betriebsrat"
           }
         }
       }
@@ -2061,6 +2211,26 @@
         }
       }
     },
+    "Net": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netto"
+          }
+        }
+      }
+    },
+    "Net working time": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netto-Arbeitszeit"
+          }
+        }
+      }
+    },
     "New Entry": {
       "localizations": {
         "de": {
@@ -2207,6 +2377,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "An diesem Tag gibt es keine Einträge mit Work Item."
+          }
+        }
+      }
+    },
+    "No times were changed after the fact in this period.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Zeitraum wurden keine Zeiten nachträglich geändert."
           }
         }
       }
@@ -2691,6 +2871,16 @@
         }
       }
     },
+    "Reason": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grund"
+          }
+        }
+      }
+    },
     "Reason (optional)": {
       "localizations": {
         "de": {
@@ -2737,6 +2927,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reformationstag"
+          }
+        }
+      }
+    },
+    "Remark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bemerkung"
           }
         }
       }
@@ -2837,6 +3037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle Daten durch die Sicherung ersetzen?"
+          }
+        }
+      }
+    },
+    "Rest": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhezeit"
           }
         }
       }
@@ -3391,6 +3601,16 @@
         }
       }
     },
+    "Sun/hol.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "So./Feiert."
+          }
+        }
+      }
+    },
     "Support": {
       "localizations": {
         "de": {
@@ -3517,6 +3737,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Takt liest den ausgecheckten Branch dieser Repositories und ihrer direkten Unterordner. Ein Branch wie „feature/1234-login“ schlägt Work Item 1234 vor."
+          }
+        }
+      }
+    },
+    "Takt supports the duty to record working time; it does not guarantee legal compliance. Times are raw to the minute, without rounding.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt unterstützt die Pflicht zur Arbeitszeitaufzeichnung; Rechtssicherheit wird nicht zugesichert. Zeiten sind Rohdaten auf die Minute, ohne Rundung."
           }
         }
       }
@@ -3851,6 +4081,16 @@
         }
       }
     },
+    "Totals": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summen"
+          }
+        }
+      }
+    },
     "Tracked": {
       "localizations": {
         "de": {
@@ -4111,6 +4351,16 @@
         }
       }
     },
+    "Work beyond 8 hours a day (§ 16 para. 2 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeit über 8 Stunden je Tag (§ 16 Abs. 2 ArbZG)"
+          }
+        }
+      }
+    },
     "Work item": {
       "localizations": {
         "de": {
@@ -4151,6 +4401,16 @@
         }
       }
     },
+    "Work on Sundays and public holidays": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeit an Sonn- und Feiertagen"
+          }
+        }
+      }
+    },
     "Work on a Sunday or public holiday: %@ h (§§ 9, 11 ArbZG)": {
       "localizations": {
         "de": {
@@ -4167,6 +4427,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeitszeitgesetz"
+          }
+        }
+      }
+    },
+    "Working Time Record as CSV …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als CSV …"
+          }
+        }
+      }
+    },
+    "Working Time Record as PDF …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als PDF …"
           }
         }
       }
@@ -4211,6 +4491,16 @@
         }
       }
     },
+    "Working time record": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis"
+          }
+        }
+      }
+    },
     "Works. Takt is one keystroke away.": {
       "localizations": {
         "de": {
@@ -4251,12 +4541,32 @@
         }
       }
     },
+    "added": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hinzugefügt"
+          }
+        }
+      }
+    },
     "calendar": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Kalender"
+          }
+        }
+      }
+    },
+    "changed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "geändert"
           }
         }
       }
@@ -4321,12 +4631,32 @@
         }
       }
     },
+    "removed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "entfernt"
+          }
+        }
+      }
+    },
     "running": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "Ø > 8 h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ø > 8 h"
           }
         }
       }
