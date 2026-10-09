@@ -116,6 +116,13 @@ public struct TimelineLayout: Equatable, Sendable {
 }
 
 extension TimelineLayout {
+  /// Where a segment starts after dragging it `days` columns over and `seconds` along the day.
+  /// Columns are calendar days, so the clock time stays the same across a DST change.
+  static func movedStart(_ start: Timestamp, days: Int, seconds: TimeInterval, calendar: Calendar = .current) -> Timestamp {
+    let day = calendar.date(byAdding: .day, value: days, to: start.date) ?? start.date
+    return Timestamp(day).adding(seconds: seconds)
+  }
+
   /// The hour row a timeline scrolls to when it opens: one hour before `now` on the day that
   /// contains it, so the "now" line sits near the top with some context; `defaultRow` otherwise.
   /// Rows count hours from the start of `day`, which keeps DST days (23 or 25 rows) correct.

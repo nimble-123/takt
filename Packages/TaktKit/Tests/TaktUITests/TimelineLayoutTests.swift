@@ -1,3 +1,4 @@
+import Foundation
 import TaktCore
 import TaktStore
 import Testing
@@ -69,6 +70,19 @@ struct TimelineLayoutTests {
     let short = t(0)..<t(23) // spring DST day
     #expect(TimelineLayout.initialScrollRow(day: short, now: t(22.9)) == 21)
     #expect(TimelineLayout.initialScrollRow(day: t(0)..<t(5), now: t(30)) == 4)
+  }
+
+  @Test
+  func movedBlockKeepsItsClockTimeAcrossDST() {
+    var berlin = Calendar(identifier: .gregorian)
+    berlin.timeZone = TimeZone(identifier: "Europe/Berlin") ?? .gmt
+    let saturday = Timestamp(milliseconds: 1_792_828_800_000) // Sat 2026-10-24 10:00 CEST
+    let sunday = TimelineLayout.movedStart(saturday, days: 1, seconds: 1800, calendar: berlin)
+    // Clocks go back that night: 10:30 on Sunday is 24.5 h + 1 h later.
+    #expect(sunday.seconds(since: saturday) == 25.5 * 3600)
+    let friday = TimelineLayout.movedStart(saturday, days: -1, seconds: -3600, calendar: berlin)
+    #expect(friday.seconds(since: saturday) == -25 * 3600)
+    #expect(TimelineLayout.movedStart(saturday, days: 0, seconds: 900, calendar: berlin) == saturday.adding(seconds: 900))
   }
 
   // MARK: Private

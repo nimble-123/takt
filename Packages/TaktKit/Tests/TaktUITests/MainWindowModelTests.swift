@@ -231,6 +231,16 @@ struct MainWindowModelTests {
     #expect(model.showsInspector)
   }
 
+  @Test
+  func rightClickActsOnTheSelectionOnlyWhenTheEntryIsPartOfIt() {
+    let first = EntryID()
+    let second = EntryID()
+    let other = EntryID()
+    model.selection = [first, second]
+    #expect(model.contextTargets(for: second) == [first, second])
+    #expect(model.contextTargets(for: other) == [other])
+  }
+
   @Test(arguments: [MainWindowModel.Section.today, .dayClose, .week, .entries])
   func inspectorIsAvailableOnEntryScreens(section: MainWindowModel.Section) {
     model.section = section
