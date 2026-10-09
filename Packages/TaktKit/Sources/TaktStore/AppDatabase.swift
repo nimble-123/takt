@@ -45,6 +45,7 @@ public struct AppDatabase: Sendable {
     migrator.registerMigration("v1", migrate: Schema.v1)
     migrator.registerMigration("v2-work-item-details", migrate: Schema.v2)
     migrator.registerMigration("v3-search", migrate: Schema.v3)
+    migrator.registerMigration("v4-remaining-delta", migrate: Schema.v4)
     return migrator
   }
 }

@@ -167,6 +167,7 @@ CREATE TABLE sync_record (
   local_day TEXT NOT NULL,                 -- 'YYYY-MM-DD'
   field TEXT NOT NULL,                     -- z. B. Microsoft.VSTS.Scheduling.CompletedWork
   delta_seconds INTEGER NOT NULL,          -- kann negativ sein
+  remaining_delta_seconds INTEGER,         -- Änderung an Remaining Work (Migration v4-remaining-delta)
   status TEXT NOT NULL CHECK (status IN ('pending', 'synced', 'failed')),
   ado_rev INTEGER,
   error TEXT,
@@ -362,6 +363,8 @@ Eine Buchung ist ein einziger JSON-Patch. Der Kommentar steht im selben Patch un
 6. Beim App-Start und in der Warteschlange werden `pending`-Datensätze zuerst im Verlauf des Work Items gesucht (Kennung `takt:<id>`, alle Seiten der Updates). Gefunden heißt bereits gebucht, sonst wird neu gesendet. Schlägt die Suche selbst fehl, bleibt der Datensatz `pending` (Backoff); ein abgelehntes Token stellt die Organisation bis zur nächsten Runde zurück. Nur ein gelöschtes Work Item (404) beendet den Datensatz als `failed`.
 
 **Umsetzung.** `BookingPlanner` (TaktADO) bildet die Zeilen je Eintrag, Work Item und lokalem Tag und rechnet direkt mit `TaktCore.Allocation` (Dienste hängen nicht voneinander ab). Ein Eintrag mit noch ausstehender Buchung bekommt keine zweite; gelöschte Einträge und geänderte Verknüpfungen erscheinen über ihre alten Datensätze mit Soll 0 und werden zurückgebucht. Das Zeitfeld wird erst beim Senden je Projekt und Typ gelesen, damit auch offline vorgemerkt werden kann; hat ein Typ kein `CompletedWork`, geht nur der Kommentar raus (eine Rückfrage beim Nutzer entfällt vorerst). Der Kommentar steht auf Deutsch („Takt: +0,25 h am 06.10.2026 · Notiz [takt:…]“). Fehler werden als Code in `sync_record.error` gespeichert und in der Oberfläche übersetzt. Die Warteschlange läuft beim Start, wenn `NWPathMonitor` Netz meldet, und minütlich mit exponentiellem Backoff (30 s bis 15 min, `Retry-After` hat Vorrang). Einstellungen: `reduceRemainingWork` (DO-22) und `bookingIncludesNote` (DO-23).
+
+**Remaining Work (DO-22).** Eine Buchung zieht ihre Zeit von Remaining Work ab, nie unter 0. Eine Korrektur (negative Differenz) gibt höchstens zurück, was die Zeile (Eintrag, Work Item, Tag) bisher genommen hat, damit eine Untergrenze von 0 Remaining Work nicht aufbläht (z. B. 0,5 h offen, 1 h gebucht, dann gelöscht: zurück auf 0,5 h, nicht 1 h). Was ein Patch an Remaining Work ändert, steht in `sync_record.remaining_delta_seconds` und wird vor dem Senden gespeichert, damit es auch nach einem unklaren Ausgang stimmt. Datensätze von vor Migration `v4-remaining-delta` zählen mit ihrer vollen Zeit. War `reduceRemainingWork` beim Buchen aus, gibt eine Korrektur nichts zurück.
 
 **Tagesabschluss** ist ein eigener Bereich im Hauptfenster (statt einer Spalte neben „Heute“): Soll, Gebucht und Differenz je Work Item, Fehler sichtbar, Einträge ohne Work Item in Amber mit „Verknüpfen …“, „Alles buchen“ als Hauptaktion. Im Buchungsmodus „automatisch“ bucht Takt direkt nach dem Stoppen, im Modus „manuell“ über „Jetzt buchen“ im Inspektor.
 

@@ -125,4 +125,9 @@ enum Schema {
         """
     )
   }
+
+  /// How much a booking changed Remaining Work, so a correction gives back no more than it took (DO-22).
+  static func v4(_ db: Database) throws {
+    try db.execute(sql: "ALTER TABLE sync_record ADD COLUMN remaining_delta_seconds INTEGER")
+  }
 }
