@@ -25,8 +25,11 @@ public struct GRDBTimerStore: TimerStore {
       for change in update.changes {
         do {
           try Self.apply(change, db)
-        } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_CHECK {
-          // Same error as `InMemoryTimerStore`, not a raw database error.
+        } catch let error as DatabaseError
+          where [.SQLITE_CONSTRAINT_CHECK, .SQLITE_CONSTRAINT_NOTNULL].contains(error.extendedResultCode)
+        {
+          // Same error as `InMemoryTimerStore`, not a raw database error. NOT NULL covers a NaN
+          // weight, which SQLite stores as NULL.
           throw TimerStoreError.invalidValue
         }
       }
@@ -170,6 +173,9 @@ public struct GRDBTimerStore: TimerStore {
     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
       // A missing parent row, e.g. a segment of an entry that no longer exists.
       throw TimerStoreError.conflict
+    } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_UNIQUE {
+      // Same error as `InMemoryTimerStore`: a second open segment of an entry (index segment_open).
+      throw TimerStoreError.invalidValue
     }
   }
 }

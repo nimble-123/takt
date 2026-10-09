@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import TaktCore
 import Testing
 
@@ -21,6 +22,14 @@ struct DayCloseModelTests {
   }
 
   // MARK: Internal
+
+  /// Return in an inspector field next to the day close must not send bookings to Azure DevOps.
+  @Test
+  func bookAllNeedsCommandReturn() {
+    let shortcut = DayCloseScreen.bookAllShortcut
+    #expect(shortcut.key == .return)
+    #expect(shortcut.modifiers == .command)
+  }
 
   @Test
   func loadingShowsTheLinesOfTheDay() async {

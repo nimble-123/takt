@@ -131,6 +131,14 @@ struct GRDBTimerStoreTests {
   }
 
   @Test
+  func nanWeightIsAnInvalidValueLikeInMemory() async throws {
+    await #expect(throws: TimerStoreError.invalidValue) {
+      try await engine.start(EntryDraft(title: "A", weight: .nan), mode: .switchTo)
+    }
+    #expect(try await store.snapshot().entries.isEmpty)
+  }
+
+  @Test
   func segmentEndingAtItsStartIsAnInvalidValueLikeInMemory() async throws {
     let entry = TimeEntry(title: "A", createdAt: clock.now(), updatedAt: clock.now())
     let empty = Segment(entryID: entry.id, start: clock.now(), end: clock.now())
@@ -202,6 +210,16 @@ struct GRDBTimerStoreTests {
     try await engine.heartbeat()
     clock.advance(seconds: 86_400)
     #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
+  }
+
+  @Test
+  func secondOpenSegmentIsAnInvalidValueLikeInMemory() async throws {
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+
+    await #expect(throws: TimerStoreError.invalidValue) {
+      try await engine.apply([.segment(before: nil, after: Segment(entryID: id, start: clock.now()))])
+    }
   }
 
   // MARK: Private
