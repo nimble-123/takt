@@ -52,6 +52,13 @@ struct CatalogScreen: View {
         }
       } header: {
         Text("Categories", bundle: .module)
+      } footer: {
+        Text(
+          "Uncheck “Working time” for time that is not work, e.g. private errands. It stays in the reports but not in the working hours.",
+          bundle: .module,
+        )
+        .font(.system(size: 11))
+        .foregroundStyle(Palette.textSecondary)
       }
 
       if let rules {
@@ -236,6 +243,17 @@ private struct CategoryRow: View {
           Task { await catalog.save(edited) }
         }
         .foregroundStyle(category.archived ? Palette.textSecondary : Palette.textPrimary)
+      Toggle(
+        String(localized: "Working time", bundle: .module),
+        isOn: Binding(get: { category.countsAsWork }) { on in
+          var edited = category
+          edited.countsAsWork = on
+          Task { await catalog.save(edited) }
+        },
+      )
+      .toggleStyle(.checkbox)
+      .font(.system(size: 12))
+      .help(Text("Counts as working time for start, end, breaks and net time (ArbZG)", bundle: .module))
       ArchiveButton(archived: category.archived) {
         var edited = category
         edited.archived.toggle()

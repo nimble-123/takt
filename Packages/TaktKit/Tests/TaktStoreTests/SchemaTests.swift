@@ -46,7 +46,14 @@ struct SchemaTests {
   @Test
   func migrationsAreRecorded() throws {
     let applied = try database.writer.read { db in try AppDatabase.migrator.appliedMigrations(db) }
-    #expect(applied == ["v1", "v2-work-item-details", "v3-search", "v4-segment-indexes", "v5-remaining-delta"])
+    #expect(applied == [
+      "v1",
+      "v2-work-item-details",
+      "v3-search",
+      "v4-segment-indexes",
+      "v5-remaining-delta",
+      "v6-category-counts-as-work",
+    ])
   }
 
   @Test

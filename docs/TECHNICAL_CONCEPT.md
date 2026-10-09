@@ -116,7 +116,8 @@ CREATE TABLE category (
   name TEXT NOT NULL,
   color TEXT NOT NULL,
   icon TEXT,
-  archived INTEGER NOT NULL DEFAULT 0
+  archived INTEGER NOT NULL DEFAULT 0,
+  counts_as_work INTEGER NOT NULL DEFAULT 1  -- zählt als Arbeitszeit, AZ-01 (Migration v6-category-counts-as-work)
 );
 
 CREATE TABLE work_item_link (
@@ -426,7 +427,12 @@ ORDER BY s.start_at;
 
 Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert werden nur Rohdaten (Segmente, Tagesmarker, Vergütungen, Änderungsprotokoll); Arbeitstage, Befunde und Salden werden zur Abfragezeit berechnet. Alle Berechnungen liegen in `TaktCore`/`TaktAnalytics` und laufen unter Linux.
 
-- **Arbeitstag (AZ-01):** Pro lokalem Tag die Vereinigung aller Segmente von Einträgen, deren Kategorie als Arbeitszeit zählt (neue Spalte an `category`, Default ja). Parallele Zeit zählt einmal, unabhängig von der Zählweise. Beginn = erstes, Ende = letztes Arbeitssegment. Lücken < 15 min zählen als Arbeitszeit (§ 4 Satz 2 ArbZG), längere sind Pausen. Netto = Ende − Beginn − Pausen. Tage über Mitternacht werden dem Tag des Beginns zugeordnet.
+- **Arbeitstag (AZ-01, umgesetzt in `TaktAnalytics.WorkDay`):**
+  - *Arbeitssegmente:* alle Segmente von Einträgen, deren Kategorie als Arbeitszeit zählt (`category.counts_as_work`, Default ja; Einträge ohne Kategorie zählen). Ein laufendes Segment zählt bis jetzt.
+  - *Arbeitsblock:* Arbeitssegmente nach Beginn sortiert und vereinigt; parallele Zeit zählt einmal, unabhängig von der Zählweise. Lücken < 15 min schließen den Block (§ 4 Satz 2 ArbZG) und werden als `shortInterruptions` ausgewiesen; ab 15 min beginnt ein neuer Block.
+  - *Arbeitstag:* alle Blöcke, die am selben lokalen Tag beginnen. Beginn = Beginn des ersten, Ende = Ende des letzten Blocks, Pausen = Lücken zwischen den Blöcken, Netto = Σ Blocklängen = Ende − Beginn − Pausen.
+  - *Über Mitternacht:* Ein Block gehört zum Tag seines Beginns, auch wenn er nach Mitternacht endet; ein Block, der nach Mitternacht beginnt, eröffnet den nächsten Tag. Damit ein Block über die Bereichsgrenze nicht als neuer Tag erscheint, lädt der Aufrufer auch die Arbeit kurz vor dem Bereich.
+  - *Zeitumstellung:* gerechnet wird mit UTC-Zeitpunkten, die Tagesgrenzen kommen aus dem Kalender; eine Nacht mit 25 Stunden zählt also die echte Zeit.
 - **Prüfregeln (AZ-02):** Reine Funktion von Arbeitstagen auf Befunde (Regel, Schweregrad, Messwert). Werktage sind Mo–Sa; der Ausgleichszeitraum für Ø 8 h ist rollierend 24 Wochen. Die Ruhezeit wird immer berechnet und ausgewiesen, nicht nur bei Verstoß.
 - **Feiertage (AZ-03):** Feste und von Ostern abhängige Feiertage je Bundesland (Osterformel nach Gauß), Einstellung `federalState`, MDM-verwaltbar. Feiertage setzen das Soll in `TargetPlan` auf 0.
 - **Änderungsprotokoll (AZ-04):** Neue Tabelle (Migration append-only) mit Segment, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt und optionalem Grund. Die Timer-Engine schreibt den Protokolleintrag in derselben Transaktion wie die Änderung (`TimerStore.update(_:)`). Live erfasste Segmente erzeugen keinen Eintrag; „korrigiert“ heißt `source = manual` oder mindestens ein Protokolleintrag.

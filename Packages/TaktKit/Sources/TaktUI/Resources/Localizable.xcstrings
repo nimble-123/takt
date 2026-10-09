@@ -831,6 +831,16 @@
         }
       }
     },
+    "Counts as working time for start, end, breaks and net time (ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zählt als Arbeitszeit für Beginn, Ende, Pausen und Netto (ArbZG)"
+          }
+        }
+      }
+    },
     "Create the token in Azure DevOps under User settings → Personal access tokens with the scope “Work Items: Read & Write” and copy its expiry date. Takt keeps it in the keychain only.": {
       "localizations": {
         "de": {
@@ -3311,6 +3321,16 @@
         }
       }
     },
+    "Uncheck “Working time” for time that is not work, e.g. private errands. It stays in the reports but not in the working hours.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„Arbeitszeit“ abwählen für Zeit, die keine Arbeit ist, z. B. Privates. Sie bleibt in den Analysen, zählt aber nicht zur Arbeitszeit."
+          }
+        }
+      }
+    },
     "Undo ⌘Z": {
       "localizations": {
         "de": {
@@ -3502,6 +3522,16 @@
       }
     },
     "Working hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeit"
+          }
+        }
+      }
+    },
+    "Working time": {
       "localizations": {
         "de": {
           "stringUnit": {

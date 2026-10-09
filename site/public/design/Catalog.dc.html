@@ -116,11 +116,12 @@ input.sw:disabled{opacity:.55;cursor:default}
 <section aria-labelledby="h-cat">
 <h2 id="h-cat" class="grp-h">Kategorien</h2>
 <div class="grp">
-<sc-for list="{{categories}}" as="k" hint-placeholder-count="4">
-<div class="row"><button type="button" class="tb s" aria-label="Farbe und Symbol" style="border-radius: 6px; background: {{k.bg}}; color: {{k.color}}"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-{{k.icon}}"></use></svg></button><input type="text" aria-label="Kategoriename" value="{{k.name}}" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; padding: 0; color: #1C1C1E"><button type="button" class="tb s" aria-label="Archivieren" title="Archivieren"><svg class="i" width="15" height="15" aria-hidden="true"><use href="#i-archive"></use></svg></button></div>
+<sc-for list="{{categories}}" as="k" hint-placeholder-count="5">
+<div class="row"><button type="button" class="tb s" aria-label="Farbe und Symbol" style="border-radius: 6px; background: {{k.bg}}; color: {{k.color}}"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-{{k.icon}}"></use></svg></button><input type="text" aria-label="Kategoriename" value="{{k.name}}" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; padding: 0; color: #1C1C1E"><label style="display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer" title="Zählt als Arbeitszeit für Beginn, Ende, Pausen und Netto (ArbZG)"><input type="checkbox" checked="{{k.work}}">Arbeitszeit</label><button type="button" class="tb s" aria-label="Archivieren" title="Archivieren"><svg class="i" width="15" height="15" aria-hidden="true"><use href="#i-archive"></use></svg></button></div>
 </sc-for>
 <div class="row"><input type="text" aria-label="Neue Kategorie" placeholder="Neue Kategorie" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; padding: 0"></div>
 </div>
+<p class="cap">„Arbeitszeit“ abwählen für Zeit, die keine Arbeit ist, z. B. Privates. Sie bleibt in den Analysen, zählt aber nicht zur Arbeitszeit.</p>
 </section>
 <section aria-labelledby="h-rules">
 <h2 id="h-rules" class="grp-h">Regeln</h2>
@@ -181,10 +182,11 @@ class Component extends DCLogic {
         project('Weiterbildung', 'book', 'green', false)
       ],
       categories: [
-        Object.assign({ name: 'Entwicklung', icon: 'code' }, tone.blue),
-        Object.assign({ name: 'Meeting', icon: 'people' }, tone.orange),
-        Object.assign({ name: 'Review', icon: 'eye' }, tone.violet),
-        Object.assign({ name: 'Support', icon: 'buoy' }, tone.pink)
+        Object.assign({ name: 'Entwicklung', icon: 'code', work: true }, tone.blue),
+        Object.assign({ name: 'Meeting', icon: 'people', work: true }, tone.orange),
+        Object.assign({ name: 'Review', icon: 'eye', work: true }, tone.violet),
+        Object.assign({ name: 'Support', icon: 'buoy', work: true }, tone.pink),
+        Object.assign({ name: 'Privat', icon: 'tag', work: false }, tone.green)
       ],
       rules: rules,
       swatches: ['#2563EB', '#C2410C', '#7C3AED', '#DB2777', '#0F766E', '#15803D', '#A16207', '#475569'].map((h) => ({

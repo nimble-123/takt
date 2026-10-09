@@ -79,19 +79,34 @@ public struct ProjectTask: Hashable, Sendable, Codable, Identifiable {
 
 /// Kind of work, independent of the project, e.g. development or meeting (ST-01, ST-02).
 public struct EntryCategory: Hashable, Sendable, Codable, Identifiable {
-  public init(id: CategoryID = CategoryID(), name: String, color: String, icon: String? = nil, archived: Bool = false) {
+
+  // MARK: Lifecycle
+
+  public init(
+    id: CategoryID = CategoryID(),
+    name: String,
+    color: String,
+    icon: String? = nil,
+    archived: Bool = false,
+    countsAsWork: Bool = true,
+  ) {
     self.id = id
     self.name = name
     self.color = color
     self.icon = icon
     self.archived = archived
+    self.countsAsWork = countsAsWork
   }
+
+  // MARK: Public
 
   public var id: CategoryID
   public var name: String
   public var color: String
   public var icon: String?
   public var archived: Bool
+  /// `false` for time that is not working time under the ArbZG, e.g. private errands (AZ-01).
+  public var countsAsWork: Bool
 
 }
 

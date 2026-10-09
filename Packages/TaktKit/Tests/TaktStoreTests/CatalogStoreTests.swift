@@ -31,6 +31,17 @@ struct CatalogStoreTests {
   }
 
   @Test
+  func categoriesCountAsWorkUnlessMarkedOtherwise() async throws {
+    var errand = EntryCategory(name: "Private", color: "#888888")
+    try await catalog.save(errand)
+    #expect(try await catalog.load().categories.first?.countsAsWork == true)
+
+    errand.countsAsWork = false
+    try await catalog.save(errand)
+    #expect(try await catalog.load().categories == [errand])
+  }
+
+  @Test
   func emptyNamesAreRejected() async throws {
     await #expect(throws: CatalogStore.CatalogError.emptyName) {
       try await catalog.save(EntryCategory(name: "  ", color: "#000000"))

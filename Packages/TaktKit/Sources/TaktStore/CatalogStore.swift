@@ -264,6 +264,7 @@ extension EntryCategory: TableRow {
       color: row["color"],
       icon: row["icon"],
       archived: row["archived"],
+      countsAsWork: row["counts_as_work"],
     )
   }
 
@@ -276,7 +277,14 @@ extension EntryCategory: TableRow {
   }
 
   var columns: [String: (any DatabaseValueConvertible)?] {
-    ["id": id.uuidString, "name": name, "color": color, "icon": icon, "archived": archived]
+    [
+      "id": id.uuidString,
+      "name": name,
+      "color": color,
+      "icon": icon,
+      "archived": archived,
+      "counts_as_work": countsAsWork,
+    ]
   }
 }
 
