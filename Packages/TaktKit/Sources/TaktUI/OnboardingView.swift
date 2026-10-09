@@ -179,11 +179,13 @@ public struct OnboardingView: View {
         Text("In parallel: both keep running", bundle: .module).tag(TimerEngine.StartMode.parallel)
       }
       .pickerStyle(.radioGroup)
+      .managed(settings.isLocked(.startMode))
       Picker(String(localized: "Parallel time", bundle: .module), selection: $settings.countingMode) {
         Text("Full", bundle: .module).tag(CountingMode.full)
         Text("Shared", bundle: .module).tag(CountingMode.split)
       }
       .pickerStyle(.segmented)
+      .managed(settings.isLocked(.countingMode))
       CountingExample(mode: model.settings.countingMode)
       Toggle(String(localized: "Open Takt at login", bundle: .module), isOn: $model.launchAtLogin)
     }

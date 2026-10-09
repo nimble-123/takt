@@ -61,4 +61,6 @@ sudo profiles show -type configuration | grep -A3 de.nilslutz.takt
 defaults read de.nilslutz.takt
 ```
 
-In Takt erscheinen vorgegebene Einstellungen ausgegraut mit Schloss und dem Hinweis „Von deiner Organisation vorgegeben“.
+In Takt erscheinen vorgegebene Einstellungen ausgegraut mit Schloss und dem Hinweis „Von deiner Organisation vorgegeben“ – in den Einstellungen wie im Onboarding. Ein vorgegebener Wert lässt sich auch für die laufende Sitzung nicht ändern.
+
+Takt liest die Werte beim Start. Wird ein Profil installiert oder geändert, während Takt läuft, erscheinen die Felder sofort gesperrt; die neuen Werte gelten aber erst nach einem Neustart von Takt.
