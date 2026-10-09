@@ -154,6 +154,21 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func quickEditsOfOneEntryDoNotConflict() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(8)))
+
+    // E.g. the title commits on blur while the click on the category picker saves.
+    let rename = Task { await model.update([id], name: "Rename") { $0.title = "Renamed" } }
+    let weigh = Task { await model.update([id], name: "Change Weight") { $0.weight = 2 } }
+    await rename.value
+    await weigh.value
+
+    #expect(model.errorMessage == nil)
+    #expect(model.entry(id)?.entry.title == "Renamed")
+    #expect(model.entry(id)?.entry.weight == 2)
+  }
+
+  @Test
   func splitSelectsTheLaterPart() async throws {
     let id = try #require(await model.createEntry(from: at(7), to: at(9)))
     await model.split(id, at: at(8))
