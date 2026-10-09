@@ -204,6 +204,16 @@ struct GRDBTimerStoreTests {
     #expect(try await engine.recoverAfterLaunch(idleThreshold: 600) == nil)
   }
 
+  @Test
+  func secondOpenSegmentIsAnInvalidValueLikeInMemory() async throws {
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+
+    await #expect(throws: TimerStoreError.invalidValue) {
+      try await engine.apply([.segment(before: nil, after: Segment(entryID: id, start: clock.now()))])
+    }
+  }
+
   // MARK: Private
 
   private let clock = ManualClock()

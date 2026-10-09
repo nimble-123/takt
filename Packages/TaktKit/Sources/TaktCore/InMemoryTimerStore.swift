@@ -36,6 +36,13 @@ public struct TimerTables: Hashable, Sendable {
         // Mirrors CHECK (end_at > start_at) of segment.
         if let after, let end = after.end, end <= after.start { throw TimerStoreError.invalidValue }
         try Self.apply(before, after, to: &copy.segments)
+        // Mirrors the UNIQUE index segment_open: at most one open segment per entry.
+        if
+          let after, after.isOpen,
+          copy.segments.values.contains(where: { $0.entryID == after.entryID && $0.isOpen && $0.id != after.id })
+        {
+          throw TimerStoreError.invalidValue
+        }
 
       case .globalPause(let before, let after):
         try Self.apply(before, after, to: &copy.globalPauses)

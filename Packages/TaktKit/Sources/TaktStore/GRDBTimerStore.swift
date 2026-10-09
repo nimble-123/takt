@@ -170,6 +170,9 @@ public struct GRDBTimerStore: TimerStore {
     } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
       // A missing parent row, e.g. a segment of an entry that no longer exists.
       throw TimerStoreError.conflict
+    } catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_UNIQUE {
+      // Same error as `InMemoryTimerStore`: a second open segment of an entry (index segment_open).
+      throw TimerStoreError.invalidValue
     }
   }
 }
