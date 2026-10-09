@@ -43,6 +43,16 @@ struct AnalyticsModelTests {
   }
 
   @Test
+  func previousMonthIsTheCalendarMonthBefore() async {
+    model.period = .month
+    await model.reload()
+    #expect(model.report.map { Exporter.dayString($0.range.lowerBound, calendar: calendar) } == "2026-10-01")
+    let previous = model.previous?.range
+    #expect(previous.map { Exporter.dayString($0.lowerBound, calendar: calendar) } == "2026-09-01")
+    #expect(previous?.upperBound == model.range.lowerBound)
+  }
+
+  @Test
   func drilldownListsTheEntriesOfAGroup() async throws {
     let project = Project(name: "Portal", color: "#2563EB", createdAt: clock.now())
     try await CatalogStore(database: database).save(project)

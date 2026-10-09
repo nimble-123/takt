@@ -27,9 +27,9 @@ Der unsignierte Build ist nur ad-hoc signiert und nicht notarisiert, ohne Harden
 | `fix:` | Patch (0.1.0 → 0.1.1) | Patch |
 | `feat:` | Minor (0.1.0 → 0.2.0) | Minor |
 | `feat!:` / `BREAKING CHANGE:` | Minor (0.1.0 → 0.2.0) | Major |
+| `docs:`, `chore:`, `ci:`, `test:`, `refactor:` | keine neue Version | keine neue Version |
 
 Das erste Release mit einem `feat:` wird 0.1.0. Die 1.0 wird bewusst gesetzt, mit einem leeren Commit `chore: release 1.0.0` und der Zeile `Release-As: 1.0.0` im Commit-Text.
-| `docs:`, `chore:`, `ci:`, `test:`, `refactor:` | keine neue Version | keine neue Version |
 
 Die Build-Nummer (`CURRENT_PROJECT_VERSION`) setzt das Release-Skript auf die Anzahl der Commits bis zum Tag.
 
@@ -51,7 +51,7 @@ Soll die CI signieren, kommen Zertifikat (als `.p12`), dessen Passwort und ein A
 
 ## Token für release-please
 
-Von release-please mit dem Standard-`GITHUB_TOKEN` erstellte PRs und Releases starten keine anderen Workflows: Weder die Checks auf dem Release-PR noch der Release-Build würden laufen. Deshalb ist ein Fine-grained PAT (nur dieses Repo; Contents und Pull requests: Read & Write) als Secret `RELEASE_PLEASE_TOKEN` hinterlegt; der Workflow nutzt es automatisch. Läuft das Token ab, fällt release-please still auf das Standard-Token zurück. Dann fehlen die Checks auf dem Release-PR, und der Release-Build muss über „Run workflow“ nachgeholt werden.
+Von release-please mit dem Standard-`GITHUB_TOKEN` erstellte PRs und Releases starten keine anderen Workflows: Weder die Checks auf dem Release-PR noch der Release-Build würden laufen. Deshalb ist ein Fine-grained PAT (nur dieses Repo; Contents und Pull requests: Read & Write) als Secret `RELEASE_PLEASE_TOKEN` hinterlegt; der Workflow nutzt es automatisch. Auf das Standard-Token fällt der Workflow nur zurück, wenn das Secret fehlt oder leer ist; dann fehlen die Checks auf dem Release-PR, und der Release-Build muss über „Run workflow“ nachgeholt werden. Ein abgelaufenes Token dagegen lässt den release-please-Lauf scheitern: neues Token erzeugen und das Secret ersetzen.
 
 ## Token für den Homebrew-Tap
 
