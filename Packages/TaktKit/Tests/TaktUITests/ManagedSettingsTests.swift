@@ -100,6 +100,44 @@ struct ManagedSettingsTests {
     #expect(defaults.integer(forKey: "roundingMinutes") == 15)
   }
 
+  @Test
+  func lockedValuesKeepTheManagedValueInTheSession() throws {
+    let testDefaults = try TestDefaults("takt-mdm")
+    let defaults = testDefaults.defaults
+    defaults.set("parallel", forKey: "startMode")
+    defaults.set("full", forKey: "countingMode")
+    defaults.set(25, forKey: "idleThresholdMinutes")
+    let forced: Set = ["startMode", "countingMode", "idleThresholdMinutes"]
+    let settings = AppSettings(defaults: defaults) { forced.contains($0) }
+
+    // E.g. the onboarding pickers, which bind to the same properties.
+    settings.startMode = .switchTo
+    settings.countingMode = .split
+    settings.idleThresholdMinutes = 5
+    settings.dailyGoalHours = 6
+
+    #expect(settings.startMode == .parallel)
+    #expect(settings.countingMode == .full)
+    #expect(settings.idleThresholdMinutes == 25)
+    #expect(settings.snapshot.idleThresholdMinutes == 25)
+    #expect(defaults.string(forKey: "startMode") == "parallel")
+    // Keys without a profile value stay editable.
+    #expect(settings.dailyGoalHours == 6)
+    #expect(defaults.double(forKey: "dailyGoalHours") == 6)
+  }
+
+  @Test
+  func lockedValueOutsideTheRangeIsRestoredAsIs() throws {
+    // Restoring must not fight the clamping in `didSet`.
+    let testDefaults = try TestDefaults("takt-mdm")
+    let defaults = testDefaults.defaults
+    defaults.set(15.0, forKey: "dailyGoalHours")
+    let settings = AppSettings(defaults: defaults) { $0 == "dailyGoalHours" }
+
+    settings.dailyGoalHours = 7
+    #expect(settings.dailyGoalHours == 15)
+  }
+
   // MARK: Private
 
   /// docs/mdm/Takt.mobileconfig, found relative to this file.
