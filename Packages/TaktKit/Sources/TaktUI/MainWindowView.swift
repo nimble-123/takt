@@ -23,25 +23,17 @@ public struct MainWindowView: View {
       }
       .navigationSplitViewColumnWidth(min: 160, ideal: 180)
     } detail: {
-      VStack(spacing: 0) {
-        if let message = model.errorMessage {
-          Text(message)
-            .font(.system(size: 12))
-            .foregroundStyle(Palette.danger)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-            .background(Palette.warningSurface)
-        }
-        if !model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-          SearchResultsScreen(model: model)
-        } else {
-          sectionContent
-        }
-      }
-      .inspector(isPresented: inspectorBinding) {
-        EntryInspector(model: model)
-          .inspectorColumnWidth(min: 260, ideal: 300)
+      // Only screens that show entries carry the inspector, bound directly to the user's choice.
+      // A binding that read `showsInspector` but wrote `isInspectorShown` let the closing inspector
+      // overwrite the choice and coincided with a constraint update loop crash.
+      if model.hasInspector {
+        detail
+          .inspector(isPresented: $model.isInspectorShown) {
+            EntryInspector(model: model)
+              .inspectorColumnWidth(min: 260, ideal: 300)
+          }
+      } else {
+        detail
       }
     }
     .modifier(SearchField(model: model))
@@ -101,6 +93,7 @@ public struct MainWindowView: View {
           Label(String(localized: "Inspector", bundle: .module), systemImage: "sidebar.trailing")
         }
         .keyboardShortcut("i", modifiers: [.command, .option])
+        .disabled(!model.hasInspector)
       }
     }
     .onDeleteCommand {
@@ -121,6 +114,25 @@ public struct MainWindowView: View {
   @Environment(\.undoManager) private var undoManager
   @State private var palette: CommandPaletteModel
 
+  private var detail: some View {
+    VStack(spacing: 0) {
+      if let message = model.errorMessage {
+        Text(message)
+          .font(.system(size: 12))
+          .foregroundStyle(Palette.danger)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 6)
+          .background(Palette.warningSurface)
+      }
+      if !model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+        SearchResultsScreen(model: model)
+      } else {
+        sectionContent
+      }
+    }
+  }
+
   @ViewBuilder
   private var sectionContent: some View {
     switch model.section {
@@ -135,10 +147,6 @@ public struct MainWindowView: View {
     case .settings:
       if let settings = model.settings { SettingsScreen(settings: settings, model: model) }
     }
-  }
-
-  private var inspectorBinding: Binding<Bool> {
-    Binding(get: { model.showsInspector }, set: { model.isInspectorShown = $0 })
   }
 
   private var sectionBinding: Binding<MainWindowModel.Section?> {

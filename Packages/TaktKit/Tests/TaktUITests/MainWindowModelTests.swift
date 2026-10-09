@@ -242,7 +242,19 @@ struct MainWindowModelTests {
   @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
   func inspectorIsHiddenOnOtherScreens(section: MainWindowModel.Section) {
     model.section = section
+    #expect(!model.hasInspector)
     #expect(!model.showsInspector)
+    // The user's choice survives screens without an inspector.
+    #expect(model.isInspectorShown)
+  }
+
+  @Test
+  func searchHidesTheInspector() {
+    model.section = .today
+    model.searchText = "login"
+    #expect(!model.hasInspector)
+    model.searchText = ""
+    #expect(model.showsInspector)
   }
 
   // MARK: Private
