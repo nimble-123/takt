@@ -1,5 +1,6 @@
 import Foundation
 import Synchronization
+import TaktAnalytics
 import TaktCore
 import TaktStore
 import Testing
@@ -38,6 +39,20 @@ struct MainWindowModelTests {
     #expect(model.selection == [id])
     #expect(model.entry(id)?.segments.first?.source == .manual)
     #expect(model.dayTotal == 3600)
+  }
+
+  @Test
+  func theShownDayIsCheckedAgainstTheWorkingHoursAct() async throws {
+    // Yesterday, 7:00–18:00 without a break.
+    model.step(by: -1)
+    _ = try #require(await model.createEntry(from: at(7), to: at(18)))
+
+    await model.reload()
+
+    let check = try #require(model.workTimeCheck)
+    #expect(check.findings.map(\.rule).contains(.dailyTenHours))
+    #expect(check.findings.map(\.rule).contains(.continuousWork))
+    #expect(!WorkTimeMarker.details(check).isEmpty)
   }
 
   @Test

@@ -21,12 +21,42 @@
         }
       }
     },
+    "%@ h net, more than 10 h (§ 3 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ h netto, mehr als 10 h (§ 3 ArbZG)"
+          }
+        }
+      }
+    },
+    "%@ h net, more than 8 h need compensation (§ 3 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ h netto, über 8 h nur mit Ausgleich (§ 3 ArbZG)"
+          }
+        }
+      }
+    },
     "%@ h of %@ h": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ h von %2$@ h"
+          }
+        }
+      }
+    },
+    "%@ h without a break, at most 6 h (§ 4 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ h ohne Pause, höchstens 6 h (§ 4 ArbZG)"
           }
         }
       }
@@ -301,6 +331,16 @@
         }
       }
     },
+    "Average over 24 weeks %@ h per working day, more than 8 h (§ 3 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durchschnitt über 24 Wochen %@ h je Werktag, mehr als 8 h (§ 3 ArbZG)"
+          }
+        }
+      }
+    },
     "Away from %@ to %@ (%@).": {
       "localizations": {
         "de": {
@@ -567,6 +607,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Brandenburg"
+          }
+        }
+      }
+    },
+    "Breaks %@ h, at least %@ h needed (§ 4 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausen %1$@ h, mindestens %2$@ h nötig (§ 4 ArbZG)"
           }
         }
       }
@@ -2631,6 +2681,26 @@
         }
       }
     },
+    "Rest period %@ h, at least 11 h (§ 5 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhezeit %@ h, mindestens 11 h (§ 5 ArbZG)"
+          }
+        }
+      }
+    },
+    "Rest period before: %@ h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhezeit davor: %@ h"
+          }
+        }
+      }
+    },
     "Restore": {
       "localizations": {
         "de": {
@@ -3867,6 +3937,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Work Items"
+          }
+        }
+      }
+    },
+    "Work on a Sunday or public holiday: %@ h (§§ 9, 11 ArbZG)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeit an einem Sonn- oder Feiertag: %@ h (§§ 9, 11 ArbZG)"
+          }
+        }
+      }
+    },
+    "Working Hours Act": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitgesetz"
           }
         }
       }

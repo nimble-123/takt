@@ -25,6 +25,7 @@ struct DayScreen: View {
             value: DurationText.hoursMinutes(model.dayPauses),
           )
           KPI(title: String(localized: "Entries", bundle: .module), value: "\(model.data.entries.count)")
+          WorkTimeMarker(check: model.workTimeCheck)
           Spacer()
         }
         .padding(16)
