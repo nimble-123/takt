@@ -221,13 +221,13 @@ struct SuggestionList: View {
           Task { await model.start(suggestion: suggestion, parallel: model.settings.startMode == .parallel) }
         } label: {
           if let item = suggestion.workItem {
-            WorkItemRow(item: item, query: model.query, selected: model.selection == index)
+            WorkItemRow(item: item, query: model.query, selected: model.selection == suggestion.id)
           } else {
-            textRow(suggestion, selected: model.selection == index)
+            textRow(suggestion, selected: model.selection == suggestion.id)
           }
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(model.selection == index ? .isSelected : [])
+        .accessibilityAddTraits(model.selection == suggestion.id ? .isSelected : [])
         if let item = suggestion.workItem, model.previewedItem?.id == item.id {
           WorkItemDetail(item: item)
         }
@@ -536,6 +536,7 @@ struct RecentList: View {
     VStack(alignment: .leading, spacing: 4) {
       SectionTitle(text: String(localized: "Recent", bundle: .module))
       ForEach(Array(model.suggestions.enumerated()), id: \.element.id) { index, suggestion in
+        let selected = model.selection == suggestion.id
         Button {
           Task { await model.startRecent(at: index) }
         } label: {
@@ -551,14 +552,22 @@ struct RecentList: View {
                 .lineLimit(1)
             }
             Spacer()
-            Text(verbatim: "⌘\(index + 1)")
+            Text(verbatim: selected ? "↩" : "⌘\(index + 1)")
               .font(.system(size: 12))
               .foregroundStyle(Palette.textSecondary)
           }
           .frame(minHeight: 28)
+          // ↑/↓ in the empty search field highlight a recent activity; ↩ starts it.
+          .background {
+            if selected {
+              // Wider than the row, so the text does not move when it is highlighted.
+              RoundedRectangle(cornerRadius: 6).fill(Palette.accentSurface).padding(.horizontal, -6)
+            }
+          }
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
         .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
       }
     }
@@ -672,7 +681,7 @@ struct StopToast: View {
             .contentShape(Rectangle())
         }
         Button {
-          Task { await model.undo() }
+          Task { await model.undoToast() }
         } label: {
           Text("Undo ⌘Z", bundle: .module)
             .frame(minHeight: 28)
