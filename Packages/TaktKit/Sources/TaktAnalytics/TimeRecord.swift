@@ -129,7 +129,7 @@ public struct TimeRecord: Hashable, Sendable {
 
   /// The day table as CSV (RFC 4180, comma separated), then the totals and the change log.
   public func csv(calendar: Calendar) -> String {
-    var lines = [[
+    var lines: [[String]] = [[
       "date",
       "weekday",
       "holiday",
@@ -146,7 +146,7 @@ public struct TimeRecord: Hashable, Sendable {
       "corrected",
     ]]
     for row in rows {
-      lines.append([
+      let fields: [String] = [
         row.date,
         String(row.weekday),
         row.holiday?.rawValue ?? "",
@@ -161,7 +161,8 @@ public struct TimeRecord: Hashable, Sendable {
         Self.duration(row.cumulative),
         row.findings.map(\.rule.rawValue).joined(separator: " "),
         row.corrected ? "yes" : "",
-      ])
+      ]
+      lines.append(fields)
     }
     lines.append([])
     lines.append(["total_net", Self.duration(totals.net)])
@@ -173,7 +174,7 @@ public struct TimeRecord: Hashable, Sendable {
     lines.append([])
     lines.append(["changed_at", "kind", "entry", "segment", "old_start", "old_end", "new_start", "new_end", "reason"])
     for change in changes {
-      lines.append([
+      let fields: [String] = [
         Self.dateTime(change.changedAt, calendar: calendar),
         change.kind.rawValue,
         change.entryID.uuidString,
@@ -183,7 +184,8 @@ public struct TimeRecord: Hashable, Sendable {
         Self.dateTime(change.newStart, calendar: calendar),
         Self.dateTime(change.newEnd, calendar: calendar),
         Exporter.defused(change.reason ?? ""),
-      ])
+      ]
+      lines.append(fields)
     }
     return lines.map { $0.map(Exporter.escape).joined(separator: ",") }.joined(separator: "\r\n") + "\r\n"
   }
@@ -191,8 +193,8 @@ public struct TimeRecord: Hashable, Sendable {
   /// The data the checksum covers: rows to the minute and the change log, in a fixed order and
   /// format, independent of language and of when the record was made.
   public func canonical(calendar: Calendar) -> String {
-    let days = rows.map { row in
-      [
+    let days = rows.map { (row: Row) -> String in
+      let fields: [String] = [
         row.date,
         row.holiday?.rawValue ?? "-",
         row.absence?.rawValue ?? "-",
@@ -205,24 +207,31 @@ public struct TimeRecord: Hashable, Sendable {
         Self.duration(row.cumulative),
         row.findings.map(\.rule.rawValue).sorted().joined(separator: "+"),
         row.corrected ? "c" : "-",
-      ].joined(separator: "|")
+      ]
+      return fields.joined(separator: "|")
     }
-    let log = changes.map { change in
-      [
+    // Typed step by step: the Linux compiler gives up on the literal otherwise.
+    let log = changes.map { (change: SegmentChangeRecord) -> String in
+      let fields: [String] = [
         String(change.changedAt.milliseconds),
         change.kind.rawValue,
         change.segmentID.uuidString,
-        change.oldStart.map { String($0.milliseconds) } ?? "-",
-        change.oldEnd.map { String($0.milliseconds) } ?? "-",
-        change.newStart.map { String($0.milliseconds) } ?? "-",
-        change.newEnd.map { String($0.milliseconds) } ?? "-",
+        Self.milliseconds(change.oldStart),
+        Self.milliseconds(change.oldEnd),
+        Self.milliseconds(change.newStart),
+        Self.milliseconds(change.newEnd),
         change.reason ?? "",
-      ].joined(separator: "|")
+      ]
+      return fields.joined(separator: "|")
     }
     return (days + ["--"] + log).joined(separator: "\n")
   }
 
   // MARK: Private
+
+  private static func milliseconds(_ timestamp: Timestamp?) -> String {
+    timestamp.map { String($0.milliseconds) } ?? "-"
+  }
 
   private static func dateTime(_ timestamp: Timestamp?, calendar: Calendar) -> String {
     guard let timestamp else { return "" }
