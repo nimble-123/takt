@@ -111,6 +111,8 @@ public actor InMemoryTimerStore: TimerStore {
   // MARK: Public
 
   public private(set) var tables: TimerTables
+  /// The change log, oldest first (AZ-04). Kept apart from `tables`: undo adds to it.
+  public private(set) var segmentChanges = [SegmentChangeRecord]()
 
   public func snapshot() -> TimerSnapshot {
     tables.snapshot()
@@ -120,7 +122,13 @@ public actor InMemoryTimerStore: TimerStore {
     _ body: @Sendable (TimerSnapshot) throws -> TimerUpdate<T>
   ) throws -> TimerCommit<T> {
     let update = try body(tables.snapshot())
+    let before = tables
     try tables.apply(update.changes)
+    if let log = update.log {
+      segmentChanges += SegmentChangeRecord.records(for: update.changes, log: log) { id in
+        before.segments.values.filter { $0.entryID == id }
+      }
+    }
     sequence += 1
     return TimerCommit(value: update.result, snapshot: tables.snapshot(), sequence: sequence)
   }

@@ -165,4 +165,27 @@ enum Schema {
   static func v6(_ db: Database) throws {
     try db.execute(sql: "ALTER TABLE category ADD COLUMN counts_as_work INTEGER NOT NULL DEFAULT 1")
   }
+
+  /// The change log of segments corrected after the fact (AZ-04). No foreign keys: the log keeps
+  /// records of segments and entries that are gone.
+  static func v7(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE segment_change (
+          id TEXT PRIMARY KEY,
+          segment_id TEXT NOT NULL,
+          entry_id TEXT NOT NULL,
+          kind TEXT NOT NULL CHECK (kind IN ('created', 'changed', 'deleted')),
+          old_start_at INTEGER,
+          old_end_at INTEGER,
+          new_start_at INTEGER,
+          new_end_at INTEGER,
+          changed_at INTEGER NOT NULL,
+          reason TEXT
+        );
+        CREATE INDEX segment_change_entry ON segment_change(entry_id);
+        CREATE INDEX segment_change_time ON segment_change(changed_at);
+        """
+    )
+  }
 }

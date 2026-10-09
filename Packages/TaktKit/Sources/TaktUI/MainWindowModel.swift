@@ -81,6 +81,13 @@ public final class MainWindowModel {
     }
   }
 
+  /// AZ-04: a pending question for the reason of a correction; the window shows it as an alert.
+  public struct CorrectionReasonRequest: Identifiable {
+    public let id = UUID()
+
+    fileprivate let answer: (String?) -> Void
+  }
+
   public var selection = Set<EntryID>()
   /// The user's choice from the toolbar; `showsInspector` decides where it actually appears.
   public var isInspectorShown = true
@@ -110,6 +117,8 @@ public final class MainWindowModel {
   public private(set) var workItemLinks = [WorkItemLinkID: WorkItemLink]()
   /// For backup and import in the settings.
   public let database: AppDatabase?
+
+  public private(set) var correctionReasonRequest: CorrectionReasonRequest?
 
   /// AZ-02: the ArbZG checks of the shown day; `nil` without work or in the week sections.
   public private(set) var workTimeCheck: WorkDayCheck?
@@ -189,6 +198,19 @@ public final class MainWindowModel {
 
   public var showsInspector: Bool {
     isInspectorShown && hasInspector
+  }
+
+  /// Answers the pending question; a blank reason counts as none.
+  public func answerCorrectionReason(_ reason: String?) {
+    let request = correctionReasonRequest
+    correctionReasonRequest = nil
+    request?.answer(reason?.nilIfBlank)
+  }
+
+  /// AZ-04: the change log of an entry, oldest first; empty without a database.
+  public func corrections(of id: EntryID) async -> [SegmentChangeRecord] {
+    guard let database else { return [] }
+    return (try? await SegmentChangeStore(database: database).records(ofEntry: id)) ?? []
   }
 
   /// Reloads after every timer change until the task is cancelled.
@@ -578,8 +600,9 @@ public final class MainWindowModel {
   @discardableResult
   private func apply(_ changes: [TimerChange], name: String) async -> Bool {
     guard !changes.isEmpty else { return false }
+    let reason = await correctionReason(for: changes)
     do {
-      let undo = try await engine.apply(changes).undo
+      let undo = try await engine.apply(changes, reason: reason).undo
       self.undo.register(undo, actionName: name, on: undoManager)
       errorMessage = nil
       await reload()
@@ -588,6 +611,27 @@ public final class MainWindowModel {
       show(error)
       await reload()
       return false
+    }
+  }
+
+  /// AZ-04: asks for an optional reason if the changes touch times older than 7 days and the
+  /// setting is on; `nil` otherwise or when the user skips it.
+  private func correctionReason(for changes: [TimerChange]) async -> String? {
+    guard settings?.askCorrectionReason == true else { return nil }
+    let limit = clock.now().adding(seconds: -7 * 86400)
+    let starts = changes.flatMap { change -> [Timestamp] in
+      switch change {
+      case .segment(let before, let after): [before?.start, after?.start].compactMap(\.self)
+      // Deleting an entry removes all its segments.
+      case .entry(let before, let after) where before?.deletedAt != after?.deletedAt:
+        segments(of: (after ?? before)?.id ?? EntryID()).map(\.start)
+      default: []
+      }
+    }
+    guard starts.contains(where: { $0 < limit }) else { return nil }
+    answerCorrectionReason(nil)
+    return await withCheckedContinuation { continuation in
+      correctionReasonRequest = CorrectionReasonRequest { continuation.resume(returning: $0) }
     }
   }
 

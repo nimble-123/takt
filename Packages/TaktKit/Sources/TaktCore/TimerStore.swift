@@ -104,19 +104,22 @@ public enum TimerChange: Hashable, Sendable {
 
 /// What a command decided: the rows to write and the value to return to the caller.
 public struct TimerUpdate<Value: Sendable>: Sendable {
-  public init(changes: [TimerChange], result: Value) {
+  public init(changes: [TimerChange], result: Value, log: ChangeLog? = nil) {
     self.changes = changes
     self.result = result
+    self.log = log
   }
 
   public var changes: [TimerChange]
   public var result: Value
+  /// Set for edits after the fact: the store logs their segment changes in the same transaction.
+  public var log: ChangeLog?
 
 }
 
 extension TimerUpdate where Value == Void {
-  public init(changes: [TimerChange]) {
-    self.init(changes: changes, result: ())
+  public init(changes: [TimerChange], log: ChangeLog? = nil) {
+    self.init(changes: changes, result: (), log: log)
   }
 }
 

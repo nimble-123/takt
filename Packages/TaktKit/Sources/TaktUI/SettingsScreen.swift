@@ -128,6 +128,11 @@ struct SettingsScreen: View {
           isOn: $settings.lockCountsAsPause,
         )
         .managed(settings.isLocked(.lockCountsAsPause))
+        Toggle(
+          String(localized: "Ask for a reason when changing times older than 7 days", bundle: .module),
+          isOn: $settings.askCorrectionReason,
+        )
+        .managed(settings.isLocked(.askCorrectionReason))
       }
 
       Section {

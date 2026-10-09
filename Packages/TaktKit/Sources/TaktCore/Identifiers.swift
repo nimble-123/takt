@@ -153,3 +153,13 @@ public struct RuleID: UUIDIdentifier {
 
   public let rawValue: UUID
 }
+
+// MARK: - SegmentChangeID
+
+public struct SegmentChangeID: UUIDIdentifier {
+  public init(rawValue: UUID) {
+    self.rawValue = rawValue
+  }
+
+  public let rawValue: UUID
+}

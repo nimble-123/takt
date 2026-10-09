@@ -2,6 +2,8 @@ import Testing
 
 @testable import TaktCore
 
+// MARK: - EntryEditsTests
+
 struct EntryEditsTests {
 
   // MARK: Lifecycle
@@ -270,4 +272,26 @@ struct EntryEditsTests {
     await store.tables.segments.values.filter { $0.entryID == id }.sorted { $0.start < $1.start }
   }
 
+}
+
+// MARK: - InMemoryChangeLogTests
+
+struct InMemoryChangeLogTests {
+  @Test
+  func editsAndTheirUndoAreLoggedLikeInSQLite() async throws {
+    let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
+    let store = InMemoryTimerStore()
+    let engine = TimerEngine(store: store, clock: clock)
+    let created = try EntryEdits.create(
+      EntryDraft(title: "Drawn"),
+      from: clock.now().adding(seconds: -7200),
+      to: clock.now().adding(seconds: -3600),
+      now: clock.now(),
+    )
+
+    let result = try await engine.apply(created.changes)
+    try await engine.undo(result.undo)
+
+    #expect(await store.segmentChanges.map(\.kind) == [.created, .deleted])
+  }
 }
