@@ -109,7 +109,14 @@ public final class AnalyticsModel {
     return seconds.compactMap { id, value in entries[id].map { ($0, value) } }.sorted { $0.seconds > $1.seconds }
   }
 
+  /// The range of the shown report. Differs from `range` while custom dates are picked but not
+  /// applied yet, or a reload is running; exports describe what is shown.
+  public var reportRange: Range<Timestamp> {
+    loadedRange ?? range
+  }
+
   public var exportFileName: String {
+    let range = reportRange
     let lastDay = Timestamp(milliseconds: range.upperBound.milliseconds - 1)
     let from = Exporter.dayString(range.lowerBound, calendar: calendar)
     return "Takt \(from) – \(Exporter.dayString(lastDay, calendar: calendar))"
@@ -183,7 +190,7 @@ public final class AnalyticsModel {
     let rows = Exporter.rows(report, data, rounding: rounding, defaultMode: defaultMode, calendar: calendar)
     switch format {
     case .csv: return Data(Exporter.csv(rows).utf8)
-    case .json: return try Exporter.json(rows, range: range, calendar: calendar)
+    case .json: return try Exporter.json(rows, range: reportRange, calendar: calendar)
     case .pdf: return ReportPDF.render(self, rows: rows)
     }
   }

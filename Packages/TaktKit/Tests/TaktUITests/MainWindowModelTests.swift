@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TaktCore
 import TaktStore
 import Testing
@@ -212,6 +213,33 @@ struct MainWindowModelTests {
     await model.delete([id])
 
     #expect(model.entry(id) == nil)
+  }
+
+  @Test
+  func olderReloadDoesNotOverwriteNewerData() async {
+    let stale = TimelineData(entries: [
+      EntryWithSegments(entry: TimeEntry(title: "Stale", createdAt: at(8), updatedAt: at(8)), segments: [])
+    ])
+    let calls = Mutex(0)
+    let (release, releaseOlder) = AsyncStream.makeStream(of: Void.self)
+    model.loadTimeline = { @Sendable _, _ in
+      let call = calls.withLock { count in
+        count += 1
+        return count
+      }
+      guard call == 1 else { return TimelineData() }
+      // The first reload answers last, with what it read before the newer one.
+      for await _ in release { break }
+      return stale
+    }
+
+    let older = Task { await model.reload() }
+    for _ in 0..<200 where calls.withLock({ $0 }) == 0 { await Task.yield() }
+    await model.reload()
+    releaseOlder.yield()
+    await older.value
+
+    #expect(model.data == TimelineData())
   }
 
   @Test
