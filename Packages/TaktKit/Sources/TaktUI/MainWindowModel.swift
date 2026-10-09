@@ -344,6 +344,11 @@ public final class MainWindowModel {
     }
   }
 
+  /// A right-click acts on the selection when the clicked entry is part of it, otherwise on that entry alone.
+  public func contextTargets(for id: EntryID) -> Set<EntryID> {
+    selection.contains(id) ? selection : [id]
+  }
+
   /// Opens the day of a found entry in the timeline and selects it.
   public func reveal(_ entry: EntryWithSegments) {
     if let start = entry.segments.first?.start { day = start }

@@ -140,8 +140,8 @@ Seitenleiste mit Heute, Kalender, Einträge, Analysen, Projekte, Einstellungen.
 | ID | Anforderung | Prio |
 | --- | --- | --- |
 | HW-01 | Tagesansicht als vertikale Timeline; parallele Timer als nebeneinanderliegende Spuren | Must |
-| HW-02 | Einträge per Drag in der Timeline anlegen, verschieben, kürzen; Inspektor mit Segmenten, Zählweise, Gewicht, Notiz und Hinweis auf Differenzbuchungen | Must |
-| HW-03 | Wochenansicht im Kalenderraster | Must |
+| HW-02 | Einträge per Drag in der Timeline anlegen, verschieben, kürzen, per Rechtsklick löschen; Inspektor mit Segmenten, Zählweise, Gewicht, Notiz und Hinweis auf Differenzbuchungen | Must |
+| HW-03 | Wochenansicht im Kalenderraster; Einträge per Drag auf andere Zeit oder anderen Tag verschieben | Must |
 | HW-04 | Eintragsliste mit Inline-Bearbeitung, Mehrfachauswahl und Sammelzuordnung | Must |
 | HW-05 | Command Palette (⌘K) für alle Aktionen | Should |
 | HW-06 | Volltextsuche über Notizen, Tasks und Work Items | Should |

@@ -45,12 +45,20 @@ struct WeekScreen: View {
           HStack(alignment: .top, spacing: 0) {
             HourLabels(hourHeight: 40, hours: 24)
               .frame(width: 52)
-            ForEach(model.weekDays, id: \.lowerBound) { day in
-              DayTimeline(model: model, day: day, interactive: false, hourHeight: 40, gutter: 0)
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .leading) {
-                  Rectangle().fill(Palette.separator).frame(width: 1)
-                }
+            let days = model.weekDays
+            ForEach(Array(days.enumerated()), id: \.element.lowerBound) { index, day in
+              DayTimeline(
+                model: model,
+                day: day,
+                interactive: false,
+                hourHeight: 40,
+                gutter: 0,
+                movableDays: -index...(days.count - 1 - index),
+              )
+              .frame(maxWidth: .infinity)
+              .overlay(alignment: .leading) {
+                Rectangle().fill(Palette.separator).frame(width: 1)
+              }
             }
           }
           .padding(.vertical, 12)
