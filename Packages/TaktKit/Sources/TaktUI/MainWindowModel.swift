@@ -179,8 +179,12 @@ public final class MainWindowModel {
   }
 
   /// The inspector edits entries; only screens that show entries have it, and not over search results.
+  public var hasInspector: Bool {
+    searchText.isEmpty && [.today, .dayClose, .week, .entries].contains(section)
+  }
+
   public var showsInspector: Bool {
-    isInspectorShown && searchText.isEmpty && [.today, .dayClose, .week, .entries].contains(section)
+    isInspectorShown && hasInspector
   }
 
   /// Reloads after every timer change until the task is cancelled.
