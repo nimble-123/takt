@@ -125,4 +125,34 @@ enum Schema {
         """
     )
   }
+
+  /// At most one open segment per entry, and an index for the segments of an entry (#144).
+  static func v4(_ db: Database) throws {
+    // Earlier versions could leave an entry with several open segments. Each but the newest
+    // ends where the next one starts; one starting at the same time as the next is dropped.
+    let open = try Row.fetchAll(
+      db,
+      sql: "SELECT id, entry_id, start_at FROM segment WHERE end_at IS NULL ORDER BY entry_id, start_at, id",
+    )
+    let byEntry = Dictionary(grouping: open) { row -> String in row["entry_id"] }
+    for rows in byEntry.values {
+      for (row, next) in zip(rows, rows.dropFirst()) {
+        let id: String = row["id"]
+        let start: Int64 = row["start_at"]
+        let nextStart: Int64 = next["start_at"]
+        if nextStart > start {
+          try db.execute(sql: "UPDATE segment SET end_at = ? WHERE id = ?", arguments: [nextStart, id])
+        } else {
+          try db.execute(sql: "DELETE FROM segment WHERE id = ?", arguments: [id])
+        }
+      }
+    }
+    try db.execute(
+      sql: """
+        DROP INDEX segment_open;
+        CREATE UNIQUE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;
+        CREATE INDEX segment_entry ON segment(entry_id);
+        """
+    )
+  }
 }

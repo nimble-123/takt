@@ -52,7 +52,43 @@ nonisolated public enum CategoryColors {
     return surface
   }
 
+  /// Text or a symbol on a fill of `hex` (badges, swatches), readable in light and dark mode.
+  public static func onColor(_ hex: String) -> Color {
+    if let cached = onColors.withLock({ $0[hex] }) { return cached }
+    let dark = swatches.first { $0.hex.caseInsensitiveCompare(hex) == .orderedSame }?.dark ?? hex
+    let color = dynamic(light: labelHex(on: hex), dark: labelHex(on: dark))
+    onColors.withLock { $0[hex] = color }
+    return color
+  }
+
+  // MARK: Internal
+
+  /// White or black, whichever contrasts more with `hex`; at least 4.5:1 for any fill.
+  static func labelHex(on hex: String) -> String {
+    contrast("#FFFFFF", hex) >= contrast("#000000", hex) ? "#FFFFFF" : "#000000"
+  }
+
+  /// WCAG contrast ratio of two `#RRGGBB` colors, from 1 to 21.
+  static func contrast(_ first: String, _ second: String) -> Double {
+    let lighter = max(luminance(first), luminance(second))
+    let darker = min(luminance(first), luminance(second))
+    return (lighter + 0.05) / (darker + 0.05)
+  }
+
+  /// WCAG relative luminance of `#RRGGBB`; 0 for invalid input.
+  static func luminance(_ hex: String) -> Double {
+    let digits = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+    guard digits.count == 6, let value = UInt32(digits, radix: 16) else { return 0 }
+    let channels = [16, 8, 0].map { shift in
+      let channel = Double((value >> UInt32(shift)) & 0xFF) / 255
+      return channel <= 0.040_45 ? channel / 12.92 : pow((channel + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+  }
+
   // MARK: Private
+
+  private static let onColors = Mutex([String: Color]())
 
   /// Every timeline block and chart asks for its color on each redraw; the dynamic colors are
   /// built once per hex.

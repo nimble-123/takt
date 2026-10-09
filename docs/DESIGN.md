@@ -20,7 +20,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Menüleiste | Suche mit Outlook-Terminen (Phase 3) | Gruppe „Kalender“ vor ADO; Zuordnung pro Serie; „Ab 09:45 starten“ |
 | Menüleiste | Regeltermin Start/Ende (Phase 3) | Hinweis zum Terminbeginn mit „Timer starten“; Toast zum Ende mit „Verlängern“ |
 | Hauptfenster | Heute | Seitenleiste Heute, Tagesabschluss, Woche, Einträge, Analysen, Projekte, Einstellungen; KPI-Zeile (Erfasst, Pausen, Einträge); Timeline über 24 h, scrollt zur aktuellen Stunde, parallele Spur, Pausen und Inaktivität schraffiert, „jetzt“-Linie; rechts der Inspektor des gewählten Eintrags |
-| Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ |
+| Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ mit ⌘↩ (nicht ↩, damit Return in einem Inspektorfeld nichts bucht) |
 | Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
 | Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
@@ -58,7 +58,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 | Review | `#7C3AED` | `#A78BFA` | `#EDE9FE` / `#2E2650` |
 | Support | `#DB2777` | `#F472B6` | `#FCE7F3` / `#4A1D35` |
 
-**Work-Item-Typen** (Badge mit Buchstabe): Task `#A16207`, Bug `#B91C1C`, User Story `#0369A1`.
+**Work-Item-Typen** (Badge mit Buchstabe): Task `#A16207`, Bug `#B91C1C`, User Story `#0369A1`. Buchstabe (wie das Häkchen auf Farbmustern) weiß oder schwarz, je nachdem, was auf der Fläche mehr Kontrast hat – mindestens 4,5:1, auch mit den Dunkel-Varianten.
 
 ## Typografie
 
@@ -71,7 +71,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 - Undo statt Rückfrage: Stoppen, Löschen, Verschieben sind sofort und per ⌘Z rückgängig zu machen.
 - Pausen und Inaktivität werden schraffiert dargestellt, nie als leere Lücke.
 - Doppelklick auf einen Eintrag (Heute, Tagesabschluss, Woche, Einträge) wählt ihn aus und öffnet den Inspektor; Einfachklick wählt nur aus. Inspektor ein- und ausblenden mit ⌥⌘I.
-- Rechtsklick auf einen Eintrag (Heute, Woche, Einträge) bietet „Löschen“: gelöscht wird der ganze Eintrag, bei Mehrfachauswahl alle ausgewählten; ⌘Z macht es rückgängig.
+- Rechtsklick auf einen Eintrag (Heute, Woche, Einträge) bietet „Löschen“: gelöscht wird der ganze Eintrag, bei Mehrfachauswahl alle ausgewählten; ⌘Z macht es rückgängig. Auf einer Pause zusätzlich „Als Arbeitszeit zählen“.
 - Fehlende Zuordnung (kein Work Item) ist Amber, nicht Rot.
 - Diagramme zeigen genaue Werte beim Überfahren mit der Maus: Hilfe-Tooltip (`.help`) oder kleines Label im Diagramm, keine zusätzlichen Bedienelemente. VoiceOver bekommt dieselben Werte.
 - Eine Hauptaktion pro Ansicht; Primärbutton immer `accent`.

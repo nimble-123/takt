@@ -151,7 +151,8 @@ CREATE TABLE segment (
   CHECK (end_at IS NULL OR end_at > start_at)
 );
 CREATE INDEX segment_time ON segment(start_at, end_at);
-CREATE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;
+CREATE UNIQUE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;  -- höchstens ein offenes Segment je Eintrag (v4)
+CREATE INDEX segment_entry ON segment(entry_id);                              -- Segmente eines Eintrags (v4)
 
 CREATE TABLE tag (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 CREATE TABLE entry_tag (
@@ -194,6 +195,8 @@ CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 ```
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
+
+**Segment-Indizes (Migration `v4-segment-indexes`).** `segment_open` ist seit v4 eindeutig: Ein Eintrag hat höchstens ein offenes Segment; beide Stores melden einen Verstoß als `TimerStoreError.invalidValue`. Die Migration repariert vorher Altdaten: Hat ein Eintrag mehrere offene Segmente, endet jedes bis auf das jüngste beim Beginn des nächsten; eines mit gleichem Beginn wie das nächste entfällt. `segment_entry` beschleunigt das Laden der Segmente eines Eintrags und das Löschen per Cascade.
 
 **Volltextsuche (HW-06).** Die virtuelle FTS5-Tabelle `search_index` (Migration `v3-search`) indiziert Titel und Notizen nicht gelöschter Einträge, Projekte (mit Area Path), Tasks, Kategorien, Tags und gecachte Work Items (Titel, `#ID`, Beschreibungsauszug). Trigger auf den Quelltabellen halten den Index aktuell, damit kein Codepfad ihn vergessen kann. Tokenizer `unicode61 remove_diacritics 2`: Groß-/Kleinschreibung und Umlaute sind egal, `ß` bleibt `ß`. Jedes Wort der Eingabe wird als zitiertes Präfix gesucht, Eingaben werden so nie zur Abfragesyntax; Titel wiegen zehnmal so viel wie Notizen (`bm25`). Der JSON-Export lässt den Index aus; beim Import bauen ihn die Trigger neu auf.
 
@@ -243,13 +246,15 @@ Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand
 | `pause` | Offenes Segment schließen, Zustand `paused` |
 | `resume` | Neues Segment ab jetzt, Zustand `running`; bei `switchTo` andere pausieren |
 | `stop` | Offenes Segment schließen, Zustand `stopped` |
-| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen |
+| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen. Ein einzeln fortgesetzter oder gestoppter Eintrag (`resume`, `stop`, `stopAll`) verlässt die offene Pause; ist keiner ihrer Einträge mehr pausiert, endet sie (`resumed_at`). `pauseAll` erweitert eine offene Pause nur, solange sie noch einen pausierten Eintrag hält, sonst beginnt eine neue |
+
+**Teilen.** `EntryEdits.split` gibt dem neuen Eintrag (dem späteren Teil) den Platz des ursprünglichen in einer offenen globalen Pause und in offenen `idle_event`s, damit „Alle fortsetzen“ und die Inaktivitätsentscheidung ihn erreichen; das Hauptfenster übernimmt zusätzlich die Tags.
 
 **Uhr.** Die Engine liest die Zeit nie direkt, sondern über ein injiziertes `TaktClock`-Protokoll. Tests nutzen eine manuelle Uhr.
 
 **Undo.** Jeder Befehl liefert ein `CommandResult` mit Wert und Umkehrung (`TimerUndo`: die vertauschten Änderungen in umgekehrter Reihenfolge), die der `UndoManager` des Fensters bzw. der Undo-Stapel des Popovers aufnimmt. Im Hauptfenster registriert `EngineUndo` jede Änderung beim `UndoManager` des Fensters (Bearbeiten-Menü, ⌘Z/⇧⌘Z); weil die Engine asynchron arbeitet, registriert jeder Undo-Handler die Gegenrichtung sofort mit dem noch ausstehenden Ergebnis. Das Popover führt einen eigenen Stapel, weil die Befehle asynchron laufen und ein `UndoManager` das Redo nur synchron registrieren kann; mehrere Befehle einer Aktion („Alle stoppen“) werden zu einem Undo zusammengefasst. Wurde eine betroffene Zeile inzwischen anders geändert, schlägt das Undo mit einem Konflikt fehl, statt neuere Daten zu überschreiben. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
 
-**Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting` (Schlüssel `engine.heartbeat`, UTC-Millisekunden); die App ruft dazu `TimerEngine.heartbeat()` auf und beim Start einmal `recoverAfterLaunch(idleThreshold:)`. Findet sie beim Start offene Segmente und liegt der letzte Heartbeat länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente beim Heartbeat und erzeugt ein `idle_event`. Der Nutzer entscheidet dann im Inaktivitätsdialog.
+**Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting` (Schlüssel `engine.heartbeat`, UTC-Millisekunden); die App ruft dazu `TimerEngine.heartbeat()` auf und beim Start einmal `recoverAfterLaunch(idleThreshold:)`. Findet sie beim Start offene Segmente und liegt das letzte Lebenszeichen länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente dort und erzeugt ab dort ein `idle_event`. Letztes Lebenszeichen ist der Heartbeat oder, falls später, der jüngste Segmentbeginn bzw. das jüngste Segmentende aktiver Einträge – ein Timer, der kurz nach dem letzten Heartbeat gestartet wurde, bekommt so keine Zeit von vor seinem Start, und ein dabei pausierter Eintrag zählt nicht doppelt. Der Nutzer entscheidet dann im Inaktivitätsdialog.
 
 **Anzeige ohne Dauer-Polling.** Die Engine sendet nur Zustandswechsel. Die Laufzeit rechnet die UI aus abgeschlossener Dauer plus Startzeit des offenen Segments: im sichtbaren Popover per `TimelineView` sekündlich, in der Menüleiste einmal pro Minute, ausgerichtet auf die Minutengrenze.
 
@@ -295,7 +300,7 @@ Die App läuft als Menüleisten-App ohne Dock-Symbol (`LSUIElement`); das Dock-S
 
 - **Status-Item:** `NSStatusItem` mit Symbol und optionalem Laufzeittext. Der Titel wird einmal pro Minute aktualisiert.
 - **Popover:** `NSPanel` unter dem Status-Item mit `NSHostingView`. Es nimmt Tastatureingaben an, schließt bei Klick außerhalb und lässt sich per Hotkey öffnen.
-- **Hauptfenster:** `NavigationSplitView` (Seitenleiste, Inhalt, Inspektor) in einem `NSWindow` mit `NSHostingController`, damit die App das Dock-Symbol genau so lange zeigt, wie das Fenster offen ist. Nachträgliche Änderungen (aufziehen, verschieben, Kanten ziehen, Pause umwandeln, teilen, löschen, Sammeländerungen) sind reine Funktionen in `TaktCore.EntryEdits` und laufen über `TimerEngine.apply(_:)`.
+- **Hauptfenster:** `NavigationSplitView` (Seitenleiste, Inhalt, Inspektor) in einem `NSWindow` mit `NSHostingController`, damit die App das Dock-Symbol genau so lange zeigt, wie das Fenster offen ist. Nachträgliche Änderungen (aufziehen, verschieben, Kanten ziehen, Pause umwandeln, teilen, löschen, Sammeländerungen) sind reine Funktionen in `TaktCore.EntryEdits` und laufen über `TimerEngine.apply(_:)`. Kanten ziehen, Verschieben und „Pause umwandeln“ prüfen die übrigen Segmente des Eintrags: Segmente eines Eintrags überlappen sich nie (Berühren ist erlaubt), damit Liste und Menüleiste (Summe der Segmente) dieselbe Dauer zeigen wie Analyse und ADO (Vereinigung). Ein geschlossenes Segment bleibt geschlossen; ohne Ende lehnt `setBounds` es ab.
 - **Zustand:** pro Bildschirm ein `@Observable`-ViewModel auf dem `@MainActor`. Es abonniert Daten über GRDB-`ValueObservation` bzw. `TimerEngine.updates()` und schickt Befehle an die Engine. Views rendern nur; Zustand und Ableitungen (z. B. im Tagesabschluss Gruppen, offene Zeilen und Summe in `DayCloseModel`) liegen im Model und sind getestet. Datei-I/O (Git-Branches, JSON-Sicherung) läuft per `@concurrent` außerhalb des Main Actors.
 - **Einstellungen:** Alle Teile lesen sie über `AppSettings`, nie mit eigenen Schlüsseln aus `UserDefaults`; die Standardwerte stehen nur dort. Dienste mit `@Sendable`-Closures (Inaktivität, Buchung, Git-Branches) lesen `AppSettings.snapshot`, eine thread-sichere Kopie, die jeder Änderung folgt.
 - **Gemeinsame Timer-Aktionen:** Starten (mit Regeln und Tags), Stoppen, „Alle stoppen“ und der Entwurf für ein Work Item laufen für Menüleiste, Hauptfenster und ⌘K über eine `TimerActions`-Instanz aus dem Composition Root. Ihr `onStopped` löst die automatische Buchung aus (DO-21), egal von wo gestoppt wurde. „Alle stoppen“ ist ein Engine-Befehl in einer Transaktion. Das Popover vergisst sein Undo beim nächsten Öffnen, außer für den Stopp im noch sichtbaren Toast.
@@ -397,6 +402,7 @@ ORDER BY s.start_at;
 
 - Segmente, die über die Zeitraumgrenzen ragen, werden gekappt; über Mitternacht laufende Segmente werden an der lokalen Tagesgrenze geteilt.
 - Gruppierung nach Projekt, Kategorie, Tag, Work Item, Wochentag und Stunde passiert auf dem Ergebnis der Verteilung.
+- **Vorperiode (AN-01):** Bei Tag, Woche und Monat ist sie der vorherige Kalendertag, die vorherige Kalenderwoche bzw. der vorherige Kalendermonat (`Analyzer.previous` mit Kalender), damit unterschiedlich lange Monate und Tage mit Zeitumstellung richtig verglichen werden. Nur ein freier Zeitraum wird um seine eigene Länge verschoben.
 - **Fokusblöcke:** zusammenhängende Arbeit an einem Eintrag ≥ 25 min ohne parallelen Eintrag.
 - **Kontextwechsel:** Anzahl der Wechsel des aktiven Eintrags pro Tag; Pausen zählen nicht als Wechsel.
 - Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
@@ -431,7 +437,7 @@ Takt hat keine eigene Server-Komponente; das schützenswerte Gut sind die lokale
 - **Netzwerk:** nur HTTPS zu `dev.azure.com` (und in Phase 3 zu `graph.microsoft.com`). Keine Telemetrie.
 - **Signatur:** Developer ID (privater Account), Hardened Runtime, notarisiert und gestapelt. Vorerst lokal per `scripts/release-local.sh`, siehe [RELEASING.md](RELEASING.md).
 - **Rollout:** PKG über Intune oder Jamf. Neue Versionen verteilt ebenfalls das MDM; kein In-App-Updater.
-- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Schlüssel: `startMode` (`switch`/`parallel`), `countingMode` (`split`/`full`), `idleThresholdMinutes`, `lockCountsAsPause`, `roundingMinutes`, `bookingMode` (`manual`/`review`/`automatic`), `dailyGoalHours`, `showElapsedInMenuBar`. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen zeigen ihn gesperrt mit Schloss. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
+- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Schlüssel: `startMode` (`switch`/`parallel`), `countingMode` (`split`/`full`), `idleThresholdMinutes`, `lockCountsAsPause`, `roundingMinutes`, `bookingMode` (`manual`/`review`/`automatic`), `dailyGoalHours`, `showElapsedInMenuBar`. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen und das Onboarding zeigen ihn gesperrt mit Schloss, und `AppSettings` setzt einen gesperrten Wert bei jedem Schreibversuch auf den Profilwert zurück. Profiländerungen während der Laufzeit gelten erst nach einem Neustart. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
 - **Logging:** `os.Logger` mit Subsystem `de.nilslutz.takt`; Titel, Notizen und Tokens werden als privat markiert.
 
 ## Teststrategie

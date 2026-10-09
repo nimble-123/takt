@@ -35,11 +35,33 @@ struct TimerTablesTests {
   }
 
   @Test
+  func weightMustNotBeNaN() {
+    var tables = TimerTables()
+    let entry = TimeEntry(title: "A", weight: .nan, createdAt: now, updatedAt: now)
+    #expect(throws: TimerStoreError.invalidValue) {
+      try tables.apply([.entry(before: nil, after: entry)])
+    }
+  }
+
+  @Test
   func weightMustBePositive() {
     var tables = TimerTables()
     let entry = TimeEntry(title: "A", weight: 0, createdAt: now, updatedAt: now)
     #expect(throws: TimerStoreError.invalidValue) {
       try tables.apply([.entry(before: nil, after: entry)])
+    }
+  }
+
+  @Test
+  func entryHasAtMostOneOpenSegment() throws {
+    var tables = TimerTables()
+    let entry = TimeEntry(title: "A", createdAt: now, updatedAt: now)
+    try tables.apply([
+      .entry(before: nil, after: entry),
+      .segment(before: nil, after: Segment(entryID: entry.id, start: now)),
+    ])
+    #expect(throws: TimerStoreError.invalidValue) {
+      try tables.apply([.segment(before: nil, after: Segment(entryID: entry.id, start: now.adding(seconds: 60)))])
     }
   }
 
