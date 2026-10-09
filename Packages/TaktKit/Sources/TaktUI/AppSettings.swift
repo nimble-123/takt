@@ -46,6 +46,7 @@ public final class AppSettings {
     workdayStartMinute = stored.workdayStartMinute
     workdayEndMinute = stored.workdayEndMinute
     federalState = stored.federalState
+    askCorrectionReason = stored.askCorrectionReason
   }
 
   // MARK: Public
@@ -70,6 +71,7 @@ public final class AppSettings {
     case workdayStartMinute
     case workdayEndMinute
     case federalState
+    case askCorrectionReason
   }
 
   /// When booked time goes to Azure DevOps (DO-21).
@@ -188,6 +190,11 @@ public final class AppSettings {
   /// AZ-03: public holidays of this state have no target; `nil` = none.
   public var federalState: FederalState? {
     didSet { write(.federalState, federalState?.rawValue ?? "") }
+  }
+
+  /// AZ-04: ask for an optional reason when times older than 7 days change (§ 17 MiLoG).
+  public var askCorrectionReason: Bool {
+    didSet { write(.askCorrectionReason, askCorrectionReason) }
   }
 
   /// Folders whose Git repositories suggest work items by branch name.
@@ -330,6 +337,9 @@ public final class AppSettings {
       if workdayEndMinute != stored.workdayEndMinute { workdayEndMinute = stored.workdayEndMinute }
 
     case .federalState: if federalState != stored.federalState { federalState = stored.federalState }
+
+    case .askCorrectionReason:
+      if askCorrectionReason != stored.askCorrectionReason { askCorrectionReason = stored.askCorrectionReason }
     }
   }
 }
@@ -363,6 +373,7 @@ private struct Stored {
     workdayStartMinute = Self.minuteOfDay(defaults, .workdayStartMinute) ?? 9 * 60
     workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 17 * 60
     federalState = defaults.string(forKey: AppSettings.Key.federalState.rawValue).flatMap(FederalState.init)
+    askCorrectionReason = defaults.bool(forKey: AppSettings.Key.askCorrectionReason.rawValue)
   }
 
   // MARK: Internal
@@ -386,6 +397,7 @@ private struct Stored {
   let workdayStartMinute: Int
   let workdayEndMinute: Int
   let federalState: FederalState?
+  let askCorrectionReason: Bool
 
   // MARK: Private
 

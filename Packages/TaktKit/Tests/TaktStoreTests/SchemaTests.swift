@@ -33,6 +33,7 @@ struct SchemaTests {
         "idle_event",
         "project",
         "segment",
+        "segment_change",
         "setting",
         "sync_record",
         "tag",
@@ -53,6 +54,7 @@ struct SchemaTests {
       "v4-segment-indexes",
       "v5-remaining-delta",
       "v6-category-counts-as-work",
+      "v7-segment-change-log",
     ])
   }
 

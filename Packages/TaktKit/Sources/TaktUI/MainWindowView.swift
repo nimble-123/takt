@@ -40,6 +40,27 @@ public struct MainWindowView: View {
     .sheet(isPresented: $palette.isPresented) {
       CommandPaletteView(model: palette)
     }
+    .alert(
+      Text("Reason for the Correction", bundle: .module),
+      isPresented: Binding(get: { model.correctionReasonRequest != nil }) { shown in
+        if !shown { model.answerCorrectionReason(nil) }
+      },
+    ) {
+      TextField(String(localized: "Reason (optional)", bundle: .module), text: $correctionReason)
+      Button(String(localized: "Save", bundle: .module)) {
+        model.answerCorrectionReason(correctionReason)
+        correctionReason = ""
+      }
+      Button(String(localized: "Without Reason", bundle: .module), role: .cancel) {
+        model.answerCorrectionReason(nil)
+        correctionReason = ""
+      }
+    } message: {
+      Text(
+        "You are changing times older than 7 days. A reason makes the correction traceable.",
+        bundle: .module,
+      )
+    }
     .background {
       // ⌘K: every action is one search away (HW-05).
       Button("") { palette.isPresented.toggle() }
@@ -113,6 +134,7 @@ public struct MainWindowView: View {
 
   @Environment(\.undoManager) private var undoManager
   @State private var palette: CommandPaletteModel
+  @State private var correctionReason = ""
 
   private var detail: some View {
     VStack(spacing: 0) {

@@ -197,6 +197,19 @@ CREATE TABLE global_pause (               -- „Alle pausieren“ merkt sich, wa
 );
 
 CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+
+-- Änderungsprotokoll (AZ-04, Migration v7-segment-change-log); ohne Fremdschlüssel,
+-- damit Einträge gelöschter Segmente und Einträge bleiben
+CREATE TABLE segment_change (
+  id TEXT PRIMARY KEY,
+  segment_id TEXT NOT NULL,
+  entry_id TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('created', 'changed', 'deleted')),
+  old_start_at INTEGER, old_end_at INTEGER,
+  new_start_at INTEGER, new_end_at INTEGER,
+  changed_at INTEGER NOT NULL,
+  reason TEXT
+);
 ```
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
@@ -440,7 +453,13 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - §§ 9, 11: Arbeitstage, die an einem Sonntag oder Feiertag beginnen, als Hinweis. Arbeit, die erst nach Mitternacht in einen Sonntag läuft, erkennt die Regel nicht.
   - UI: ein Marker neben den Kennzahlen von „Heute“ und im Kopf des Tagesabschlusses, Details und Ruhezeit im Tooltip. Für den angezeigten Tag lädt `MainWindowModel` die 24 Wochen davor.
 - **Feiertage (AZ-03, umgesetzt in `TaktCore.PublicHoliday`):** Feste und von Ostern abhängige Feiertage je Bundesland, offline berechnet (Osterformel nach Gauß, anonymer gregorianischer Algorithmus). Nur landesweite Feiertage: Mariä Himmelfahrt in Teilen Bayerns, Fronleichnam in Teilen Sachsens und Thüringens und das Augsburger Friedensfest fehlen. Ostersonntag und Pfingstsonntag zählen nur in Brandenburg, wo sie gesetzlich sind. Einstellung `federalState` (ISO-Kürzel, leer = keins), MDM-verwaltbar. Feiertage setzen das Soll in `TargetPlan` auf 0; ihr Name steht im Fenstertitel des Tags und im Kopf der Wochenspalte.
-- **Änderungsprotokoll (AZ-04):** Neue Tabelle (Migration append-only) mit Segment, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt und optionalem Grund. Die Timer-Engine schreibt den Protokolleintrag in derselben Transaktion wie die Änderung (`TimerStore.update(_:)`). Live erfasste Segmente erzeugen keinen Eintrag; „korrigiert“ heißt `source = manual` oder mindestens ein Protokolleintrag.
+- **Änderungsprotokoll (AZ-04, umgesetzt):** Tabelle `segment_change` mit Segment, Eintrag, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt (`TaktClock`) und optionalem Grund.
+  - *Was protokolliert wird:* alle Segmentänderungen, die über `TimerEngine.apply(_:reason:)` laufen, also Bearbeitungen in Timeline, Inspektor und Liste, sowie deren Undo/Redo (`undo` ruft `apply`) als Gegeneintrag. Die Timer-Befehle (Start, Pause, Stopp, Inaktivität) schreiben nichts. Ebenfalls nichts schreiben Änderungen, die nur das offene Ende eines laufenden Segments betreffen (Schließen oder Wiederöffnen bei gleichem Beginn), z. B. das Rückgängigmachen eines Stopps.
+  - *Eintrag löschen/wiederherstellen:* ein Protokolleintrag „gelöscht“ bzw. „angelegt“ je geschlossenem Segment des Eintrags; ein laufendes Segment mit dem Ende, das es beim Löschen bekommt.
+  - *Transaktion:* `TimerUpdate.log` bittet den Store, die Datensätze aus den Änderungen abzuleiten (`SegmentChangeRecord.records`) und im selben `update` zu schreiben; schlägt eine Änderung fehl, bleibt auch das Protokoll leer. Das Protokoll ist nicht Teil von Undo.
+  - *Grund:* Einstellung `askCorrectionReason` (Standard aus, MDM). Berührt eine Bearbeitung Zeiten, die älter als 7 Tage sind, fragt das Hauptfenster nach einem optionalen Grund (§ 17 MiLoG); leer = ohne Grund.
+  - *Korrigiert:* `source = manual` oder mindestens ein Protokolleintrag; der Inspektor zeigt dann „korrigiert“ mit den Änderungen im Tooltip. JSON-Export, -Import und Backup enthalten die Tabelle wie jede andere.
+  - *Grenze:* Takt ist lokal und Single-User; gegen Änderungen durch den Nutzer selbst (z. B. direkt in der Datenbank) schützt das nicht. Ziel ist Nachvollziehbarkeit, nicht Unveränderbarkeit.
 - **Flexkonto (AZ-05):** Saldo = Startsaldo (mit Stichtag) + Σ (Netto − Soll) bis einschließlich heute − Σ Vergütungen. Tagesmarker Urlaub, Krank, Frei als eigene Tabelle (Tag + Art) setzen das Soll auf 0. Abfeiern ist ein Tag mit weniger oder ohne Arbeitszeit und braucht keinen Marker.
 - **Urlaubskonto (AZ-06):** Anspruch und Übertrag aus den Einstellungen, genommen und geplant aus den Urlaubsmarkern an Arbeitstagen ohne Feiertag; der Übertrag in Folgejahre wird berechnet.
 - **Überstunden (AZ-07):** Überstunden des Tages = max(0, Netto − Soll). Vergütungen sind eigene Datensätze (Datum, Sekunden, Notiz) und mindern das Flexkonto. Das Quartalskontingent zählt nur Vergütungen, nach deren Datum.

@@ -31,6 +31,8 @@
       <integer>10</integer>
       <key>lockCountsAsPause</key>
       <false/>
+      <key>askCorrectionReason</key>
+      <false/>
       <key>roundingMinutes</key>
       <integer>15</integer>
       <key>bookingMode</key>

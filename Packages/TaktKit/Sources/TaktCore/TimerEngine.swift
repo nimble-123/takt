@@ -285,13 +285,16 @@ public actor TimerEngine {
   }
 
   /// Writes edits made outside the timer commands, e.g. a note or a corrected segment.
-  /// Each change must state the row as currently stored; otherwise nothing is written.
+  /// Each change must state the row as currently stored; otherwise nothing is written. Changed
+  /// times go to the change log in the same transaction, with the optional `reason` (AZ-04).
   @discardableResult
-  public func apply(_ changes: [TimerChange]) async throws -> CommandResult<Void> {
-    try await perform { _ in TimerUpdate(changes: changes) }
+  public func apply(_ changes: [TimerChange], reason: String? = nil) async throws -> CommandResult<Void> {
+    let log = ChangeLog(at: clock.now(), reason: reason)
+    return try await perform { _ in TimerUpdate(changes: changes, log: log) }
   }
 
-  /// Reverts a command. The result's undo is the undo of the undo, i.e. the redo.
+  /// Reverts a command. The result's undo is the undo of the undo, i.e. the redo. Reverted times
+  /// are logged like any other correction.
   @discardableResult
   public func undo(_ undo: TimerUndo) async throws -> CommandResult<Void> {
     try await apply(undo.changes)
@@ -423,6 +426,7 @@ public actor TimerEngine {
       return TimerUpdate(
         changes: update.changes,
         result: CommandResult(value: update.result, undo: TimerUndo(reverting: update.changes)),
+        log: update.log,
       )
     }
     if !commit.value.undo.isEmpty {

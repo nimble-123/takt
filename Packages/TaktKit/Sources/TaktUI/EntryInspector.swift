@@ -121,6 +121,9 @@ private struct SingleEntryInspector: View {
               .monospacedDigit()
           }
         }
+        if !corrections.isEmpty || entry.segments.contains(where: { $0.source == .manual }) {
+          CorrectedHint(corrections: corrections)
+        }
       }
 
       Section {
@@ -144,6 +147,8 @@ private struct SingleEntryInspector: View {
     }
     .formStyle(.grouped)
     .onAppear(perform: loadSplitTime)
+    // Reloaded when the segments change, e.g. after an edit or its undo.
+    .task(id: entry.segments) { corrections = await model.corrections(of: entry.id) }
     // Only what changed: a save of another field must not reset text being typed.
     .onChange(of: entry) { old, new in
       fields.reload(from: old.entry, to: new.entry)
@@ -155,6 +160,7 @@ private struct SingleEntryInspector: View {
 
   @State private var fields: InspectorFields
   @State private var splitTime = Date()
+  @State private var corrections = [SegmentChangeRecord]()
 
   private func loadSplitTime() {
     if let first = entry.segments.first {
@@ -193,6 +199,55 @@ nonisolated struct InspectorFields: Equatable {
     if new.title != old.title { title = new.title }
     if new.note != old.note { note = new.note ?? "" }
     if new.weight != old.weight { weight = new.weight }
+  }
+}
+
+// MARK: - CorrectedHint
+
+/// AZ-04: times entered or changed after the fact, with the change log in the tooltip.
+private struct CorrectedHint: View {
+
+  // MARK: Internal
+
+  let corrections: [SegmentChangeRecord]
+
+  var body: some View {
+    Label {
+      Text("corrected", bundle: .module)
+    } icon: {
+      Image(systemName: "pencil.circle")
+    }
+    .font(.system(size: 12))
+    .foregroundStyle(Palette.textSecondary)
+    .help(details)
+    .accessibilityValue(details)
+  }
+
+  // MARK: Private
+
+  private var details: String {
+    guard !corrections.isEmpty else { return String(localized: "Entered after the fact", bundle: .module) }
+    return corrections.map(Self.line).joined(separator: "\n")
+  }
+
+  private static func line(_ record: SegmentChangeRecord) -> String {
+    let when = record.changedAt.date.formatted(date: .numeric, time: .shortened)
+    let old = span(record.oldStart, record.oldEnd)
+    let new = span(record.newStart, record.newEnd)
+    let change =
+      switch record.kind {
+      case .created: String(localized: "\(when): added \(new)", bundle: .module)
+      case .changed: String(localized: "\(when): \(old) → \(new)", bundle: .module)
+      case .deleted: String(localized: "\(when): removed \(old)", bundle: .module)
+      }
+    return record.reason.map { "\(change) (\($0))" } ?? change
+  }
+
+  private static func span(_ start: Timestamp?, _ end: Timestamp?) -> String {
+    let format = Date.FormatStyle(date: .abbreviated, time: .shortened)
+    let from = start?.date.formatted(format) ?? "–"
+    let to = end?.date.formatted(date: .omitted, time: .shortened) ?? String(localized: "running", bundle: .module)
+    return "\(from)–\(to)"
   }
 }
 

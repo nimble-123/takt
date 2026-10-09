@@ -22,6 +22,13 @@ public struct GRDBTimerStore: TimerStore {
   ) async throws -> TimerCommit<T> {
     try await database.writer.write { db in
       let update = try body(try Self.snapshot(db))
+      // Read before the changes: deleting an entry logs the segments it had (AZ-04).
+      let log = try update.log.map { log in
+        try SegmentChangeRecord.records(for: update.changes, log: log) { id in
+          try Row.fetchAll(db, sql: "SELECT * FROM segment WHERE entry_id = ?", arguments: [id.uuidString])
+            .map(Segment.init(row:))
+        }
+      } ?? []
       for change in update.changes {
         do {
           try Self.apply(change, db)
@@ -32,6 +39,9 @@ public struct GRDBTimerStore: TimerStore {
           // weight, which SQLite stores as NULL.
           throw TimerStoreError.invalidValue
         }
+      }
+      for record in log {
+        try record.insertRow(into: db)
       }
       // Writes are serialised, so the sequence follows the order of the commits.
       let sequence = writes.next()

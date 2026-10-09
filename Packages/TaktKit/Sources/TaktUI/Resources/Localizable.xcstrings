@@ -121,6 +121,36 @@
         }
       }
     },
+    "%@: %@ → %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@ → %3$@"
+          }
+        }
+      }
+    },
+    "%@: added %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: hinzugefügt %2$@"
+          }
+        }
+      }
+    },
+    "%@: removed %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: entfernt %2$@"
+          }
+        }
+      }
+    },
     "%lld entries selected": {
       "localizations": {
         "de": {
@@ -287,6 +317,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bei Inaktivität fragen nach"
+          }
+        }
+      }
+    },
+    "Ask for a reason when changing times older than 7 days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Änderungen älter als 7 Tage nach einem Grund fragen"
           }
         }
       }
@@ -1327,6 +1367,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ende"
+          }
+        }
+      }
+    },
+    "Entered after the fact": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachträglich erfasst"
           }
         }
       }
@@ -2557,6 +2607,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rohdaten bleiben sekundengenau; gerundet wird nur für Export und Buchungen."
+          }
+        }
+      }
+    },
+    "Reason (optional)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grund (optional)"
+          }
+        }
+      }
+    },
+    "Reason for the Correction": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grund der Korrektur"
           }
         }
       }
@@ -3881,6 +3951,16 @@
         }
       }
     },
+    "Without Reason": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohne Grund"
+          }
+        }
+      }
+    },
     "Without work item": {
       "localizations": {
         "de": {
@@ -4001,6 +4081,16 @@
         }
       }
     },
+    "You are changing times older than 7 days. A reason makes the correction traceable.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du änderst Zeiten, die älter als 7 Tage sind. Ein Grund macht die Korrektur nachvollziehbar."
+          }
+        }
+      }
+    },
     "You can change this at any time, also per entry.": {
       "localizations": {
         "de": {
@@ -4037,6 +4127,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "durch Kommas getrennt"
+          }
+        }
+      }
+    },
+    "corrected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "korrigiert"
           }
         }
       }

@@ -13,6 +13,7 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `countingMode` | String | `split`, `full` | Zählweise paralleler Zeit für Einträge ohne eigene (TM-04) |
 | `idleThresholdMinutes` | Integer | 1–60, Default 10 | Ab wann Takt nach Inaktivität fragt (TM-06) |
 | `lockCountsAsPause` | Boolean | Default `false` | Gesperrter Bildschirm zählt ohne Rückfrage als Pause |
+| `askCorrectionReason` | Boolean | Default `false` | Bei Änderungen an Zeiten älter als 7 Tage nach einem Grund fragen (AZ-04) |
 | `roundingMinutes` | Integer | 0, 5, 6, 10, 15, 30 | Rundung für Export und Buchungen; 0 = keine (TM-10) |
 | `bookingMode` | String | `manual`, `review`, `automatic` | Buchung nach Azure DevOps: pro Eintrag, Tagesabschluss (Default) oder beim Stoppen (DO-21) |
 | `reduceRemainingWork` | Boolean | Default `true` | Remaining Work um die gebuchte Zeit reduzieren (DO-22) |

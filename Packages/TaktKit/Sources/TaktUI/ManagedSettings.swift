@@ -25,6 +25,7 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.countingMode.rawValue, type: .string, isRead: true),
     Key(name: AppSettings.Key.idleThresholdMinutes.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.lockCountsAsPause.rawValue, type: .boolean, isRead: true),
+    Key(name: AppSettings.Key.askCorrectionReason.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.roundingMinutes.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.bookingMode.rawValue, type: .string, isRead: true),
     Key(name: AppSettings.Key.reduceRemainingWork.rawValue, type: .boolean, isRead: true),
