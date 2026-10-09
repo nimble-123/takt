@@ -181,6 +181,16 @@
         }
       }
     },
+    "Allocated time in the period; with full counting, parallel time counts more than once.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugeordnete Zeit im Zeitraum; bei voller Zählung zählt parallele Zeit mehrfach."
+          }
+        }
+      }
+    },
     "An entry must end after it starts and cannot end in the future.": {
       "localizations": {
         "de": {
@@ -611,6 +621,16 @@
         }
       }
     },
+    "Changes between entries, averaged over the days with tracked time; pauses do not count.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechsel zwischen Einträgen, gemittelt über die Tage mit erfasster Zeit; Pausen zählen nicht."
+          }
+        }
+      }
+    },
     "Chart": {
       "localizations": {
         "de": {
@@ -931,6 +951,16 @@
         }
       }
     },
+    "Day total: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagessumme: %@"
+          }
+        }
+      }
+    },
     "Default": {
       "localizations": {
         "de": {
@@ -1247,6 +1277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voll: jeder Timer zählt die ganze Zeit"
+          }
+        }
+      }
+    },
+    "Gaps between segments of the same entry on the same day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lücken zwischen Abschnitten desselben Eintrags am selben Tag."
           }
         }
       }
@@ -2091,6 +2131,16 @@
         }
       }
     },
+    "Previous period: %@ (%@)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorperiode: %1$@ (%2$@)"
+          }
+        }
+      }
+    },
     "Progress towards the daily goal": {
       "localizations": {
         "de": {
@@ -2437,6 +2487,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mehrere"
+          }
+        }
+      }
+    },
+    "Share of the tracked time in which entries ran in parallel.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteil der erfassten Zeit, in der Einträge parallel liefen."
           }
         }
       }
@@ -3141,6 +3201,16 @@
         }
       }
     },
+    "Tracked time against the target from the weekly hours, counted up to today.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfasste Zeit gegen das Soll aus den Wochenstunden, gezählt bis heute."
+          }
+        }
+      }
+    },
     "Try it now.": {
       "localizations": {
         "de": {
@@ -3177,6 +3247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rückgängig ⌘Z"
+          }
+        }
+      }
+    },
+    "Uninterrupted work on one entry, without a parallel one, of at least 25 minutes.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ununterbrochene Arbeit an einem Eintrag ohne parallelen Eintrag, mindestens 25 Minuten."
           }
         }
       }

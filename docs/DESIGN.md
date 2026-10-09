@@ -27,7 +27,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Hauptfenster | Einstellungen | Allgemein, Erfassung, Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
 | Hauptfenster | Suchergebnisse | Suchfeld in der Toolbar ersetzt den Bereich durch Treffer: Einträge, Work Items, Tasks, Tags |
 | Hauptfenster | Befehlspalette ⌘K | Sheet mit unscharfer Suche über alle Aktionen, „Timer „…“ starten“, Einträge und gecachte Work Items |
-| Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise (Pro Eintrag, Voll, Geteilt); KPIs mit Vorwochenvergleich; gestapelte Balken je Tag, Verteilung, Heatmap 06–22 Uhr; Export CSV, JSON, PDF |
+| Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise (Pro Eintrag, Voll, Geteilt); KPIs mit Vorwochenvergleich; gestapelte Balken je Tag, Verteilung, Heatmap 06–22 Uhr; Export CSV, JSON, PDF; Tooltips beim Überfahren: Balkenabschnitt (Tag, Gruppe, Dauer, Tagessumme), Donut (Gruppe, Dauer, Anteil in der Mitte), Heatmap-Zelle (Wochentag, Stunde, Minuten), KPI (Erklärung, Vorperiodenwert und Differenz) |
 | Hauptfenster | Eintrag bearbeiten | Ziehen in der Timeline mit Zeit-Tooltip; Inspektor mit Segmenten, Pause umwandeln, Gewichtsregler, Hinweis auf Differenzbuchung |
 | Dark Mode | Popover, Heute | Gleiche Struktur, aufgehellte Akzente |
 | Onboarding | 3 Schritte | 1. ADO per PAT verbinden + Projekte wählen, 2. Kürzel live testen, 3. Startverhalten und Zählweise mit Mini-Beispiel |
@@ -72,5 +72,6 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 - Pausen und Inaktivität werden schraffiert dargestellt, nie als leere Lücke.
 - Doppelklick auf einen Eintrag (Heute, Tagesabschluss, Woche, Einträge) wählt ihn aus und öffnet den Inspektor; Einfachklick wählt nur aus. Inspektor ein- und ausblenden mit ⌥⌘I.
 - Fehlende Zuordnung (kein Work Item) ist Amber, nicht Rot.
+- Diagramme zeigen genaue Werte beim Überfahren mit der Maus: Hilfe-Tooltip (`.help`) oder kleines Label im Diagramm, keine zusätzlichen Bedienelemente. VoiceOver bekommt dieselben Werte.
 - Eine Hauptaktion pro Ansicht; Primärbutton immer `accent`.
 - Touch-Ziele mindestens 28 pt in der Menüleiste, 32 pt im Hauptfenster; alle Icon-Buttons mit Accessibility-Label.
