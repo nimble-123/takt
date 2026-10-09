@@ -397,6 +397,7 @@ ORDER BY s.start_at;
 
 - Segmente, die über die Zeitraumgrenzen ragen, werden gekappt; über Mitternacht laufende Segmente werden an der lokalen Tagesgrenze geteilt.
 - Gruppierung nach Projekt, Kategorie, Tag, Work Item, Wochentag und Stunde passiert auf dem Ergebnis der Verteilung.
+- **Vorperiode (AN-01):** Bei Tag, Woche und Monat ist sie der vorherige Kalendertag, die vorherige Kalenderwoche bzw. der vorherige Kalendermonat (`Analyzer.previous` mit Kalender), damit unterschiedlich lange Monate und Tage mit Zeitumstellung richtig verglichen werden. Nur ein freier Zeitraum wird um seine eigene Länge verschoben.
 - **Fokusblöcke:** zusammenhängende Arbeit an einem Eintrag ≥ 25 min ohne parallelen Eintrag.
 - **Kontextwechsel:** Anzahl der Wechsel des aktiven Eintrags pro Tag; Pausen zählen nicht als Wechsel.
 - Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
