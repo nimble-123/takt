@@ -112,7 +112,7 @@ struct MenuBarModelTests {
     model.query = "token"
     #expect(model.suggestions.map(\.draft.title) == ["Bug 1234 Token"])
     model.moveSelection(by: 1)
-    #expect(model.selection == 0)
+    #expect(model.selection == model.suggestions.first?.id)
     await model.submit(alternate: false)
     try await sync()
     #expect(model.snapshot.running.map(\.entry.title) == ["Bug 1234 Token"])
@@ -127,7 +127,7 @@ struct MenuBarModelTests {
     model.moveSelection(by: 1)
     #expect(model.selection == nil)
     model.moveSelection(by: -1)
-    #expect(model.selection == 0)
+    #expect(model.selection == model.suggestions.first?.id)
   }
 
   @Test
@@ -187,6 +187,38 @@ struct MenuBarModelTests {
     try await sync()
     #expect(model.snapshot.running.map(\.id) == [id])
     #expect(model.toast == nil)
+  }
+
+  @Test
+  func toastUndoRevertsTheStopItShowsNotTheLastAction() async throws {
+    await model.start(EntryDraft(title: "A"), parallel: false)
+    await model.start(EntryDraft(title: "B"), parallel: true)
+    clock.advance(seconds: 60)
+    try await sync()
+    let a = try #require(model.snapshot.running.first { $0.entry.title == "A" }?.id)
+    let b = try #require(model.snapshot.running.first { $0.entry.title == "B" }?.id)
+    await model.stop(a)
+    await model.pause(b)
+    try await sync()
+
+    await model.undoToast()
+    try await sync()
+
+    #expect(model.snapshot.running.map(\.id) == [a])
+    #expect(model.snapshot.paused.map(\.id) == [b])
+    #expect(model.toast == nil)
+  }
+
+  @Test
+  func reopeningClearsTheHighlightedSuggestion() async throws {
+    try await track("A", minutes: 1)
+    try await sync()
+    model.moveSelection(by: 1)
+    #expect(model.selection != nil)
+
+    model.popoverDidOpen()
+
+    #expect(model.selection == nil)
   }
 
   @Test

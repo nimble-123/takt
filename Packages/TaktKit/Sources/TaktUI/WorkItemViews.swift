@@ -132,23 +132,29 @@ struct WorkItemDetail: View {
 
 /// Letter badge in the type's color (docs/DESIGN.md "Work-Item-Typen").
 struct TypeBadge: View {
+
+  // MARK: Internal
+
   let type: String?
 
   var body: some View {
     Text(String((type ?? "?").prefix(1)).uppercased())
       .font(.system(size: 10, weight: .bold))
-      .foregroundStyle(.white)
+      // White on the light dark-mode variants was about 1.5:1 (#146).
+      .foregroundStyle(CategoryColors.onColor(hex))
       .frame(width: 18, height: 18)
-      .background(color, in: RoundedRectangle(cornerRadius: 4))
+      .background(CategoryColors.color(hex), in: RoundedRectangle(cornerRadius: 4))
       .accessibilityLabel(Text(type ?? ""))
   }
 
-  private var color: Color {
+  // MARK: Private
+
+  private var hex: String {
     switch type?.lowercased() {
-    case "task", "aufgabe": CategoryColors.color("#A16207")
-    case "bug", "fehler": CategoryColors.color("#B91C1C")
-    case "user story", "product backlog item", "requirement": CategoryColors.color("#0369A1")
-    default: CategoryColors.color("#475569")
+    case "task", "aufgabe": "#A16207"
+    case "bug", "fehler": "#B91C1C"
+    case "user story", "product backlog item", "requirement": "#0369A1"
+    default: "#475569"
     }
   }
 }

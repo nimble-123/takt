@@ -421,6 +421,16 @@
         }
       }
     },
+    "Book all open differences (⌘↩)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle offenen Differenzen buchen (⌘↩)"
+          }
+        }
+      }
+    },
     "Book Now": {
       "localizations": {
         "de": {
@@ -3027,6 +3037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Organisation wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "The times of an entry cannot overlap.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Zeiten eines Eintrags dürfen sich nicht überschneiden."
           }
         }
       }

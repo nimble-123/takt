@@ -216,6 +216,41 @@ struct BookingTests {
   }
 
   @Test
+  func correctionRestoresOnlyTheRemainingWorkThatWasTaken() async throws {
+    respondNormally()
+    let normal = stub.currentHandler
+    let values = Mutex((completed: 7.5, remaining: 0.5))
+    stub.respond { request in
+      guard request.httpMethod == "GET", request.url?.path() == "/contoso/_apis/wit/workitems/1234" else {
+        return try normal(request)
+      }
+      let (completed, remaining) = values.withLock { $0 }
+      let body = """
+        {"id":1234,"rev":57,"fields":{"\(TimeField.completedWork)":\(completed),"\(TimeField.remainingWork)":\(remaining)}}
+        """
+      return Stub.Response(status: 200, body: Data(body.utf8))
+    }
+    let link = try await workItem()
+    let id = try await entry(link, minutes: 60)
+
+    // 1 h booked on 0.5 h remaining: Remaining Work stops at 0, only 0.5 h was taken.
+    #expect(await service.book(try #require(try await lines(link).first)) == .booked)
+    #expect(value("/fields/\(TimeField.remainingWork)", in: try patchBody(0)) as? Double == 0.0)
+    #expect(try await records.records(onDay: "2026-10-07").first?.remainingDeltaSeconds == -1800)
+
+    values.withLock { $0 = (completed: 8.5, remaining: 0.0) }
+    let stored = try #require(try await EntryQueries(database: database).entry(id))
+    try await TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+      .apply(EntryEdits.delete(stored, openSegment: nil, now: clock.now()))
+    #expect(await service.book(try #require(try await lines(link).first)) == .booked)
+
+    let correction = try patchBody(1)
+    #expect(value("/fields/\(TimeField.completedWork)", in: correction) as? Double == 7.5)
+    // Back to the 0.5 h it was, not to 1 h.
+    #expect(value("/fields/\(TimeField.remainingWork)", in: correction) as? Double == 0.5)
+  }
+
+  @Test
   func crashAfterSendingIsRecoveredFromTheHistory() async throws {
     let link = try await workItem()
     let id = try await entry(link)
@@ -323,6 +358,94 @@ struct BookingTests {
 
     #expect(await booking.value == .booked)
     #expect(stub.requests.count(where: { $0.httpMethod == "PATCH" }) == 1)
+  }
+
+  @Test
+  func differenceBelowAHundredthOfAnHourIsNotBooked() async throws {
+    respondNormally()
+    let link = try await workItem()
+    _ = try await entry(link, minutes: 10.0 / 60)
+    let line = try #require(try await lines(link).first)
+
+    #expect(line.difference == 0)
+    #expect(await service.book(line) == .nothingToDo)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
+  @Test
+  func queueSkipsABookingThatChangedWhileItRan() async throws {
+    let link = try await workItem()
+    let id = try await entry(link)
+    let first = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 900,
+      createdAt: clock.now(),
+    )
+    let second = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 900,
+      createdAt: clock.now().adding(seconds: 1),
+    )
+    try await records.insert(first)
+    try await records.insert(second)
+    let firstUpdates = Data(
+      String(decoding: try Stub.fixture("updates"), as: UTF8.self)
+        .replacingOccurrences(of: "MARKER", with: first.marker).utf8
+    )
+    let (reachedNetwork, signal) = AsyncStream.makeStream(of: Void.self)
+    let release = DispatchSemaphore(value: 0)
+    let lookups = Mutex(0)
+    respondNormally()
+    let normal = stub.currentHandler
+    stub.respond { request in
+      guard request.url?.path().hasSuffix("/updates") == true else { return try normal(request) }
+      let lookup = lookups.withLock { count in
+        count += 1
+        return count
+      }
+      guard lookup == 1 else { return Stub.Response(status: 200, body: Data(#"{"count":0,"value":[]}"#.utf8)) }
+      // The queue holds both records in its list; hold the first lookup until the second changed.
+      signal.yield()
+      _ = release.wait(timeout: .now() + 5)
+      return Stub.Response(status: 200, body: firstUpdates)
+    }
+
+    let queue = Task { await service.processPending() }
+    var iterator = reachedNetwork.makeAsyncIterator()
+    _ = await iterator.next()
+    // Meanwhile another run of the queue gave up on the second booking.
+    var failed = second
+    failed.status = .failed
+    failed.error = BookingFailure.keepsChanging.rawValue
+    try await records.update(failed)
+    release.signal()
+    _ = await queue.value
+
+    #expect(try await records.record(first.id)?.status == .synced)
+    #expect(try await records.record(second.id)?.status == .failed)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
+  @Test
+  func recordHoldsExactlyWhatWasBooked() async throws {
+    respondNormally()
+    let link = try await workItem()
+    // 50 seconds are 0.0139 h; Azure DevOps gets 0.01 h, so the record must say 36 seconds.
+    _ = try await entry(link, minutes: 50.0 / 60)
+    let line = try #require(try await lines(link).first)
+
+    #expect(line.difference == 36)
+    #expect(await service.book(line) == .booked)
+    #expect(value("/fields/\(TimeField.completedWork)", in: try patchBody()) as? Double == 7.51)
+    #expect(try await records.records(onDay: "2026-10-07").map(\.deltaSeconds) == [36])
+    // The 14 seconds left over stay below the threshold instead of piling up.
+    #expect(try await lines(link).first?.difference == 0)
   }
 
   @Test
