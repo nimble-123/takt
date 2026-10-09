@@ -58,7 +58,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 | Review | `#7C3AED` | `#A78BFA` | `#EDE9FE` / `#2E2650` |
 | Support | `#DB2777` | `#F472B6` | `#FCE7F3` / `#4A1D35` |
 
-**Work-Item-Typen** (Badge mit Buchstabe): Task `#A16207`, Bug `#B91C1C`, User Story `#0369A1`.
+**Work-Item-Typen** (Badge mit Buchstabe): Task `#A16207`, Bug `#B91C1C`, User Story `#0369A1`. Buchstabe (wie das Häkchen auf Farbmustern) weiß oder schwarz, je nachdem, was auf der Fläche mehr Kontrast hat – mindestens 4,5:1, auch mit den Dunkel-Varianten.
 
 ## Typografie
 
@@ -71,7 +71,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 - Undo statt Rückfrage: Stoppen, Löschen, Verschieben sind sofort und per ⌘Z rückgängig zu machen.
 - Pausen und Inaktivität werden schraffiert dargestellt, nie als leere Lücke.
 - Doppelklick auf einen Eintrag (Heute, Tagesabschluss, Woche, Einträge) wählt ihn aus und öffnet den Inspektor; Einfachklick wählt nur aus. Inspektor ein- und ausblenden mit ⌥⌘I.
-- Rechtsklick auf einen Eintrag (Heute, Woche, Einträge) bietet „Löschen“: gelöscht wird der ganze Eintrag, bei Mehrfachauswahl alle ausgewählten; ⌘Z macht es rückgängig.
+- Rechtsklick auf einen Eintrag (Heute, Woche, Einträge) bietet „Löschen“: gelöscht wird der ganze Eintrag, bei Mehrfachauswahl alle ausgewählten; ⌘Z macht es rückgängig. Auf einer Pause zusätzlich „Als Arbeitszeit zählen“.
 - Fehlende Zuordnung (kein Work Item) ist Amber, nicht Rot.
 - Diagramme zeigen genaue Werte beim Überfahren mit der Maus: Hilfe-Tooltip (`.help`) oder kleines Label im Diagramm, keine zusätzlichen Bedienelemente. VoiceOver bekommt dieselben Werte.
 - Eine Hauptaktion pro Ansicht; Primärbutton immer `accent`.
