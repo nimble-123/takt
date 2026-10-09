@@ -326,6 +326,66 @@ struct BookingTests {
   }
 
   @Test
+  func queueSkipsABookingThatChangedWhileItRan() async throws {
+    let link = try await workItem()
+    let id = try await entry(link)
+    let first = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 900,
+      createdAt: clock.now(),
+    )
+    let second = SyncRecord(
+      entryID: id,
+      workItemLinkID: link.id,
+      localDay: "2026-10-07",
+      field: TimeField.completedWork,
+      deltaSeconds: 900,
+      createdAt: clock.now().adding(seconds: 1),
+    )
+    try await records.insert(first)
+    try await records.insert(second)
+    let firstUpdates = Data(
+      String(decoding: try Stub.fixture("updates"), as: UTF8.self)
+        .replacingOccurrences(of: "MARKER", with: first.marker).utf8
+    )
+    let (reachedNetwork, signal) = AsyncStream.makeStream(of: Void.self)
+    let release = DispatchSemaphore(value: 0)
+    let lookups = Mutex(0)
+    respondNormally()
+    let normal = stub.currentHandler
+    stub.respond { request in
+      guard request.url?.path().hasSuffix("/updates") == true else { return try normal(request) }
+      let lookup = lookups.withLock { count in
+        count += 1
+        return count
+      }
+      guard lookup == 1 else { return Stub.Response(status: 200, body: Data(#"{"count":0,"value":[]}"#.utf8)) }
+      // The queue holds both records in its list; hold the first lookup until the second changed.
+      signal.yield()
+      _ = release.wait(timeout: .now() + 5)
+      return Stub.Response(status: 200, body: firstUpdates)
+    }
+
+    let queue = Task { await service.processPending() }
+    var iterator = reachedNetwork.makeAsyncIterator()
+    _ = await iterator.next()
+    // Meanwhile another run of the queue gave up on the second booking.
+    var failed = second
+    failed.status = .failed
+    failed.error = BookingFailure.keepsChanging.rawValue
+    try await records.update(failed)
+    release.signal()
+    _ = await queue.value
+
+    #expect(try await records.record(first.id)?.status == .synced)
+    #expect(try await records.record(second.id)?.status == .failed)
+    #expect(!stub.requests.contains { $0.httpMethod == "PATCH" })
+  }
+
+  @Test
   func staleLineIsNotBookedAgain() async throws {
     respondNormally()
     let link = try await workItem()
