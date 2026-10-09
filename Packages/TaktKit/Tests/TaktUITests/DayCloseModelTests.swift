@@ -121,7 +121,7 @@ struct DayCloseModelTests {
       return linesByDay[day.lowerBound] ?? []
     }
 
-    func book(_ booking: [BookingLine]) -> [String: BookingService.Outcome] {
+    func book(_ booking: [BookingLine]) -> [BookingLine.Key: BookingService.Outcome] {
       booked.append(booking)
       for line in booking {
         for (day, dayLines) in linesByDay {

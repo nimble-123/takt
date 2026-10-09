@@ -66,7 +66,7 @@ public final class BookingCoordinator {
   }
 
   @discardableResult
-  public func book(_ lines: [BookingLine]) async -> [String: BookingService.Outcome] {
+  public func book(_ lines: [BookingLine]) async -> [BookingLine.Key: BookingService.Outcome] {
     let outcomes = await service.book(lines)
     await refreshPending()
     return outcomes

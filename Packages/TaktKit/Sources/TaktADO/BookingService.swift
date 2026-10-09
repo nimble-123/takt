@@ -7,6 +7,13 @@ import TaktStore
 
 /// What should be booked for one entry, work item and local day (DO-20, DO-24).
 public struct BookingLine: Hashable, Sendable, Identifiable {
+  /// One line per entry, work item and day.
+  public struct Key: Hashable, Sendable {
+    public var entryID: EntryID
+    public var workItemID: WorkItemLinkID
+    public var localDay: String
+  }
+
   public var entryID: EntryID
   public var title: String
   public var note: String?
@@ -22,8 +29,8 @@ public struct BookingLine: Hashable, Sendable, Identifiable {
   /// The latest failed booking, shown in the day close.
   public var failure: String?
 
-  public var id: String {
-    "\(entryID.uuidString)|\(workItem.id.uuidString)|\(localDay)"
+  public var id: Key {
+    Key(entryID: entryID, workItemID: workItem.id, localDay: localDay)
   }
 
   /// Soll − Gebucht. Positive increases Completed Work, negative reduces it.
@@ -172,8 +179,8 @@ public actor BookingService {
   }
 
   /// Books the difference of every line; lines with a booking in flight are left to the queue.
-  public func book(_ lines: [BookingLine]) async -> [String: Outcome] {
-    var outcomes = [String: Outcome]()
+  public func book(_ lines: [BookingLine]) async -> [BookingLine.Key: Outcome] {
+    var outcomes = [BookingLine.Key: Outcome]()
     for line in lines {
       outcomes[line.id] = await book(line)
     }
@@ -269,7 +276,7 @@ public actor BookingService {
   private var nextAttempt: Timestamp?
   private var backoff = initialBackoff
   /// Lines `book` is working on, by `BookingLine.id`.
-  private var linesInProgress = Set<String>()
+  private var linesInProgress = Set<BookingLine.Key>()
   /// Pending records that `book` or the queue is sending; nobody else touches them meanwhile.
   private var recordsInFlight = Set<SyncRecordID>()
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "booking")
