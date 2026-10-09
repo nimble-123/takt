@@ -89,9 +89,11 @@ final class DayCloseModel {
     await load(shownDay)
   }
 
-  /// Books every open line of the shown day, then reloads it.
+  /// Books every open line of the shown day, then reloads it. Reloads first: the shown lines may
+  /// predate an edit, and a stale target would book the wrong amount.
   func bookAll() async {
     isBooking = true
+    await reload()
     outcomes = await bookLines(open)
     await reload()
     isBooking = false

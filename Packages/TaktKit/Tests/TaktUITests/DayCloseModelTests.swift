@@ -90,6 +90,19 @@ struct DayCloseModelTests {
   }
 
   @Test
+  func bookAllBooksTheCurrentAmountsNotTheShownOnes() async {
+    bookings.linesByDay[monday.lowerBound] = [line(1, target: 7200)]
+    await model.load(monday)
+    // The entry was shortened in the inspector after the lines were loaded.
+    let shortened = line(1, target: 3600)
+    bookings.linesByDay[monday.lowerBound] = [shortened]
+
+    await model.bookAll()
+
+    #expect(bookings.booked == [[shortened]])
+  }
+
+  @Test
   func anotherDayClearsTheOutcomes() async {
     bookings.linesByDay[monday.lowerBound] = [line(1, target: 3600)]
     await model.load(monday)
