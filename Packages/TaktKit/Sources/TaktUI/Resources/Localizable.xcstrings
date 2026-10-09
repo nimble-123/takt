@@ -1831,6 +1831,16 @@
         }
       }
     },
+    "Only on working days and while you use the Mac; repeats at the same interval.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur an Arbeitstagen und während du den Mac benutzt; wiederholt sich im selben Abstand."
+          }
+        }
+      }
+    },
     "Open Day": {
       "localizations": {
         "de": {
@@ -2247,6 +2257,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remaining Work um die gebuchte Zeit reduzieren"
+          }
+        }
+      }
+    },
+    "Remind after": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnern nach"
+          }
+        }
+      }
+    },
+    "Remind me when no timer runs": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnern, wenn kein Timer läuft"
+          }
+        }
+      }
+    },
+    "Reminder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erinnerung"
           }
         }
       }
@@ -3457,6 +3497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeitstage"
+          }
+        }
+      }
+    },
+    "Working hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeit"
           }
         }
       }

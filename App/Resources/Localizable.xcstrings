@@ -21,6 +21,26 @@
         }
       }
     },
+    "It's working time, but Takt isn't recording. Start a timer from the menu bar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ist Arbeitszeit, aber Takt erfasst nichts. Starte einen Timer in der Menüleiste."
+          }
+        }
+      }
+    },
+    "No timer running": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Timer läuft"
+          }
+        }
+      }
+    },
     "Open Takt": {
       "localizations": {
         "de": {

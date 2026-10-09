@@ -41,6 +41,10 @@ public final class AppSettings {
     weeklyHours = stored.weeklyHours
     workDays = stored.workDays
     gitFolders = stored.gitFolders
+    remindWhenNoTimer = stored.remindWhenNoTimer
+    noTimerReminderMinutes = stored.noTimerReminderMinutes
+    workdayStartMinute = stored.workdayStartMinute
+    workdayEndMinute = stored.workdayEndMinute
   }
 
   // MARK: Public
@@ -60,6 +64,10 @@ public final class AppSettings {
     case weeklyHours
     case workDays
     case gitFolders
+    case remindWhenNoTimer
+    case noTimerReminderMinutes
+    case workdayStartMinute
+    case workdayEndMinute
   }
 
   /// When booked time goes to Azure DevOps (DO-21).
@@ -95,6 +103,7 @@ public final class AppSettings {
   public static let roundingChoices = [0, 5, 6, 10, 15, 30]
   public static let dailyGoalRange: ClosedRange<Double> = 1...12
   public static let weeklyHoursRange: ClosedRange<Double> = 0...60
+  public static let noTimerReminderRange = 5...120
 
   /// Enter starts with this mode; ⌥↩ with the other (TM-05).
   public var startMode: TimerEngine.StartMode {
@@ -155,6 +164,25 @@ public final class AppSettings {
     didSet { write(.workDays, workDays.sorted()) }
   }
 
+  /// TM-09: remind during working hours when no timer runs.
+  public var remindWhenNoTimer: Bool {
+    didSet { write(.remindWhenNoTimer, remindWhenNoTimer) }
+  }
+
+  /// TM-09: minutes without a running timer before a reminder.
+  public var noTimerReminderMinutes: Int {
+    didSet { write(.noTimerReminderMinutes, noTimerReminderMinutes) }
+  }
+
+  /// TM-09: working hours as minutes after local midnight, e.g. 540 for 9:00.
+  public var workdayStartMinute: Int {
+    didSet { write(.workdayStartMinute, workdayStartMinute) }
+  }
+
+  public var workdayEndMinute: Int {
+    didSet { write(.workdayEndMinute, workdayEndMinute) }
+  }
+
   /// Folders whose Git repositories suggest work items by branch name.
   public var gitFolders: [String] {
     didSet { write(.gitFolders, gitFolders) }
@@ -178,6 +206,16 @@ public final class AppSettings {
   /// AN-07: the weekly hours spread over the working days.
   public var targetPlan: TargetPlan {
     TargetPlan(weeklyHours: weeklyHours, workDays: workDays)
+  }
+
+  public var noTimerReminder: NoTimerReminderSettings {
+    NoTimerReminderSettings(
+      isEnabled: remindWhenNoTimer,
+      workDays: workDays,
+      startMinute: workdayStartMinute,
+      endMinute: workdayEndMinute,
+      interval: TimeInterval(noTimerReminderMinutes * 60),
+    )
   }
 
   public var rounding: Rounding {
@@ -237,25 +275,52 @@ public final class AppSettings {
     let stored = Stored(defaults)
     switch key {
     case .startMode: if startMode != stored.startMode { startMode = stored.startMode }
+
     case .countingMode: if countingMode != stored.countingMode { countingMode = stored.countingMode }
+
     case .idleThresholdMinutes:
       if idleThresholdMinutes != stored.idleThresholdMinutes { idleThresholdMinutes = stored.idleThresholdMinutes }
+
     case .lockCountsAsPause:
       if lockCountsAsPause != stored.lockCountsAsPause { lockCountsAsPause = stored.lockCountsAsPause }
+
     case .roundingMinutes: if roundingMinutes != stored.roundingMinutes { roundingMinutes = stored.roundingMinutes }
+
     case .bookingMode: if bookingMode != stored.bookingMode { bookingMode = stored.bookingMode }
+
     case .dailyGoalHours: if dailyGoalHours != stored.dailyGoalHours { dailyGoalHours = stored.dailyGoalHours }
+
     case .showElapsedInMenuBar:
       if showElapsedInMenuBar != stored.showElapsedInMenuBar { showElapsedInMenuBar = stored.showElapsedInMenuBar }
+
     case .onboardingCompleted:
       if onboardingCompleted != stored.onboardingCompleted { onboardingCompleted = stored.onboardingCompleted }
+
     case .reduceRemainingWork:
       if reduceRemainingWork != stored.reduceRemainingWork { reduceRemainingWork = stored.reduceRemainingWork }
+
     case .bookingIncludesNote:
       if bookingIncludesNote != stored.bookingIncludesNote { bookingIncludesNote = stored.bookingIncludesNote }
+
     case .weeklyHours: if weeklyHours != stored.weeklyHours { weeklyHours = stored.weeklyHours }
+
     case .workDays: if workDays != stored.workDays { workDays = stored.workDays }
+
     case .gitFolders: if gitFolders != stored.gitFolders { gitFolders = stored.gitFolders }
+
+    case .remindWhenNoTimer:
+      if remindWhenNoTimer != stored.remindWhenNoTimer { remindWhenNoTimer = stored.remindWhenNoTimer }
+
+    case .noTimerReminderMinutes:
+      if noTimerReminderMinutes != stored.noTimerReminderMinutes {
+        noTimerReminderMinutes = stored.noTimerReminderMinutes
+      }
+
+    case .workdayStartMinute:
+      if workdayStartMinute != stored.workdayStartMinute { workdayStartMinute = stored.workdayStartMinute }
+
+    case .workdayEndMinute:
+      if workdayEndMinute != stored.workdayEndMinute { workdayEndMinute = stored.workdayEndMinute }
     }
   }
 }
@@ -283,6 +348,11 @@ private struct Stored {
     weeklyHours = defaults.object(forKey: AppSettings.Key.weeklyHours.rawValue) as? Double ?? 40
     workDays = Set(defaults.array(forKey: AppSettings.Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
     gitFolders = defaults.stringArray(forKey: AppSettings.Key.gitFolders.rawValue) ?? []
+    remindWhenNoTimer = defaults.object(forKey: AppSettings.Key.remindWhenNoTimer.rawValue) as? Bool ?? true
+    let reminderMinutes = defaults.object(forKey: AppSettings.Key.noTimerReminderMinutes.rawValue) as? Int ?? 15
+    noTimerReminderMinutes = max(1, reminderMinutes)
+    workdayStartMinute = Self.minuteOfDay(defaults, .workdayStartMinute) ?? 9 * 60
+    workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 17 * 60
   }
 
   // MARK: Internal
@@ -301,4 +371,16 @@ private struct Stored {
   let weeklyHours: Double
   let workDays: Set<Int>
   let gitFolders: [String]
+  let remindWhenNoTimer: Bool
+  let noTimerReminderMinutes: Int
+  let workdayStartMinute: Int
+  let workdayEndMinute: Int
+
+  // MARK: Private
+
+  /// A minute after midnight (0…1440); other values fall back to the default.
+  private static func minuteOfDay(_ defaults: UserDefaults, _ key: AppSettings.Key) -> Int? {
+    guard let minute = defaults.object(forKey: key.rawValue) as? Int, (0...1440).contains(minute) else { return nil }
+    return minute
+  }
 }

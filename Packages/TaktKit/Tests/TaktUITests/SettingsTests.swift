@@ -29,6 +29,7 @@ struct SettingsTests {
     #expect(settings.dailyGoal == 8 * 3600)
     #expect(settings.showElapsedInMenuBar)
     #expect(!settings.onboardingCompleted)
+    #expect(settings.noTimerReminder == NoTimerReminderSettings())
   }
 
   @Test

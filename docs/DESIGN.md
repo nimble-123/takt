@@ -24,7 +24,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
 | Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
-| Hauptfenster | Einstellungen | Allgemein, Erfassung, Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
+| Hauptfenster | Einstellungen | Allgemein, Erfassung, Erinnerung (an/aus, Arbeitszeit von–bis, Abstand), Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
 | Hauptfenster | Suchergebnisse | Suchfeld in der Toolbar ersetzt den Bereich durch Treffer: Einträge, Work Items, Tasks, Tags |
 | Hauptfenster | Befehlspalette ⌘K | Sheet mit unscharfer Suche über alle Aktionen, „Timer „…“ starten“, Einträge und gecachte Work Items |
 | Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise (Pro Eintrag, Voll, Geteilt); KPIs mit Vorwochenvergleich; gestapelte Balken je Tag, Verteilung, Heatmap 06–22 Uhr; Export CSV, JSON, PDF; Tooltips beim Überfahren: Balkenabschnitt (Tag, Gruppe, Dauer, Tagessumme), Donut (Gruppe, Dauer, Anteil in der Mitte), Heatmap-Zelle (Wochentag, Stunde, Minuten), KPI (Erklärung, Vorperiodenwert und Differenz) |

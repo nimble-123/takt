@@ -8,7 +8,7 @@ import TaktSystem
 import TaktUI
 
 /// Builds store, engine and view models and runs the background work (recovery, heartbeat,
-/// backup, idle detection, long-runner warning).
+/// backup, idle detection, long-runner warning, reminder without a timer).
 @MainActor
 final class Composition {
 
@@ -134,6 +134,7 @@ final class Composition {
   private let backup: DatabaseBackup
   private let notifier = Notifier()
   private var longRunners = LongRunnerCheck()
+  private var noTimerReminder = NoTimerReminder()
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "app")
   private var tasks = [Task<Void, Never>]()
 
@@ -156,7 +157,8 @@ final class Composition {
     }
   }
 
-  /// Once a minute: daily backup, long-runner warning, token reminder, today's total. Each chore
+  /// Once a minute: daily backup, long-runner warning, reminder without a timer, token reminder,
+  /// today's total. Each chore
   /// on its own, so one failing does not skip the others.
   private func runChores() async {
     while !Task.isCancelled {
@@ -167,9 +169,11 @@ final class Composition {
         logger.error("Daily backup failed: \(String(describing: error), privacy: .private)")
       }
       do {
-        await warnAboutLongRunners(try await engine.snapshot())
+        let snapshot = try await engine.snapshot()
+        await warnAboutLongRunners(snapshot)
+        await remindWhenNoTimerRuns(snapshot)
       } catch {
-        logger.error("Long-runner check failed: \(String(describing: error), privacy: .private)")
+        logger.error("Timer checks failed: \(String(describing: error), privacy: .private)")
       }
       await remindAboutExpiringTokens()
       await menuBar.refresh()
@@ -219,6 +223,23 @@ final class Composition {
         ),
       )
     }
+  }
+
+  /// TM-09: during working hours, while the user is at the Mac, but no timer runs.
+  private func remindWhenNoTimerRuns(_ snapshot: TimerSnapshot) async {
+    let idle = await MacActivitySignals().secondsSinceLastInput()
+    let due = noTimerReminder.check(
+      isRunning: !snapshot.running.isEmpty,
+      secondsSinceLastInput: idle,
+      now: clock.now(),
+      settings: settings.noTimerReminder,
+    )
+    guard due else { return }
+    await notifier.post(
+      id: "no-timer",
+      title: String(localized: "No timer running"),
+      body: String(localized: "It's working time, but Takt isn't recording. Start a timer from the menu bar."),
+    )
   }
 
   /// TM-08: a timer running for more than 10 hours was probably forgotten.

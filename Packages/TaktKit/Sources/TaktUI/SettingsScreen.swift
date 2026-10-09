@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 
 // MARK: - SettingsScreen
 
-/// Settings (MB-02, TM-04–TM-06, TM-10, DO-21). Values forced by a configuration profile are locked.
+/// Settings (MB-02, TM-04–TM-06, TM-09, TM-10, DO-21). Values forced by a configuration profile are locked.
 struct SettingsScreen: View {
 
   // MARK: Internal
@@ -123,6 +123,42 @@ struct SettingsScreen: View {
         .managed(settings.isLocked(.lockCountsAsPause))
       }
 
+      Section {
+        Toggle(String(localized: "Remind me when no timer runs", bundle: .module), isOn: $settings.remindWhenNoTimer)
+          .managed(settings.isLocked(.remindWhenNoTimer))
+        LabeledContent(String(localized: "Working hours", bundle: .module)) {
+          HStack(spacing: 4) {
+            DatePicker(
+              String(localized: "From", bundle: .module),
+              selection: timeOfDay($settings.workdayStartMinute),
+              displayedComponents: .hourAndMinute,
+            )
+            Text(verbatim: "–")
+            DatePicker(
+              String(localized: "To", bundle: .module),
+              selection: timeOfDay($settings.workdayEndMinute),
+              displayedComponents: .hourAndMinute,
+            )
+          }
+          .labelsHidden()
+        }
+        .managed(settings.isLocked(.workdayStartMinute) || settings.isLocked(.workdayEndMinute))
+        .disabled(!settings.remindWhenNoTimer)
+        Stepper(value: $settings.noTimerReminderMinutes, in: AppSettings.noTimerReminderRange, step: 5) {
+          LabeledContent(String(localized: "Remind after", bundle: .module)) {
+            Text("\(settings.noTimerReminderMinutes) min", bundle: .module).monospacedDigit()
+          }
+        }
+        .managed(settings.isLocked(.noTimerReminderMinutes))
+        .disabled(!settings.remindWhenNoTimer)
+      } header: {
+        Text("Reminder", bundle: .module)
+      } footer: {
+        Text("Only on working days and while you use the Mac; repeats at the same interval.", bundle: .module)
+          .font(.system(size: 11))
+          .foregroundStyle(Palette.textSecondary)
+      }
+
       Section(String(localized: "Shortcuts", bundle: .module)) {
         LabeledContent(String(localized: "Open the popover", bundle: .module)) {
           ShortcutRecorder(.togglePopover)
@@ -201,6 +237,17 @@ struct SettingsScreen: View {
   @State private var launchAtLogin = LoginItem.isEnabled
   @State private var message: String?
   @State private var confirmImport: URL?
+
+  /// A minute after midnight as a time of today, for the time pickers (TM-09).
+  private func timeOfDay(_ minute: Binding<Int>) -> Binding<Date> {
+    Binding {
+      let today = Calendar.current.startOfDay(for: .now)
+      return Calendar.current.date(byAdding: .minute, value: minute.wrappedValue, to: today) ?? today
+    } set: { date in
+      let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
+      minute.wrappedValue = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+    }
+  }
 
   private func addGitFolder() {
     let panel = NSOpenPanel()

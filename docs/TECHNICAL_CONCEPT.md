@@ -285,9 +285,11 @@ Der Sweep läuft in O(n log n) über die Segmente des Zeitraums. Rundung (z. B. 
 | Bildschirmsperre | `DistributedNotificationCenter`: `com.apple.screenIsLocked` / `com.apple.screenIsUnlocked` | Wie Leerlauf; optional automatisch als Pause werten |
 | Uhrzeit- oder Zeitzonenwechsel | `NSSystemClockDidChange`, `NSSystemTimeZoneDidChange` | Anzeige neu berechnen; gespeicherte UTC-Zeiten bleiben gültig |
 | Globale Shortcuts | Paket KeyboardShortcuts (nutzt `RegisterEventHotKey`) | Funktionieren in jeder App; Nutzer nimmt sie in den Einstellungen neu auf |
-| Hinweise | `UserNotifications` mit Aktions-Buttons | Inaktivität, Langläufer (> 10 h), Tagesabschluss, später Terminbeginn |
+| Hinweise | `UserNotifications` mit Aktions-Buttons | Inaktivität, Langläufer (> 10 h), kein Timer in der Arbeitszeit (TM-09), Tagesabschluss, später Terminbeginn |
 
 Kurze Unterbrechungen unter der Schwelle zählen weiter als Arbeitszeit.
+
+Erinnerung ohne Timer (TM-09): Die App prüft einmal pro Minute mit `NoTimerReminder`. Läuft an einem Arbeitstag (`workDays`) innerhalb der Arbeitszeit (Default 9–17 Uhr) seit dem Abstand (Default 15 min) kein Timer, erinnert ein Hinweis – aber nur, wenn die letzte Eingabe höchstens 2 min zurückliegt. Abwesend, im Ruhezustand oder gesperrt kommt also nichts; nach der Rückkehr erinnert der erste Check sofort. Danach wiederholt sich der Hinweis im selben Abstand, ein laufender Timer oder das Ende der Arbeitszeit setzt die Wartezeit zurück. Pausierte Timer zählen nicht als laufend. Abschaltbar in den Einstellungen und per MDM (`remindWhenNoTimer`, `noTimerReminderMinutes`, `workdayStartMinute`, `workdayEndMinute`).
 
 Der `IdleMonitor` merkt sich den Beginn der Abwesenheit und schreibt erst bei der Rückkehr: `recordIdle` schließt die laufenden Segmente beim Beginn und pausiert die Einträge, das offene `idle_event` wartet auf den Dialog. Die Entscheidungen:
 
