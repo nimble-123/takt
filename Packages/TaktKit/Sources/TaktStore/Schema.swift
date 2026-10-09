@@ -160,4 +160,9 @@ enum Schema {
   static func v5(_ db: Database) throws {
     try db.execute(sql: "ALTER TABLE sync_record ADD COLUMN remaining_delta_seconds INTEGER")
   }
+
+  /// Categories whose time is not working time under the ArbZG, e.g. private errands (AZ-01).
+  static func v6(_ db: Database) throws {
+    try db.execute(sql: "ALTER TABLE category ADD COLUMN counts_as_work INTEGER NOT NULL DEFAULT 1")
+  }
 }

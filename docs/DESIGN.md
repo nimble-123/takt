@@ -23,7 +23,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ mit ⌘↩ (nicht ↩, damit Return in einem Inspektorfeld nichts bucht) |
 | Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
-| Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
+| Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung; je Kategorie Häkchen „Arbeitszeit“ (AZ-01) |
 | Hauptfenster | Einstellungen | Allgemein, Erfassung, Erinnerung (an/aus, Arbeitszeit von–bis, Abstand), Azure DevOps, Daten (Backup, Export, Import); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
 | Hauptfenster | Suchergebnisse | Suchfeld in der Toolbar ersetzt den Bereich durch Treffer: Einträge, Work Items, Tasks, Tags |
 | Hauptfenster | Befehlspalette ⌘K | Sheet mit unscharfer Suche über alle Aktionen, „Timer „…“ starten“, Einträge und gecachte Work Items |
