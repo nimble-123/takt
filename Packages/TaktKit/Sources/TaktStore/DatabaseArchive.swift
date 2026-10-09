@@ -4,10 +4,17 @@ import GRDB
 /// JSON export and import of all data (NFR Datensicherheit).
 ///
 /// Every table is written as a list of rows with their raw column values, so new tables and
-/// columns are covered without extra code. Import replaces all data in one transaction.
+/// columns are covered without extra code. Import replaces all data in one transaction, except the
+/// booking log: what reached Azure DevOps stays, or it would be booked again (DO-24).
 public enum DatabaseArchive {
 
   // MARK: Public
+
+  public struct ImportSummary: Equatable, Sendable {
+    /// Local bookings of entries the archive does not have; they could not be kept, so Azure DevOps
+    /// may hold time that Takt no longer shows.
+    public var droppedBookings: Int
+  }
 
   public enum ImportError: Error, Equatable {
     case unknownFormat
@@ -47,16 +54,21 @@ public enum DatabaseArchive {
   /// Reads the archive at `url` and imports it on the concurrent pool. Nothing changes if the
   /// import fails.
   @concurrent
-  public static func importReplacingAll(contentsOf url: URL, into database: AppDatabase) async throws {
+  @discardableResult
+  public static func importReplacingAll(contentsOf url: URL, into database: AppDatabase) async throws
+    -> ImportSummary
+  {
     try importReplacingAll(try Data(contentsOf: url), into: database)
   }
 
-  /// Replaces all data with the archive's content. Nothing changes if the import fails.
-  public static func importReplacingAll(_ data: Data, into database: AppDatabase) throws {
+  /// Replaces all data with the archive's content and keeps the local booking log. Nothing changes
+  /// if the import fails.
+  @discardableResult
+  public static func importReplacingAll(_ data: Data, into database: AppDatabase) throws -> ImportSummary {
     let archive = try JSONDecoder().decode(Archive.self, from: data)
     guard archive.format == format else { throw ImportError.unknownFormat }
 
-    try database.writer.write { db in
+    return try database.writer.write { db in
       let known = try AppDatabase.migrator.appliedMigrations(db)
       let missing = archive.migrations.filter { !known.contains($0) }
       guard missing.isEmpty else { throw ImportError.newerSchema(missingMigrations: missing) }
@@ -65,6 +77,13 @@ public enum DatabaseArchive {
       for table in archive.tables.keys where !tables.contains(table) {
         throw ImportError.unknownTable(table)
       }
+
+      // Read before everything is deleted: bookings and the work items they went to.
+      let bookings = try Row.fetchAll(db, sql: "SELECT * FROM sync_record")
+      let bookedLinks = try Row.fetchAll(
+        db,
+        sql: "SELECT * FROM work_item_link WHERE id IN (SELECT work_item_link_id FROM sync_record)",
+      )
 
       // Rows reference each other across tables; check foreign keys at commit.
       try db.execute(sql: "PRAGMA defer_foreign_keys = ON")
@@ -85,6 +104,7 @@ public enum DatabaseArchive {
           )
         }
       }
+      return try keep(bookings, links: bookedLinks, in: db)
     }
   }
 
@@ -149,6 +169,41 @@ public enum DatabaseArchive {
   }
 
   // MARK: Private
+
+  /// Puts the local bookings back over the archive's: the local state of a booking is the latest
+  /// known one. A booking whose entry the archive lacks cannot stay and is counted.
+  private static func keep(_ bookings: [Row], links: [Row], in db: Database) throws -> ImportSummary {
+    // The work item cache only gains what the archive lacks; the archive's rows win.
+    for link in links {
+      try insert(link, into: "work_item_link", replacing: false, in: db)
+    }
+    var dropped = 0
+    for booking in bookings {
+      let id: String = booking["id"]
+      let entryID: String = booking["entry_id"]
+      guard try Bool.fetchOne(db, sql: "SELECT 1 FROM time_entry WHERE id = ?", arguments: [entryID]) == true
+      else {
+        dropped += 1
+        // The archive may hold the same booking; without its entry it cannot stay either.
+        try db.execute(sql: "DELETE FROM sync_record WHERE id = ?", arguments: [id])
+        continue
+      }
+      try insert(booking, into: "sync_record", replacing: true, in: db)
+    }
+    return ImportSummary(droppedBookings: dropped)
+  }
+
+  private static func insert(_ row: Row, into table: String, replacing: Bool, in db: Database) throws {
+    let names = Array(row.columnNames)
+    try db.execute(
+      sql: """
+        INSERT OR \(replacing ? "REPLACE" : "IGNORE") INTO \(table)
+        (\(names.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))
+        VALUES (\(databaseQuestionMarks(count: names.count)))
+        """,
+      arguments: StatementArguments(Array(row.databaseValues)),
+    )
+  }
 
   /// All tables that hold app data, i.e. not SQLite's or GRDB's own and not the full-text index,
   /// which its triggers rebuild while the rows are imported.
