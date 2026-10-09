@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import os
+import TaktAnalytics
 import TaktCore
 import TaktStore
 
@@ -110,6 +111,9 @@ public final class MainWindowModel {
   /// For backup and import in the settings.
   public let database: AppDatabase?
 
+  /// AZ-02: the ArbZG checks of the shown day; `nil` without work or in the week sections.
+  public private(set) var workTimeCheck: WorkDayCheck?
+
   public private(set) var data = TimelineData() {
     didSet { dataDidChange() }
   }
@@ -212,6 +216,7 @@ public final class MainWindowModel {
       data = loaded
       if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
+      await reloadWorkTimeCheck()
     } catch {
       guard generation == reloadGeneration, range == shownRange else { return }
       show(error)
@@ -448,6 +453,26 @@ public final class MainWindowModel {
 
   var shownRange: Range<Timestamp> {
     section == .today || section == .dayClose ? dayRange : weekRange
+  }
+
+  /// Checks the shown day with the 24 weeks before it, which the average needs (AZ-02).
+  func reloadWorkTimeCheck() async {
+    let day = dayRange
+    guard
+      shownRange == day,
+      let start = calendar.date(byAdding: .day, value: -7 * WorkTimeRules.compensationWeeks, to: day.lowerBound.date)
+    else {
+      workTimeCheck = nil
+      return
+    }
+    let window = Timestamp(start)..<day.upperBound
+    let now = clock.now()
+    let history = try? await queries.timeline(in: window, now: now)
+    guard day == dayRange else { return }
+    let data = AnalyticsData(entries: history?.entries ?? [], catalog: catalog.catalog)
+    let days = WorkDay.days(in: window, from: data, now: now, calendar: calendar)
+    let checks = WorkTimeRules(calendar: calendar, federalState: settings?.federalState).check(days)
+    workTimeCheck = checks.last { $0.day.day == day.lowerBound }
   }
 
   /// The timeline of `day`, computed once per data change instead of on every redraw and drag

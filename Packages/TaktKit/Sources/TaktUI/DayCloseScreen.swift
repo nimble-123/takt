@@ -135,6 +135,7 @@ struct DayCloseScreen: View {
           .font(.system(size: 22, weight: .semibold))
           .monospacedDigit()
       }
+      WorkTimeMarker(check: model.workTimeCheck)
       if booking.pendingCount > 0 {
         Label {
           Text("\(booking.pendingCount) waiting for the network", bundle: .module)
