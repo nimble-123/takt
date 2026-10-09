@@ -46,7 +46,7 @@ struct SchemaTests {
   @Test
   func migrationsAreRecorded() throws {
     let applied = try database.writer.read { db in try AppDatabase.migrator.appliedMigrations(db) }
-    #expect(applied == ["v1", "v2-work-item-details", "v3-search"])
+    #expect(applied == ["v1", "v2-work-item-details", "v3-search", "v4-segment-indexes"])
   }
 
   @Test
@@ -99,6 +99,57 @@ struct SchemaTests {
         )
       }
     }
+  }
+
+  @Test
+  func entryHasAtMostOneOpenSegment() throws {
+    try database.writer.write { db in
+      try db.execute(
+        sql: """
+          INSERT INTO time_entry (id, title, created_at, updated_at) VALUES ('e', 'A', 0, 0);
+          INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s1', 'e', 0, 'live');
+          """
+      )
+      #expect(throws: DatabaseError.self) {
+        try db.execute(sql: "INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s2', 'e', 10, 'live')")
+      }
+    }
+  }
+
+  @Test
+  func segmentsOfAnEntryAreIndexed() throws {
+    let plan = try database.writer.read { db in
+      try Row.fetchAll(db, sql: "EXPLAIN QUERY PLAN SELECT * FROM segment WHERE entry_id IN ('a', 'b')")
+        .map { $0["detail"] as String }
+        .joined()
+    }
+    #expect(plan.contains("segment_entry"))
+  }
+
+  @Test
+  func migrationClosesExtraOpenSegments() throws {
+    let queue = try DatabaseQueue()
+    try AppDatabase.migrator.migrate(queue, upTo: "v3-search")
+    try queue.write { db in
+      try db.execute(
+        sql: """
+          INSERT INTO time_entry (id, title, created_at, updated_at) VALUES ('e', 'A', 0, 0);
+          INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s1', 'e', 0, 'live');
+          INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s2', 'e', 10, 'live');
+          INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s3', 'e', 10, 'live');
+          INSERT INTO segment (id, entry_id, start_at, source) VALUES ('s4', 'e', 30, 'live');
+          """
+      )
+    }
+
+    let migrated = try AppDatabase(queue)
+
+    let segments = try migrated.writer.read { db in
+      try Row.fetchAll(db, sql: "SELECT id, end_at FROM segment ORDER BY start_at, id")
+        .map { ($0["id"] as String, $0["end_at"] as Int64?) }
+    }
+    #expect(segments.map(\.0) == ["s1", "s3", "s4"])
+    #expect(segments.map(\.1) == [10, 30, nil])
   }
 
   // MARK: Private

@@ -151,7 +151,8 @@ CREATE TABLE segment (
   CHECK (end_at IS NULL OR end_at > start_at)
 );
 CREATE INDEX segment_time ON segment(start_at, end_at);
-CREATE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;
+CREATE UNIQUE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;  -- höchstens ein offenes Segment je Eintrag (v4)
+CREATE INDEX segment_entry ON segment(entry_id);                              -- Segmente eines Eintrags (v4)
 
 CREATE TABLE tag (id TEXT PRIMARY KEY, name TEXT NOT NULL UNIQUE);
 CREATE TABLE entry_tag (
@@ -194,6 +195,8 @@ CREATE TABLE setting (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 ```
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
+
+**Segment-Indizes (Migration `v4-segment-indexes`).** `segment_open` ist seit v4 eindeutig: Ein Eintrag hat höchstens ein offenes Segment; beide Stores melden einen Verstoß als `TimerStoreError.invalidValue`. Die Migration repariert vorher Altdaten: Hat ein Eintrag mehrere offene Segmente, endet jedes bis auf das jüngste beim Beginn des nächsten; eines mit gleichem Beginn wie das nächste entfällt. `segment_entry` beschleunigt das Laden der Segmente eines Eintrags und das Löschen per Cascade.
 
 **Volltextsuche (HW-06).** Die virtuelle FTS5-Tabelle `search_index` (Migration `v3-search`) indiziert Titel und Notizen nicht gelöschter Einträge, Projekte (mit Area Path), Tasks, Kategorien, Tags und gecachte Work Items (Titel, `#ID`, Beschreibungsauszug). Trigger auf den Quelltabellen halten den Index aktuell, damit kein Codepfad ihn vergessen kann. Tokenizer `unicode61 remove_diacritics 2`: Groß-/Kleinschreibung und Umlaute sind egal, `ß` bleibt `ß`. Jedes Wort der Eingabe wird als zitiertes Präfix gesucht, Eingaben werden so nie zur Abfragesyntax; Titel wiegen zehnmal so viel wie Notizen (`bm25`). Der JSON-Export lässt den Index aus; beim Import bauen ihn die Trigger neu auf.
 
