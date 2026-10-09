@@ -168,7 +168,8 @@ final class Composition {
     }
   }
 
-  /// DO-26: the offline queue goes out as soon as the network is back.
+  /// DO-26: the offline queue goes out as soon as the network is back. The state at launch is not
+  /// reported, so this does not repeat the launch run; only a return skips the backoff.
   private func sendQueueWhenOnline() async {
     for await online in NetworkMonitor.changes() where online {
       await booking.processPending(force: true)

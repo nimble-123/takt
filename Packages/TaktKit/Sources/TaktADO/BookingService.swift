@@ -227,10 +227,13 @@ public actor BookingService {
     guard let pending = try? await records.pending() else { return 0 }
     // One keychain read per organization and run; nil means not connected.
     var clients = [String: ADOClient?]()
-    for record in pending {
+    for listed in pending {
       // Being sent right now by `book` or another run of the queue.
-      guard recordsInFlight.insert(record.id).inserted else { continue }
-      defer { recordsInFlight.remove(record.id) }
+      guard recordsInFlight.insert(listed.id).inserted else { continue }
+      defer { recordsInFlight.remove(listed.id) }
+      // The list was read before the earlier records were sent: `book` or another run may have
+      // finished this one meanwhile, so only a record that is still pending goes out.
+      guard let record = try? await records.record(listed.id), record.status == .pending else { continue }
       guard let link = try? await cache.link(record.workItemLinkID) else {
         _ = await fail(record, .workItemUnknown)
         continue
