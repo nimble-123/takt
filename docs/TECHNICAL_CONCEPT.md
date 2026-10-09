@@ -435,7 +435,7 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
 Takt hat keine eigene Server-Komponente; das schützenswerte Gut sind die lokale Datenbank und die ADO-Tokens.
 
 - **Daten:** Datenbank in `~/Library/Application Support/Takt/`, geschützt durch FileVault. Tägliches Backup per SQLite-Backup-API, 14 Generationen (`takt-YYYY-MM-DD.sqlite`, lokaler Tag).
-- **Export/Import:** JSON mit allen Tabellen als Zeilen mit Rohwerten und der Liste der angewandten Migrationen. Neue Tabellen und Spalten sind ohne Zusatzcode abgedeckt. Der Import ersetzt alle Daten in einer Transaktion, prüft Fremdschlüssel beim Commit und lehnt Archive eines neueren Schemas ab.
+- **Export/Import:** JSON mit allen Tabellen als Zeilen mit Rohwerten und der Liste der angewandten Migrationen. Neue Tabellen und Spalten sind ohne Zusatzcode abgedeckt. Der Import ersetzt alle Daten in einer Transaktion, prüft Fremdschlüssel beim Commit und lehnt Archive eines neueren Schemas ab. Ausnahme ist das Buchungsprotokoll: Die lokalen `sync_record` bleiben erhalten und gehen dem Stand im Archiv vor, sonst würden nach dem Export gebuchte Differenzen erneut gebucht (DO-24); die Work Items, auf die sie gebucht wurden, ergänzen den Cache. Buchungen zu Einträgen, die das Archiv nicht enthält, können nicht bleiben; die Einstellungen nennen ihre Anzahl, weil deren Zeit noch in Azure DevOps stehen kann.
 - **Geheimnisse:** Tokens und PAT nur im Schlüsselbund, nie in Datei, Log oder Export.
 - **Netzwerk:** nur HTTPS zu `dev.azure.com` (und in Phase 3 zu `graph.microsoft.com`). Keine Telemetrie.
 - **Signatur:** Developer ID (privater Account), Hardened Runtime, notarisiert und gestapelt. Vorerst lokal per `scripts/release-local.sh`, siehe [RELEASING.md](RELEASING.md).
