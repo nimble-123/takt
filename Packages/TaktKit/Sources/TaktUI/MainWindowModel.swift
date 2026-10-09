@@ -247,6 +247,12 @@ public final class MainWindowModel {
     day = clock.now()
   }
 
+  /// The public holiday on the local day of `day` in the chosen federal state (AZ-03).
+  public func holiday(on day: Timestamp) -> PublicHoliday? {
+    guard let state = settings?.federalState else { return nil }
+    return PublicHoliday.on(day, state: state, calendar: calendar)
+  }
+
   public func total(in range: Range<Timestamp>) -> TimeInterval {
     let now = clock.now()
     let inputs = data.entries.flatMap { entry in

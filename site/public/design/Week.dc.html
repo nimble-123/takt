@@ -84,6 +84,7 @@ input.sw:disabled{opacity:.55;cursor:default}
 <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px">
 <span style="font-size: 12px; font-weight: {{d.weight}}; color: {{d.ink}}">{{d.label}}</span>
 <span class="mono" style="font-size: 11px; color: #55555A">{{d.total}}</span>
+<sc-if value="{{d.holiday}}" hint-placeholder-val="{{false}}"><span style="font-size: 10px; color: #55555A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%">{{d.holiday}}</span></sc-if>
 </div>
 </sc-for>
 </div>
@@ -143,7 +144,7 @@ class Component extends DCLogic {
       top: t(from) * H / 60, h: (t(to) - t(from)) * H / 60, title: title, time: from + '–' + to, left: left || '0', right: right || '0'
     });
     const day = (label, total, blocks, opts) => Object.assign({
-      label: label, total: total, blocks: blocks, weight: '400', ink: '#1C1C1E', bg: 'transparent', isToday: false
+      label: label, total: total, blocks: blocks, weight: '400', ink: '#1C1C1E', bg: 'transparent', isToday: false, holiday: ''
     }, opts || {});
     return {
       setScroll: this.setScroll || (this.setScroll = (el) => { if (el && !el.dataset.init) { el.scrollTop = 280; el.dataset.init = '1'; } }),

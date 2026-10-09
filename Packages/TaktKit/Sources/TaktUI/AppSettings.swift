@@ -45,6 +45,7 @@ public final class AppSettings {
     noTimerReminderMinutes = stored.noTimerReminderMinutes
     workdayStartMinute = stored.workdayStartMinute
     workdayEndMinute = stored.workdayEndMinute
+    federalState = stored.federalState
   }
 
   // MARK: Public
@@ -68,6 +69,7 @@ public final class AppSettings {
     case noTimerReminderMinutes
     case workdayStartMinute
     case workdayEndMinute
+    case federalState
   }
 
   /// When booked time goes to Azure DevOps (DO-21).
@@ -183,6 +185,11 @@ public final class AppSettings {
     didSet { write(.workdayEndMinute, workdayEndMinute) }
   }
 
+  /// AZ-03: public holidays of this state have no target; `nil` = none.
+  public var federalState: FederalState? {
+    didSet { write(.federalState, federalState?.rawValue ?? "") }
+  }
+
   /// Folders whose Git repositories suggest work items by branch name.
   public var gitFolders: [String] {
     didSet { write(.gitFolders, gitFolders) }
@@ -205,7 +212,7 @@ public final class AppSettings {
 
   /// AN-07: the weekly hours spread over the working days.
   public var targetPlan: TargetPlan {
-    TargetPlan(weeklyHours: weeklyHours, workDays: workDays)
+    TargetPlan(weeklyHours: weeklyHours, workDays: workDays, federalState: federalState)
   }
 
   public var noTimerReminder: NoTimerReminderSettings {
@@ -321,6 +328,8 @@ public final class AppSettings {
 
     case .workdayEndMinute:
       if workdayEndMinute != stored.workdayEndMinute { workdayEndMinute = stored.workdayEndMinute }
+
+    case .federalState: if federalState != stored.federalState { federalState = stored.federalState }
     }
   }
 }
@@ -353,6 +362,7 @@ private struct Stored {
     noTimerReminderMinutes = max(1, reminderMinutes)
     workdayStartMinute = Self.minuteOfDay(defaults, .workdayStartMinute) ?? 9 * 60
     workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 17 * 60
+    federalState = defaults.string(forKey: AppSettings.Key.federalState.rawValue).flatMap(FederalState.init)
   }
 
   // MARK: Internal
@@ -375,6 +385,7 @@ private struct Stored {
   let noTimerReminderMinutes: Int
   let workdayStartMinute: Int
   let workdayEndMinute: Int
+  let federalState: FederalState?
 
   // MARK: Private
 

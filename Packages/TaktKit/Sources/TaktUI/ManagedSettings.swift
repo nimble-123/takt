@@ -32,6 +32,7 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.dailyGoalHours.rawValue, type: .real, isRead: true),
     Key(name: AppSettings.Key.weeklyHours.rawValue, type: .real, isRead: true),
     Key(name: AppSettings.Key.workDays.rawValue, type: .array, isRead: true),
+    Key(name: AppSettings.Key.federalState.rawValue, type: .string, isRead: true),
     Key(name: AppSettings.Key.showElapsedInMenuBar.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.remindWhenNoTimer.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.noTimerReminderMinutes.rawValue, type: .integer, isRead: true),

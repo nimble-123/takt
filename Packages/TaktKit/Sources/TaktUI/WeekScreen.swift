@@ -20,6 +20,12 @@ struct WeekScreen: View {
             Text(day.lowerBound.date, format: .dateTime.weekday(.abbreviated).day())
               .font(.system(size: 12, weight: day.contains(model.now) ? .bold : .regular))
               .foregroundStyle(day.contains(model.now) ? Palette.accentText : Palette.textPrimary)
+            if let holiday = model.holiday(on: day.lowerBound) {
+              Text(holiday.name)
+                .font(.system(size: 10))
+                .foregroundStyle(Palette.textSecondary)
+                .lineLimit(1)
+            }
             // Re-rendered every minute, so the totals keep counting while a timer runs.
             TimelineView(.everyMinute) { _ in
               Text(DurationText.hoursMinutes(model.total(in: day)))

@@ -181,6 +181,16 @@
         }
       }
     },
+    "All Saints' Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allerheiligen"
+          }
+        }
+      }
+    },
     "Allocated time in the period; with full counting, parallel time counts more than once.": {
       "localizations": {
         "de": {
@@ -231,6 +241,16 @@
         }
       }
     },
+    "Ascension Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Christi Himmelfahrt"
+          }
+        }
+      }
+    },
     "Ask about inactivity after": {
       "localizations": {
         "de": {
@@ -257,6 +277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zuordnung"
+          }
+        }
+      }
+    },
+    "Assumption Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mariä Himmelfahrt"
           }
         }
       }
@@ -381,12 +411,42 @@
         }
       }
     },
+    "Baden-Württemberg": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baden-Württemberg"
+          }
+        }
+      }
+    },
     "Balance": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Saldo"
+          }
+        }
+      }
+    },
+    "Bavaria": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bayern"
+          }
+        }
+      }
+    },
+    "Berlin": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berlin"
           }
         }
       }
@@ -487,6 +547,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Buchung fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "Boxing Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Weihnachtstag"
+          }
+        }
+      }
+    },
+    "Brandenburg": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brandenburg"
+          }
+        }
+      }
+    },
+    "Bremen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bremen"
           }
         }
       }
@@ -661,12 +751,32 @@
         }
       }
     },
+    "Children's Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weltkindertag"
+          }
+        }
+      }
+    },
     "Choose a time within the entry to split it.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wähle eine Zeit innerhalb des Eintrags, um ihn zu teilen."
+          }
+        }
+      }
+    },
+    "Christmas Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Weihnachtstag"
           }
         }
       }
@@ -787,6 +897,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pause in Arbeitszeit umwandeln"
+          }
+        }
+      }
+    },
+    "Corpus Christi": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fronleichnam"
           }
         }
       }
@@ -981,6 +1101,16 @@
         }
       }
     },
+    "Day of Repentance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buß- und Bettag"
+          }
+        }
+      }
+    },
     "Day total: %@": {
       "localizations": {
         "de": {
@@ -1101,6 +1231,26 @@
         }
       }
     },
+    "Easter Monday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostermontag"
+          }
+        }
+      }
+    },
+    "Easter Sunday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ostersonntag"
+          }
+        }
+      }
+    },
     "Edit": {
       "localizations": {
         "de": {
@@ -1167,6 +1317,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Briefumschlag"
+          }
+        }
+      }
+    },
+    "Epiphany": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heilige Drei Könige"
           }
         }
       }
@@ -1331,6 +1491,16 @@
         }
       }
     },
+    "German Unity Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag der Deutschen Einheit"
+          }
+        }
+      }
+    },
     "Git branches": {
       "localizations": {
         "de": {
@@ -1357,6 +1527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Zu heute"
+          }
+        }
+      }
+    },
+    "Good Friday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Karfreitag"
           }
         }
       }
@@ -1391,6 +1571,16 @@
         }
       }
     },
+    "Hamburg": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hamburg"
+          }
+        }
+      }
+    },
     "Hammer": {
       "localizations": {
         "de": {
@@ -1407,6 +1597,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inaktivität behandeln"
+          }
+        }
+      }
+    },
+    "Hesse": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hessen"
           }
         }
       }
@@ -1521,6 +1721,16 @@
         }
       }
     },
+    "Labour Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag der Arbeit"
+          }
+        }
+      }
+    },
     "Lifebuoy": {
       "localizations": {
         "de": {
@@ -1571,12 +1781,32 @@
         }
       }
     },
+    "Lower Saxony": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niedersachsen"
+          }
+        }
+      }
+    },
     "Manually per entry": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Manuell pro Eintrag"
+          }
+        }
+      }
+    },
+    "Mecklenburg-Western Pomerania": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mecklenburg-Vorpommern"
           }
         }
       }
@@ -1677,6 +1907,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Neue Regel …"
+          }
+        }
+      }
+    },
+    "New Year's Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neujahr"
           }
         }
       }
@@ -1807,6 +2047,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keine"
+          }
+        }
+      }
+    },
+    "North Rhine-Westphalia": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nordrhein-Westfalen"
           }
         }
       }
@@ -2231,6 +2481,16 @@
         }
       }
     },
+    "Public holidays": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feiertage"
+          }
+        }
+      }
+    },
     "Purple": {
       "localizations": {
         "de": {
@@ -2267,6 +2527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remaining Work um die gebuchte Zeit reduzieren"
+          }
+        }
+      }
+    },
+    "Reformation Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reformationstag"
           }
         }
       }
@@ -2401,6 +2671,16 @@
         }
       }
     },
+    "Rhineland-Palatinate": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rheinland-Pfalz"
+          }
+        }
+      }
+    },
     "Rounded": {
       "localizations": {
         "de": {
@@ -2461,6 +2741,16 @@
         }
       }
     },
+    "Saarland": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saarland"
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "de": {
@@ -2477,6 +2767,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sicherung als JSON speichern …"
+          }
+        }
+      }
+    },
+    "Saxony": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sachsen"
+          }
+        }
+      }
+    },
+    "Saxony-Anhalt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sachsen-Anhalt"
+          }
+        }
+      }
+    },
+    "Schleswig-Holstein": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schleswig-Holstein"
           }
         }
       }
@@ -3141,6 +3461,16 @@
         }
       }
     },
+    "Thuringia": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thüringen"
+          }
+        }
+      }
+    },
     "Ticket": {
       "localizations": {
         "de": {
@@ -3451,6 +3781,26 @@
         }
       }
     },
+    "Whit Monday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfingstmontag"
+          }
+        }
+      }
+    },
+    "Whit Sunday": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pfingstsonntag"
+          }
+        }
+      }
+    },
     "Without": {
       "localizations": {
         "de": {
@@ -3467,6 +3817,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ohne Work Item"
+          }
+        }
+      }
+    },
+    "Women's Day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frauentag"
           }
         }
       }

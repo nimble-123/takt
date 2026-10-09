@@ -92,6 +92,13 @@ struct SettingsScreen: View {
           }
         }
         .managed(settings.isLocked(.workDays))
+        Picker(String(localized: "Public holidays", bundle: .module), selection: $settings.federalState) {
+          Text("None", bundle: .module).tag(FederalState?.none)
+          ForEach(FederalState.allCases.sorted { $0.name < $1.name }, id: \.self) { state in
+            Text(state.name).tag(FederalState?.some(state))
+          }
+        }
+        .managed(settings.isLocked(.federalState))
         Toggle(
           String(localized: "Show running time in the menu bar", bundle: .module),
           isOn: $settings.showElapsedInMenuBar,
