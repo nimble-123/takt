@@ -243,7 +243,7 @@ Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand
 | `pause` | Offenes Segment schließen, Zustand `paused` |
 | `resume` | Neues Segment ab jetzt, Zustand `running`; bei `switchTo` andere pausieren |
 | `stop` | Offenes Segment schließen, Zustand `stopped` |
-| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen |
+| `pauseAll` / `resumeAll` | Laufende Einträge in `global_pause` merken und genau diese wieder fortsetzen. Ein einzeln fortgesetzter oder gestoppter Eintrag (`resume`, `stop`, `stopAll`) verlässt die offene Pause; ist keiner ihrer Einträge mehr pausiert, endet sie (`resumed_at`). `pauseAll` erweitert eine offene Pause nur, solange sie noch einen pausierten Eintrag hält, sonst beginnt eine neue |
 
 **Uhr.** Die Engine liest die Zeit nie direkt, sondern über ein injiziertes `TaktClock`-Protokoll. Tests nutzen eine manuelle Uhr.
 
@@ -397,6 +397,7 @@ ORDER BY s.start_at;
 
 - Segmente, die über die Zeitraumgrenzen ragen, werden gekappt; über Mitternacht laufende Segmente werden an der lokalen Tagesgrenze geteilt.
 - Gruppierung nach Projekt, Kategorie, Tag, Work Item, Wochentag und Stunde passiert auf dem Ergebnis der Verteilung.
+- **Vorperiode (AN-01):** Bei Tag, Woche und Monat ist sie der vorherige Kalendertag, die vorherige Kalenderwoche bzw. der vorherige Kalendermonat (`Analyzer.previous` mit Kalender), damit unterschiedlich lange Monate und Tage mit Zeitumstellung richtig verglichen werden. Nur ein freier Zeitraum wird um seine eigene Länge verschoben.
 - **Fokusblöcke:** zusammenhängende Arbeit an einem Eintrag ≥ 25 min ohne parallelen Eintrag.
 - **Kontextwechsel:** Anzahl der Wechsel des aktiven Eintrags pro Tag; Pausen zählen nicht als Wechsel.
 - Ein Zwischenspeicher pro Tag ist bei dieser Laufzeit nicht nötig; er kommt erst, wenn Messungen es verlangen.
@@ -431,7 +432,7 @@ Takt hat keine eigene Server-Komponente; das schützenswerte Gut sind die lokale
 - **Netzwerk:** nur HTTPS zu `dev.azure.com` (und in Phase 3 zu `graph.microsoft.com`). Keine Telemetrie.
 - **Signatur:** Developer ID (privater Account), Hardened Runtime, notarisiert und gestapelt. Vorerst lokal per `scripts/release-local.sh`, siehe [RELEASING.md](RELEASING.md).
 - **Rollout:** PKG über Intune oder Jamf. Neue Versionen verteilt ebenfalls das MDM; kein In-App-Updater.
-- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Schlüssel: `startMode` (`switch`/`parallel`), `countingMode` (`split`/`full`), `idleThresholdMinutes`, `lockCountsAsPause`, `roundingMinutes`, `bookingMode` (`manual`/`review`/`automatic`), `dailyGoalHours`, `showElapsedInMenuBar`. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen zeigen ihn gesperrt mit Schloss. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
+- **Verwaltete Einstellungen:** Das MDM kann per Konfigurationsprofil Werte vorgeben (ADO-Organisation, Rundung, Buchungsmodus, Entra-Client-ID). Takt liest sie über `UserDefaults` und sperrt vorgegebene Felder. Schlüssel: `startMode` (`switch`/`parallel`), `countingMode` (`split`/`full`), `idleThresholdMinutes`, `lockCountsAsPause`, `roundingMinutes`, `bookingMode` (`manual`/`review`/`automatic`), `dailyGoalHours`, `showElapsedInMenuBar`. Ob ein Wert vorgegeben ist, erkennt `UserDefaults.objectIsForced(forKey:)`; die Einstellungen und das Onboarding zeigen ihn gesperrt mit Schloss, und `AppSettings` setzt einen gesperrten Wert bei jedem Schreibversuch auf den Profilwert zurück. Profiländerungen während der Laufzeit gelten erst nach einem Neustart. Alle verwaltbaren Schlüssel, ein Beispielprofil und die Verteilung über Intune und Jamf: [MDM.md](MDM.md).
 - **Logging:** `os.Logger` mit Subsystem `de.nilslutz.takt`; Titel, Notizen und Tokens werden als privat markiert.
 
 ## Teststrategie

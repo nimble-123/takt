@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TaktCore
 import TaktStore
 import Testing
@@ -198,6 +199,21 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func quickEditsOfOneEntryDoNotConflict() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(8)))
+
+    // E.g. the title commits on blur while the click on the category picker saves.
+    let rename = Task { await model.update([id], name: "Rename") { $0.title = "Renamed" } }
+    let weigh = Task { await model.update([id], name: "Change Weight") { $0.weight = 2 } }
+    await rename.value
+    await weigh.value
+
+    #expect(model.errorMessage == nil)
+    #expect(model.entry(id)?.entry.title == "Renamed")
+    #expect(model.entry(id)?.entry.weight == 2)
+  }
+
+  @Test
   func splitSelectsTheLaterPart() async throws {
     let id = try #require(await model.createEntry(from: at(7), to: at(9)))
     await model.split(id, at: at(8))
@@ -256,6 +272,33 @@ struct MainWindowModelTests {
     await model.delete([id])
 
     #expect(model.entry(id) == nil)
+  }
+
+  @Test
+  func olderReloadDoesNotOverwriteNewerData() async {
+    let stale = TimelineData(entries: [
+      EntryWithSegments(entry: TimeEntry(title: "Stale", createdAt: at(8), updatedAt: at(8)), segments: [])
+    ])
+    let calls = Mutex(0)
+    let (release, releaseOlder) = AsyncStream.makeStream(of: Void.self)
+    model.loadTimeline = { @Sendable _, _ in
+      let call = calls.withLock { count in
+        count += 1
+        return count
+      }
+      guard call == 1 else { return TimelineData() }
+      // The first reload answers last, with what it read before the newer one.
+      for await _ in release { break }
+      return stale
+    }
+
+    let older = Task { await model.reload() }
+    for _ in 0..<200 where calls.withLock({ $0 }) == 0 { await Task.yield() }
+    await model.reload()
+    releaseOlder.yield()
+    await older.value
+
+    #expect(model.data == TimelineData())
   }
 
   @Test

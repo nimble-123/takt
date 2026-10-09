@@ -134,6 +134,21 @@ struct WorkItemSearchModelTests {
   }
 
   @Test
+  func selectionStaysOnItsItemWhenFreshResultsArrive() async {
+    let source = FakeWorkItems(local: [item(1, "Login alt")], remote: [item(2, "Login neu"), item(1, "Login alt")])
+    let model = model(source)
+    model.query = "login"
+    for _ in 0..<20 where model.workItemResults.isEmpty { await Task.yield() }
+    model.moveSelection(by: 1)
+
+    // The fresh hit is inserted above the highlighted one.
+    await settle(model)
+
+    #expect(model.workItemResults.map(\.workItemID) == [2, 1])
+    #expect(model.selectedWorkItemURL?.absoluteString == "https://dev.azure.com/contoso/Portal/_workitems/edit/1")
+  }
+
+  @Test
   func suggestionsAreLoadedOnOpenAndNotRepeatedWithinFiveMinutes() async {
     let model = model(FakeWorkItems(suggested: [item(7, "Aktuelle Iteration")]))
     await model.loadSuggestedWorkItems()

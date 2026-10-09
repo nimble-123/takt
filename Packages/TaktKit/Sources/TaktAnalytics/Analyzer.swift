@@ -122,8 +122,20 @@ public struct Analyzer: Sendable {
   public var calendar: Calendar
   public var defaultMode: CountingMode
 
-  /// The range of the same length right before `range`, for the comparison (AN-01).
-  public static func previous(_ range: Range<Timestamp>) -> Range<Timestamp> {
+  /// The range right before `range`, for the comparison (AN-01). With a `period` (`.day`,
+  /// `.weekOfYear`, `.month`) it is the previous calendar day, week or month, so months of different
+  /// lengths and days with a DST change compare correctly; with `nil` (a custom range) it has the
+  /// same length as `range`.
+  public static func previous(
+    _ range: Range<Timestamp>,
+    period: Calendar.Component?,
+    calendar: Calendar,
+  ) -> Range<Timestamp> {
+    // The calendar period containing the last millisecond before `range`.
+    let before = Timestamp(milliseconds: range.lowerBound.milliseconds - 1).date
+    if let period, let interval = calendar.dateInterval(of: period, for: before) {
+      return Timestamp(interval.start)..<range.lowerBound
+    }
     let length = range.upperBound.milliseconds - range.lowerBound.milliseconds
     return Timestamp(milliseconds: range.lowerBound.milliseconds - length)..<range.lowerBound
   }

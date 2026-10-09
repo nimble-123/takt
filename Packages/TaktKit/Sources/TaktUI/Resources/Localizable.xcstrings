@@ -411,6 +411,16 @@
         }
       }
     },
+    "Book all open differences (⌘↩)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle offenen Differenzen buchen (⌘↩)"
+          }
+        }
+      }
+    },
     "Book Now": {
       "localizations": {
         "de": {

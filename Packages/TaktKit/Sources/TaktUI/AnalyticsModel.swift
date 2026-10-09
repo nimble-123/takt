@@ -109,7 +109,14 @@ public final class AnalyticsModel {
     return seconds.compactMap { id, value in entries[id].map { ($0, value) } }.sorted { $0.seconds > $1.seconds }
   }
 
+  /// The range of the shown report. Differs from `range` while custom dates are picked but not
+  /// applied yet, or a reload is running; exports describe what is shown.
+  public var reportRange: Range<Timestamp> {
+    loadedRange ?? range
+  }
+
   public var exportFileName: String {
+    let range = reportRange
     let lastDay = Timestamp(milliseconds: range.upperBound.milliseconds - 1)
     let from = Exporter.dayString(range.lowerBound, calendar: calendar)
     return "Takt \(from) – \(Exporter.dayString(lastDay, calendar: calendar))"
@@ -136,14 +143,16 @@ public final class AnalyticsModel {
     // Reloads overlap when the period changes quickly; a result for a range no longer shown is
     // dropped, the reload for the new range sets the data.
     let range = range
+    let previousRange = Analyzer.previous(range, period: calendarPeriod, calendar: calendar)
     let now = clock.now()
     do {
       let loaded = try await source.load(range, now: now)
-      let previousLoaded = try await source.load(Analyzer.previous(range), now: now)
+      let previousLoaded = try await source.load(previousRange, now: now)
       guard range == self.range else { return }
       data = loaded
       previousData = previousLoaded
       loadedRange = range
+      loadedPreviousRange = previousRange
       drilldown = nil
       recompute()
     } catch {
@@ -181,7 +190,7 @@ public final class AnalyticsModel {
     let rows = Exporter.rows(report, data, rounding: rounding, defaultMode: defaultMode, calendar: calendar)
     switch format {
     case .csv: return Data(Exporter.csv(rows).utf8)
-    case .json: return try Exporter.json(rows, range: range, calendar: calendar)
+    case .json: return try Exporter.json(rows, range: reportRange, calendar: calendar)
     case .pdf: return ReportPDF.render(self, rows: rows)
     }
   }
@@ -201,11 +210,23 @@ public final class AnalyticsModel {
   private var previousData = AnalyticsData(entries: [])
   /// The range `data` belongs to; differs from `range` while a reload is running.
   private var loadedRange: Range<Timestamp>?
+  /// The comparison range `previousData` belongs to (AN-01).
+  private var loadedPreviousRange: Range<Timestamp>?
   private let source: AnalyticsSource
   private let settings: AppSettings
   private let clock: any TaktClock
   private let calendar: Calendar
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "analytics")
+
+  /// The calendar unit of the shown period; `nil` for a custom range.
+  private var calendarPeriod: Calendar.Component? {
+    switch period {
+    case .day: .day
+    case .week: .weekOfYear
+    case .month: .month
+    case .custom: nil
+    }
+  }
 
   private func reloadSoon() {
     Task { await reload() }
@@ -213,13 +234,13 @@ public final class AnalyticsModel {
 
   private func recompute() {
     // Before the first load there is no data to evaluate.
-    guard let range = loadedRange else { return }
+    guard let range = loadedRange, let previousRange = loadedPreviousRange else { return }
     let analyzer = Analyzer(calendar: calendar, defaultMode: defaultMode)
     let now = clock.now()
     report = analyzer.report(data, in: range, now: now, by: grouping, mode: modeOverride)
     previous = analyzer.report(
       previousData,
-      in: Analyzer.previous(range),
+      in: previousRange,
       now: now,
       by: grouping,
       mode: modeOverride,

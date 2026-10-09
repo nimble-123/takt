@@ -149,8 +149,35 @@ struct AnalyzerTests {
   }
 
   @Test
-  func previousRangeHasTheSameLength() {
-    #expect(Analyzer.previous(week) == at(-7 * 24)..<monday)
+  func previousRangeOfACustomRangeHasTheSameLength() {
+    #expect(Analyzer.previous(week, period: nil, calendar: calendar) == at(-7 * 24)..<monday)
+  }
+
+  @Test
+  func previousMonthAfterFebruaryIsFebruary() throws {
+    let march = try local(2026, 3, 1)..<local(2026, 4, 1)
+    #expect(Analyzer.previous(march, period: .month, calendar: calendar) == (try local(2026, 2, 1))..<march.lowerBound)
+  }
+
+  @Test
+  func previousWeekAfterTheOctoberChangeStartsAtMidnight() throws {
+    // The week before Monday 2026-10-26 ends with the switch to winter time and has 169 hours.
+    let week = try local(2026, 10, 26)..<local(2026, 11, 2)
+    #expect(Analyzer.previous(week, period: .weekOfYear, calendar: mondayCalendar) == (try local(2026, 10, 19))..<week.lowerBound)
+  }
+
+  @Test
+  func previousWeekAfterTheMarchChangeStartsAtMidnight() throws {
+    // The week before Monday 2026-03-30 ends with the switch to summer time and has 167 hours.
+    let week = try local(2026, 3, 30)..<local(2026, 4, 6)
+    #expect(Analyzer.previous(week, period: .weekOfYear, calendar: mondayCalendar) == (try local(2026, 3, 23))..<week.lowerBound)
+  }
+
+  @Test
+  func previousDayIsTheWholeCalendarDayBefore() throws {
+    // Sunday 2026-10-25 has 25 hours.
+    let day = try local(2026, 10, 26)..<local(2026, 10, 27)
+    #expect(Analyzer.previous(day, period: .day, calendar: calendar) == (try local(2026, 10, 25))..<day.lowerBound)
   }
 
   // MARK: Private
@@ -162,6 +189,17 @@ struct AnalyzerTests {
 
   private var week: Range<Timestamp> {
     monday..<at(7 * 24)
+  }
+
+  private var mondayCalendar: Calendar {
+    var calendar = calendar
+    calendar.firstWeekday = 2
+    return calendar
+  }
+
+  /// Local midnight of a day in Berlin.
+  private func local(_ year: Int, _ month: Int, _ day: Int) throws -> Timestamp {
+    Timestamp(try #require(calendar.date(from: DateComponents(year: year, month: month, day: day))))
   }
 
   private func at(_ hours: Double) -> Timestamp {

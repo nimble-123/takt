@@ -33,6 +33,14 @@ struct EntryInspector: View {
 
 private struct SingleEntryInspector: View {
 
+  // MARK: Lifecycle
+
+  init(model: MainWindowModel, entry: EntryWithSegments) {
+    self.model = model
+    self.entry = entry
+    _fields = State(initialValue: InspectorFields(entry.entry))
+  }
+
   // MARK: Internal
 
   let model: MainWindowModel
@@ -41,19 +49,19 @@ private struct SingleEntryInspector: View {
   var body: some View {
     Form {
       Section {
-        TextField(String(localized: "Title", bundle: .module), text: $title)
-          .commitsOnBlur(title) { value in
+        TextField(String(localized: "Title", bundle: .module), text: $fields.title)
+          .commitsOnBlur(fields.title) { value in
             // An entry always has a title: a cleared field goes back to the stored one.
             guard let new = value.nilIfBlank else {
-              title = entry.entry.title
+              fields.title = entry.entry.title
               return
             }
             guard new != entry.entry.title else { return }
             save(String(localized: "Rename", bundle: .module)) { $0.title = new }
           }
-        TextField(String(localized: "Note", bundle: .module), text: $note, axis: .vertical)
+        TextField(String(localized: "Note", bundle: .module), text: $fields.note, axis: .vertical)
           .lineLimit(2...6)
-          .commitsOnBlur(note) { value in
+          .commitsOnBlur(fields.note) { value in
             guard value.nilIfBlank != entry.entry.note else { return }
             save(String(localized: "Change Note", bundle: .module)) { $0.note = value.nilIfBlank }
           }
@@ -67,12 +75,13 @@ private struct SingleEntryInspector: View {
         }
         if entry.entry.countingMode != .full {
           LabeledContent(String(localized: "Weight", bundle: .module)) {
-            Slider(value: $weight, in: 0.1...3, step: 0.1) { editing in
+            Slider(value: $fields.weight, in: 0.1...3, step: 0.1) { editing in
               if !editing {
+                let weight = fields.weight
                 save(String(localized: "Change Weight", bundle: .module)) { $0.weight = weight }
               }
             }
-            Text(weight, format: .number.precision(.fractionLength(1)))
+            Text(fields.weight, format: .number.precision(.fractionLength(1)))
               .monospacedDigit()
               .frame(width: 28)
           }
@@ -134,21 +143,20 @@ private struct SingleEntryInspector: View {
       }
     }
     .formStyle(.grouped)
-    .onAppear(perform: load)
-    .onChange(of: entry) { load() }
+    .onAppear(perform: loadSplitTime)
+    // Only what changed: a save of another field must not reset text being typed.
+    .onChange(of: entry) { old, new in
+      fields.reload(from: old.entry, to: new.entry)
+      if new.segments != old.segments { loadSplitTime() }
+    }
   }
 
   // MARK: Private
 
-  @State private var title = ""
-  @State private var note = ""
-  @State private var weight = 1.0
+  @State private var fields: InspectorFields
   @State private var splitTime = Date()
 
-  private func load() {
-    title = entry.entry.title
-    note = entry.entry.note ?? ""
-    weight = entry.entry.weight
+  private func loadSplitTime() {
     if let first = entry.segments.first {
       let end = entry.segments.last?.end ?? model.now
       splitTime = first.start.adding(seconds: end.seconds(since: first.start) / 2).date
@@ -157,6 +165,34 @@ private struct SingleEntryInspector: View {
 
   private func save(_ name: String, _ edit: @escaping (inout TimeEntry) -> Void) {
     Task { await model.update([entry.id], name: name, edit) }
+  }
+}
+
+// MARK: - InspectorFields
+
+/// The text and slider values of the single-entry inspector. When the entry changes, only the
+/// fields whose stored value changed are reloaded, so text typed into one field survives a save
+/// of another (e.g. the category picker), like `InlineTitle` does.
+nonisolated struct InspectorFields: Equatable {
+
+  // MARK: Lifecycle
+
+  init(_ entry: TimeEntry) {
+    title = entry.title
+    note = entry.note ?? ""
+    weight = entry.weight
+  }
+
+  // MARK: Internal
+
+  var title: String
+  var note: String
+  var weight: Double
+
+  mutating func reload(from old: TimeEntry, to new: TimeEntry) {
+    if new.title != old.title { title = new.title }
+    if new.note != old.note { note = new.note ?? "" }
+    if new.weight != old.weight { weight = new.weight }
   }
 }
 
