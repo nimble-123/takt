@@ -67,6 +67,10 @@ struct ManagedSettingsTests {
     defaults.set(false, forKey: "showElapsedInMenuBar")
     defaults.set(["/Users/x/src"], forKey: "gitFolders")
     defaults.set(true, forKey: "onboardingCompleted")
+    defaults.set(false, forKey: "remindWhenNoTimer")
+    defaults.set(30, forKey: "noTimerReminderMinutes")
+    defaults.set(8 * 60, forKey: "workdayStartMinute")
+    defaults.set(16 * 60 + 30, forKey: "workdayEndMinute")
 
     let forced = Set(payload.keys)
     let settings = AppSettings(defaults: defaults) { forced.contains($0) }
@@ -85,6 +89,15 @@ struct ManagedSettingsTests {
     #expect(!settings.showElapsedInMenuBar)
     #expect(settings.gitFolders == ["/Users/x/src"])
     #expect(settings.onboardingCompleted)
+    #expect(
+      settings.noTimerReminder == NoTimerReminderSettings(
+        isEnabled: false,
+        workDays: [1, 2, 3, 4],
+        startMinute: 8 * 60,
+        endMinute: 16 * 60 + 30,
+        interval: 30 * 60,
+      )
+    )
     // The services read the same values (idle monitor, booking, Git branches).
     #expect(settings.snapshot.idle == IdleSettings(threshold: 25 * 60, lockCountsAsPause: true))
     #expect(!settings.snapshot.bookingOptions.reduceRemainingWork)

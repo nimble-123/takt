@@ -33,6 +33,10 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.weeklyHours.rawValue, type: .real, isRead: true),
     Key(name: AppSettings.Key.workDays.rawValue, type: .array, isRead: true),
     Key(name: AppSettings.Key.showElapsedInMenuBar.rawValue, type: .boolean, isRead: true),
+    Key(name: AppSettings.Key.remindWhenNoTimer.rawValue, type: .boolean, isRead: true),
+    Key(name: AppSettings.Key.noTimerReminderMinutes.rawValue, type: .integer, isRead: true),
+    Key(name: AppSettings.Key.workdayStartMinute.rawValue, type: .integer, isRead: true),
+    Key(name: AppSettings.Key.workdayEndMinute.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.gitFolders.rawValue, type: .array, isRead: true),
     Key(name: AppSettings.Key.onboardingCompleted.rawValue, type: .boolean, isRead: true),
     // Entra ID sign-in (#13) reads these once the app registration exists.

@@ -21,6 +21,10 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `weeklyHours` | Real | Default 40, 0–60 | Wochenstunden für Soll/Ist (AN-07); Nachkommastellen erlaubt |
 | `workDays` | Array of Integer | 1 = Montag … 7 = Sonntag, Default 1–5 | Arbeitstage für Soll/Ist |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
+| `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
+| `noTimerReminderMinutes` | Integer | 5–120, Default 15 | Nach wie vielen Minuten ohne Timer erinnert wird, danach im selben Abstand |
+| `workdayStartMinute` | Integer | Minuten nach Mitternacht, Default 540 (9:00) | Beginn der Arbeitszeit für die Erinnerung |
+| `workdayEndMinute` | Integer | Minuten nach Mitternacht, Default 1020 (17:00) | Ende der Arbeitszeit für die Erinnerung |
 | `gitFolders` | Array of String | Pfade | Ordner mit Git-Repositories für Branch-Vorschläge |
 | `onboardingCompleted` | Boolean | `true` überspringt das Onboarding | Sinnvoll, wenn alles andere per Profil kommt |
 | `entraClientID` | String | Client-ID der App-Registrierung | Reserviert für die Entra-ID-Anmeldung (#13), noch nicht gelesen |

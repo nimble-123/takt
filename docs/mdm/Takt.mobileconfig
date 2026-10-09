@@ -53,6 +53,14 @@
       </array>
       <key>showElapsedInMenuBar</key>
       <true/>
+      <key>remindWhenNoTimer</key>
+      <true/>
+      <key>noTimerReminderMinutes</key>
+      <integer>15</integer>
+      <key>workdayStartMinute</key>
+      <integer>540</integer>
+      <key>workdayEndMinute</key>
+      <integer>1020</integer>
       <key>gitFolders</key>
       <array/>
       <key>onboardingCompleted</key>

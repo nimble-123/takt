@@ -35,6 +35,93 @@ public struct LongRunnerCheck: Sendable {
 
 }
 
+// MARK: - NoTimerReminderSettings
+
+/// When to remind the user that no timer runs (TM-09).
+public struct NoTimerReminderSettings: Sendable, Equatable {
+
+  // MARK: Lifecycle
+
+  public init(
+    isEnabled: Bool = true,
+    workDays: Set<Int> = [1, 2, 3, 4, 5],
+    startMinute: Int = 9 * 60,
+    endMinute: Int = 17 * 60,
+    interval: TimeInterval = 15 * 60,
+  ) {
+    self.isEnabled = isEnabled
+    self.workDays = workDays
+    self.startMinute = startMinute
+    self.endMinute = endMinute
+    self.interval = interval
+  }
+
+  // MARK: Public
+
+  public var isEnabled: Bool
+  /// 1 = Monday … 7 = Sunday.
+  public var workDays: Set<Int>
+  /// Working hours as minutes after local midnight; the end is excluded.
+  public var startMinute: Int
+  public var endMinute: Int
+  /// How long no timer may run before the first and between further reminders.
+  public var interval: TimeInterval
+
+  /// Whether `now` falls on a working day within the working hours.
+  public func isWorkingTime(_ now: Timestamp, in calendar: Calendar) -> Bool {
+    let parts = calendar.dateComponents([.hour, .minute], from: now.date)
+    let minute = (parts.hour ?? 0) * 60 + (parts.minute ?? 0)
+    return workDays.contains(now.mondayBasedWeekday(in: calendar)) && (startMinute..<endMinute).contains(minute)
+  }
+}
+
+// MARK: - NoTimerReminder
+
+/// Decides when to remind the user that no timer runs during working hours (TM-09). Only while
+/// the user is at the Mac: away, asleep or locked, a reminder would only pile up.
+public struct NoTimerReminder: Sendable {
+
+  // MARK: Lifecycle
+
+  public init(presenceLimit: TimeInterval = 120) {
+    self.presenceLimit = presenceLimit
+  }
+
+  // MARK: Public
+
+  /// Input within this many seconds counts as the user being at the Mac.
+  public var presenceLimit: TimeInterval
+
+  /// Whether to remind now. Called about once a minute.
+  public mutating func check(
+    isRunning: Bool,
+    secondsSinceLastInput: TimeInterval,
+    now: Timestamp,
+    settings: NoTimerReminderSettings,
+    calendar: Calendar = .current,
+  ) -> Bool {
+    guard settings.isEnabled, !isRunning, settings.isWorkingTime(now, in: calendar) else {
+      quietSince = nil
+      return false
+    }
+    guard let quietSince else {
+      quietSince = now
+      return false
+    }
+    guard secondsSinceLastInput < presenceLimit, now.seconds(since: quietSince) >= settings.interval else {
+      return false
+    }
+    self.quietSince = now
+    return true
+  }
+
+  // MARK: Private
+
+  /// Since when no timer runs within working hours, or since the last reminder.
+  private var quietSince: Timestamp?
+
+}
+
 // MARK: - Notifier
 
 /// Posts local notifications. Asks for permission on first use.
