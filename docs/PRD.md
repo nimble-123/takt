@@ -320,7 +320,7 @@ Betriebsrat und Datenschutz haben das Zurückschreiben nach ADO freigegeben.
 | macOS-Mindestversion | macOS 26 |
 | Startverhalten | Default „Wechseln“, parallel per ⌥↩ |
 | Modus „Geteilt“ | Gleichmäßig, Gewicht pro Eintrag änderbar |
-| Verteilung | MDM (Intune/Jamf), notarisiert mit privatem Developer-ID-Account, Bundle-ID `de.nilslutz.takt` |
+| Verteilung | MDM (Intune/Jamf), notarisiert mit privatem Developer-ID-Account, Bundle-ID `de.nilslutz.takt`. Bis zum Signieren (#16) unsignierte Builds über GitHub-Releases und Homebrew |
 | Team-Struktur | Projekte selektiv aus ADO übernehmen, zusätzlich eigene je Nutzer |
 | Persistenz | SQLite über GRDB |
 | Kalender | Outlook über Microsoft Graph, Phase 3 |
