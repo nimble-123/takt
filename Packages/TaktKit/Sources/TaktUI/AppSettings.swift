@@ -8,7 +8,6 @@ import TaktSystem
 
 /// User settings in `UserDefaults`. A configuration profile (MDM) can force values; those are
 /// read-only in the UI (TECHNICAL_CONCEPT "Verwaltete Einstellungen").
-@MainActor
 @Observable
 public final class AppSettings {
 
@@ -69,7 +68,7 @@ public final class AppSettings {
 
   /// The settings that services read outside the main actor (idle monitor, booking service, Git
   /// branches); a copy that follows every change.
-  public struct Snapshot: Sendable, Equatable {
+  nonisolated public struct Snapshot: Sendable, Equatable {
     public var idleThresholdMinutes: Int
     public var lockCountsAsPause: Bool
     public var reduceRemainingWork: Bool

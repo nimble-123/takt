@@ -449,7 +449,7 @@ struct CountingModePicker: View {
   var body: some View {
     Picker(
       String(localized: "Parallel time", bundle: .module),
-      selection: Binding(get: { mode }, set: onChange),
+      selection: Binding(get: { mode }, set: { onChange($0) }),
     ) {
       Text("Default", bundle: .module).tag(CountingMode?.none)
       Text("Full", bundle: .module).tag(CountingMode?.some(.full))

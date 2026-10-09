@@ -4,7 +4,7 @@ import TaktCore
 // MARK: - MenuBarStatus
 
 /// What the status item shows for a timer state (MB-01).
-public struct MenuBarStatus: Equatable, Sendable {
+nonisolated public struct MenuBarStatus: Equatable, Sendable {
 
   // MARK: Lifecycle
 
@@ -52,7 +52,7 @@ public struct MenuBarStatus: Equatable, Sendable {
 // MARK: - DurationText
 
 /// Durations as shown in the UI. Times use tabular digits in the views.
-public enum DurationText {
+nonisolated public enum DurationText {
 
   // MARK: Public
 

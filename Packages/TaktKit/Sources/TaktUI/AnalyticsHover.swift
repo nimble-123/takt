@@ -5,7 +5,7 @@ import TaktAnalytics
 // MARK: - AnalyticsHover
 
 /// What the pointer is over in the analysis charts, and the texts of their tooltips (#129, AN-03).
-enum AnalyticsHover {
+nonisolated enum AnalyticsHover {
 
   /// One stacked part of a day bar, in hours from the bottom; `key == nil` is "Other".
   struct BarPart: Hashable {

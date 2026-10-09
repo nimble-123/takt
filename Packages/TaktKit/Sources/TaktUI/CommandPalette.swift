@@ -22,7 +22,6 @@ public struct PaletteItem: Identifiable {
 // MARK: - CommandPaletteModel
 
 /// State of the command palette (HW-05): actions plus hits from the full-text search and work items.
-@MainActor
 @Observable
 public final class CommandPaletteModel {
 

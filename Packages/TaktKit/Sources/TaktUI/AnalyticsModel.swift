@@ -8,7 +8,6 @@ import TaktStore
 // MARK: - AnalyticsModel
 
 /// State of the analysis screen (AN-01–AN-06).
-@MainActor
 @Observable
 public final class AnalyticsModel {
 

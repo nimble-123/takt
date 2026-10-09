@@ -6,7 +6,6 @@ import TaktCore
 /// `UndoManager` turns a registration made inside an undo handler into the redo, but only if it
 /// happens synchronously. The engine works asynchronously, so each handler registers the opposite
 /// action right away with the *pending* result of its own engine call.
-@MainActor
 final class EngineUndo {
 
   // MARK: Lifecycle

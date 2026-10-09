@@ -5,7 +5,6 @@ import TaktCore
 import TaktStore
 
 /// State and edits of the main window: today's timeline, the week and the entry list (HW-01–HW-04).
-@MainActor
 @Observable
 public final class MainWindowModel {
 

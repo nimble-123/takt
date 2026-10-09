@@ -6,7 +6,6 @@ import TaktSystem
 
 /// First launch in three steps, under a minute (PRD "Onboarding"): connect Azure DevOps
 /// (skippable), try the shortcut, choose start behaviour and counting.
-@MainActor
 @Observable
 public final class OnboardingModel {
 

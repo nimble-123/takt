@@ -8,7 +8,6 @@ import TaktSystem
 
 /// State and actions of the menu bar popover. Receives timer state from `TimerEngine.updates()`
 /// and sends every action to the engine.
-@MainActor
 @Observable
 public final class MenuBarModel {
 

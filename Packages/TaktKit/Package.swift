@@ -67,6 +67,8 @@ package.targets += [
       .product(name: "KeyboardShortcuts", package: "KeyboardShortcuts"),
     ],
     resources: [.process("Resources")],
+    // Views and view models live on the main actor; work elsewhere opts out with `nonisolated`.
+    swiftSettings: [.defaultIsolation(MainActor.self)],
   ),
   .testTarget(name: "TaktSystemTests", dependencies: ["TaktSystem"]),
   .testTarget(name: "TaktADOTests", dependencies: ["TaktADO"], resources: [.copy("Fixtures")]),

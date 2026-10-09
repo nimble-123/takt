@@ -2,7 +2,7 @@ import Foundation
 
 /// Fuzzy matching for the command palette: the query's characters must appear in order.
 /// Matches at word starts and runs of consecutive characters score higher (HW-05).
-enum FuzzyMatch {
+nonisolated enum FuzzyMatch {
 
   // MARK: Internal
 

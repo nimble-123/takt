@@ -8,7 +8,6 @@ import TaktStore
 
 /// State of the day close: the day's booking lines, the outcome of the last booking and the
 /// figures derived from them (UC-07, DO-20–DO-27). `DayCloseScreen` only renders it.
-@MainActor
 @Observable
 final class DayCloseModel {
 
