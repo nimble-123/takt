@@ -81,6 +81,22 @@ struct AnalyticsModelTests {
   }
 
   @Test
+  func exportOfACustomPeriodUsesTheAppliedDates() async throws {
+    try await track("A", hours: 1)
+    model.period = .custom
+    model.customStart = clock.now().date
+    model.customEnd = clock.now().date
+    await model.reload()
+
+    // Picked, but not applied yet: the report still shows 7 October.
+    model.customStart = clock.now().adding(seconds: -2 * 86_400).date
+    let json = String(decoding: try model.export(.json), as: UTF8.self)
+
+    #expect(model.exportFileName == "Takt 2026-10-07 – 2026-10-07")
+    #expect(json.contains("\"from\" : \"2026-10-07\""))
+  }
+
+  @Test
   func hourLabelsFollowTheLocaleClock() {
     var calendar = calendar
     calendar.locale = Locale(identifier: "de_DE")
