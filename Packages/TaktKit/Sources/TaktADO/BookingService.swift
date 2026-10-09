@@ -7,12 +7,18 @@ import TaktStore
 
 /// What should be booked for one entry, work item and local day (DO-20, DO-24).
 public struct BookingLine: Hashable, Sendable, Identifiable {
+
+  // MARK: Public
+
   /// One line per entry, work item and day.
   public struct Key: Hashable, Sendable {
     public var entryID: EntryID
     public var workItemID: WorkItemLinkID
     public var localDay: String
   }
+
+  /// Azure DevOps keeps hours with two decimals, so differences are booked in steps of 0.01 h.
+  public static let step = 36
 
   public var entryID: EntryID
   public var title: String
@@ -33,9 +39,17 @@ public struct BookingLine: Hashable, Sendable, Identifiable {
     Key(entryID: entryID, workItemID: workItem.id, localDay: localDay)
   }
 
-  /// Soll − Gebucht. Positive increases Completed Work, negative reduces it.
+  /// Soll − Gebucht in steps of 0.01 h. Positive increases Completed Work, negative reduces it.
   public var difference: Int {
-    target - booked - inFlight
+    Self.quantized(target - booked - inFlight)
+  }
+
+  // MARK: Internal
+
+  /// `seconds` rounded to whole steps, halves away from zero. A record holds exactly what reaches
+  /// Azure DevOps; the rest (under half a step) stays in the next difference instead of adding up.
+  static func quantized(_ seconds: Int) -> Int {
+    seconds.signum() * ((abs(seconds) + step / 2) / step) * step
   }
 }
 
@@ -227,10 +241,13 @@ public actor BookingService {
     guard let pending = try? await records.pending() else { return 0 }
     // One keychain read per organization and run; nil means not connected.
     var clients = [String: ADOClient?]()
-    for record in pending {
+    for listed in pending {
       // Being sent right now by `book` or another run of the queue.
-      guard recordsInFlight.insert(record.id).inserted else { continue }
-      defer { recordsInFlight.remove(record.id) }
+      guard recordsInFlight.insert(listed.id).inserted else { continue }
+      defer { recordsInFlight.remove(listed.id) }
+      // The list was read before the earlier records were sent: `book` or another run may have
+      // finished this one meanwhile, so only a record that is still pending goes out.
+      guard let record = try? await records.record(listed.id), record.status == .pending else { continue }
       guard let link = try? await cache.link(record.workItemLinkID) else {
         _ = await fail(record, .workItemUnknown)
         continue
@@ -313,7 +330,7 @@ public actor BookingService {
     }
     guard !stored.contains(where: { $0.status == .pending }) else { return nil }
     let booked = stored.filter { $0.status == .synced }.reduce(0) { $0 + $1.deltaSeconds }
-    let difference = line.target - booked
+    let difference = BookingLine.quantized(line.target - booked)
     return difference == 0 ? nil : difference
   }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TaktCore
 import TaktStore
 import Testing
@@ -112,6 +113,50 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func boundsThatOverlapAnotherSegmentAreRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (9, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.setBounds(of: before[1], start: at(7.5), end: at(10))
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func moveOntoAnotherSegmentIsRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (9, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.move(before[1], by: -1.5 * 3600)
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func closeGapOverAnotherSegmentIsRejected() async throws {
+    let id = try await entry(withSegments: [(7, 8), (8.5, 9), (9.5, 10)])
+    let before = try #require(model.entry(id)?.segments)
+
+    await model.closeGap(between: before[0], and: before[2])
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == before)
+  }
+
+  @Test
+  func boundsWithoutEndKeepAClosedSegmentClosed() async throws {
+    let id = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let segment = try #require(model.entry(id)?.segments.first)
+
+    await model.setBounds(of: segment, start: at(7), end: nil)
+
+    #expect(model.errorMessage != nil)
+    #expect(model.entry(id)?.segments == [segment])
+  }
+
+  @Test
   func deleteRemovesSelectedEntries() async throws {
     let a = try #require(await model.createEntry(from: at(7), to: at(8)))
     let b = try #require(await model.createEntry(from: at(8), to: at(9)))
@@ -154,12 +199,68 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func quickEditsOfOneEntryDoNotConflict() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(8)))
+
+    // E.g. the title commits on blur while the click on the category picker saves.
+    let rename = Task { await model.update([id], name: "Rename") { $0.title = "Renamed" } }
+    let weigh = Task { await model.update([id], name: "Change Weight") { $0.weight = 2 } }
+    await rename.value
+    await weigh.value
+
+    #expect(model.errorMessage == nil)
+    #expect(model.entry(id)?.entry.title == "Renamed")
+    #expect(model.entry(id)?.entry.weight == 2)
+  }
+
+  @Test
   func splitSelectsTheLaterPart() async throws {
     let id = try #require(await model.createEntry(from: at(7), to: at(9)))
     await model.split(id, at: at(8))
 
     #expect(model.data.entries.count == 2)
     #expect(model.selection.count == 1 && !model.selection.contains(id))
+  }
+
+  @Test
+  func splitKeepsTheTags() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(9)))
+    await model.catalog.setTags(named: ["Review"], on: [id])
+
+    await model.split(id, at: at(8))
+
+    let later = try #require(model.selection.first)
+    #expect(await model.catalog.tags(of: [later])[later]?.map(\.name) == ["Review"])
+  }
+
+  @Test
+  func splitOfEntryInGlobalPauseIsResumedWithIt() async throws {
+    clock.set(at(7))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(at(9))
+    let pauseID = try #require(try await engine.pauseAll().value)
+    await model.reload()
+
+    await model.split(id, at: at(8))
+    let later = try #require(model.selection.first)
+    try await engine.resumeAll(pauseID)
+
+    #expect(try await engine.snapshot().running.map(\.id) == [later])
+  }
+
+  @Test
+  func splitOfEntryPausedByIdleIsResumedByTheDecision() async throws {
+    clock.set(at(7))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(at(9.5))
+    let event = try #require(try await engine.recordIdle(from: at(9), to: at(9.5)))
+    await model.reload()
+
+    await model.split(id, at: at(8))
+    let later = try #require(model.selection.first)
+    try await engine.resolveIdle(event.id, .discard)
+
+    #expect(try await engine.snapshot().running.map(\.id) == [later])
   }
 
   @Test
@@ -212,6 +313,33 @@ struct MainWindowModelTests {
     await model.delete([id])
 
     #expect(model.entry(id) == nil)
+  }
+
+  @Test
+  func olderReloadDoesNotOverwriteNewerData() async {
+    let stale = TimelineData(entries: [
+      EntryWithSegments(entry: TimeEntry(title: "Stale", createdAt: at(8), updatedAt: at(8)), segments: [])
+    ])
+    let calls = Mutex(0)
+    let (release, releaseOlder) = AsyncStream.makeStream(of: Void.self)
+    model.loadTimeline = { @Sendable _, _ in
+      let call = calls.withLock { count in
+        count += 1
+        return count
+      }
+      guard call == 1 else { return TimelineData() }
+      // The first reload answers last, with what it read before the newer one.
+      for await _ in release { break }
+      return stale
+    }
+
+    let older = Task { await model.reload() }
+    for _ in 0..<200 where calls.withLock({ $0 }) == 0 { await Task.yield() }
+    await model.reload()
+    releaseOlder.yield()
+    await older.value
+
+    #expect(model.data == TimelineData())
   }
 
   @Test
@@ -299,6 +427,15 @@ struct MainWindowModelTests {
 
   private func at(_ hours: Double) -> Timestamp {
     model.dayRange.lowerBound.adding(seconds: hours * 3600)
+  }
+
+  /// A stopped entry with closed manual segments from and to the given hours.
+  private func entry(withSegments hours: [(Double, Double)]) async throws -> EntryID {
+    let entry = TimeEntry(title: "A", createdAt: clock.now(), updatedAt: clock.now())
+    let segments = hours.map { Segment(entryID: entry.id, start: at($0.0), end: at($0.1), source: .manual) }
+    try await engine.apply([.entry(before: nil, after: entry)] + segments.map { .segment(before: nil, after: $0) })
+    await model.reload()
+    return entry.id
   }
 
   /// Runs one undo or redo step and waits until the engine has applied it.

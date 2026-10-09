@@ -333,3 +333,76 @@ extension TimerEngineTests {
     #expect(await store.tables == before)
   }
 }
+
+// MARK: - Global pause lifecycle (#144)
+
+extension TimerEngineTests {
+  @Test
+  func stopOfLastPausedEntryClosesGlobalPause() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    try await engine.pauseAll()
+    let undo = try await engine.stop(a).undo
+
+    #expect(await snapshot().globalPause == nil)
+    try await engine.undo(undo)
+    #expect(await snapshot().globalPause?.entryIDs == [a])
+  }
+
+  @Test
+  func stopAllClosesGlobalPause() async throws {
+    try await engine.start(EntryDraft(title: "A"), mode: .switchTo)
+    clock.advance(seconds: 60)
+    try await engine.pauseAll()
+    try await engine.stopAll()
+
+    #expect(await snapshot().globalPause == nil)
+  }
+
+  @Test
+  func resumeAllSkipsEntryResumedAndPausedAgainSince() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    let b = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
+    clock.advance(seconds: 60)
+    let pauseID = try #require(try await engine.pauseAll().value)
+    try await engine.resume(a, mode: .parallel)
+    clock.advance(seconds: 60)
+    try await engine.pause(a)
+
+    #expect(await snapshot().globalPause?.entryIDs == [b])
+    try await engine.resumeAll(pauseID)
+    #expect(await snapshot().running.map(\.id) == [b])
+  }
+
+  @Test
+  func pauseAllAfterResumingEveryEntryStartsNewPause() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let first = try #require(try await engine.pauseAll().value)
+    clock.advance(seconds: 60)
+    try await engine.resume(a, mode: .switchTo)
+    #expect(await snapshot().globalPause == nil)
+
+    clock.advance(seconds: 60)
+    let second = try #require(try await engine.pauseAll().value)
+    #expect(second != first)
+    #expect(await snapshot().globalPause?.pausedAt == clock.now())
+  }
+
+  @Test
+  func pauseAllReplacesPauseWithoutPausedEntries() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let first = try #require(try await engine.pauseAll().value)
+    // Deleting in the main window does not go through the engine's commands.
+    let active = try #require(await snapshot().entry(a))
+    try await engine.apply(EntryEdits.delete(active.entry, openSegment: nil, now: clock.now()))
+    try await engine.start(EntryDraft(title: "B"), mode: .switchTo)
+    clock.advance(seconds: 60)
+
+    let second = try #require(try await engine.pauseAll().value)
+    #expect(second != first)
+    #expect(await snapshot().globalPause?.pausedAt == clock.now())
+    #expect(await store.tables.globalPauses[first]?.resumedAt != nil)
+  }
+}
