@@ -20,7 +20,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Menüleiste | Suche mit Outlook-Terminen (Phase 3) | Gruppe „Kalender“ vor ADO; Zuordnung pro Serie; „Ab 09:45 starten“ |
 | Menüleiste | Regeltermin Start/Ende (Phase 3) | Hinweis zum Terminbeginn mit „Timer starten“; Toast zum Ende mit „Verlängern“ |
 | Hauptfenster | Heute | Seitenleiste Heute, Tagesabschluss, Woche, Einträge, Analysen, Projekte, Einstellungen; KPI-Zeile (Erfasst, Pausen, Einträge); Timeline über 24 h, scrollt zur aktuellen Stunde, parallele Spur, Pausen und Inaktivität schraffiert, „jetzt“-Linie; rechts der Inspektor des gewählten Eintrags |
-| Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ |
+| Hauptfenster | Tagesabschluss | Eigener Bereich: „Zu buchen“ mit Summe, Hinweis auf wartende Buchungen mit „Erneut senden“, Gruppen je Work Item mit Soll, Gebucht, Differenz; Einträge ohne Work Item mit „Verknüpfen …“; „Alles buchen“ mit ⌘↩ (nicht ↩, damit Return in einem Inspektorfeld nichts bucht) |
 | Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen im Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
 | Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung |
