@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import TaktCore
 import Testing
 
@@ -83,6 +84,38 @@ struct WorkItemSearchTests {
     let wiql = try #require(stub.requests.first { $0.url?.path() == "/contoso/_apis/wit/wiql" })
     #expect(body(wiql).contains("CONTAINS 'O''Brien'"))
     #expect(wiql.url?.query()?.contains("$top=20") == true)
+  }
+
+  @Test(arguments: [400, 401])
+  func passingSearchErrorFallsBackOnlyForThatQuery(status: Int) async throws {
+    let searches = Mutex(0)
+    stub.respond { request in
+      switch request.url?.path() {
+      case "/contoso/_apis/search/workitemsearchresults":
+        let attempt = searches.withLock { count in
+          count += 1
+          return count
+        }
+        return attempt == 1
+          ? Stub.Response(status: status, body: Data())
+          : Stub.Response(status: 200, body: try Stub.fixture("workitemsearch"))
+
+      case "/contoso/_apis/wit/wiql":
+        return Stub.Response(status: 200, body: try Stub.fixture("wiql"))
+
+      default:
+        return Stub.Response(status: 200, body: try Stub.fixture("workitemsbatch"))
+      }
+    }
+    let search = WorkItemSearch(client: client, clock: clock)
+
+    _ = try await search.search("Token \"")
+    _ = try await search.search("Token")
+
+    // A rejected query or token is no sign that search is missing: the next query tries it again.
+    let paths = stub.requests.map { $0.url?.path() ?? "" }
+    #expect(paths.count(where: { $0.hasSuffix("workitemsearchresults") }) == 2)
+    #expect(paths.count(where: { $0.hasSuffix("wiql") }) == 1)
   }
 
   @Test

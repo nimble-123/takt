@@ -109,7 +109,7 @@ final class Composition {
             onIdleNeedsDecision?()
           }
         } catch {
-          logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
+          logger.error("Recovery failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
         }
         await catalog.seedDefaults()
         await rules.reload()

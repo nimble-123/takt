@@ -360,9 +360,12 @@ public actor WorkItemSearch {
         let ids = try await client.fullTextSearch(text)
         fullTextAvailable = true
         return ids
-      } catch ADOError.notFound, ADOError.server(status: 400), ADOError.unauthorized {
-        // Search extension missing or not allowed for the token: use WIQL from now on.
+      } catch ADOError.notFound {
+        // The search extension is not installed: use WIQL from now on.
         fullTextAvailable = false
+      } catch ADOError.server(status: 400), ADOError.unauthorized {
+        // The query or the token was rejected, which says nothing about search being installed:
+        // WIQL for this query only.
       }
     }
     let escaped = text.replacingOccurrences(of: "'", with: "''")

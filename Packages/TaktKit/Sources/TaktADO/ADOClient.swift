@@ -141,7 +141,7 @@ public struct ADOClient: Sendable {
       do {
         return try JSONDecoder.ado.decode(Response.self, from: data)
       } catch {
-        logger.error("Unexpected response: \(String(describing: error), privacy: .public)")
+        logger.error("Unexpected response: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
         throw ADOError.invalidResponse
       }
 

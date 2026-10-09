@@ -458,7 +458,7 @@ public final class MainWindowModel {
   }
 
   func show(_ error: any Error) {
-    logger.error("Edit failed: \(String(describing: error), privacy: .public)")
+    logger.error("Edit failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage =
       switch error {
       case TimerStoreError.conflict:
