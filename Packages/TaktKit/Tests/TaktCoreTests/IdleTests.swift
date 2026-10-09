@@ -86,6 +86,19 @@ struct IdleTests {
     #expect(await segments(of: id).filter(\.isOpen).count == 1)
   }
 
+  @Test(arguments: [IdleDecision.keep, .discard])
+  func entriesResumedAndPausedAgainInTheMeantimeStayPaused(decision: IdleDecision) async throws {
+    let (id, event) = try await awayScenario()
+    try await engine.resume(id, mode: .switchTo)
+    clock.advance(seconds: 300)
+    try await engine.pause(id)
+    let before = await segments(of: id)
+
+    try await engine.resolveIdle(event.id, decision)
+
+    #expect(await segments(of: id) == before)
+  }
+
   @Test
   func resolvingTwiceFails() async throws {
     let (_, event) = try await awayScenario()

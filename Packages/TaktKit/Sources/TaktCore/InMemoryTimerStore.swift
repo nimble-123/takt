@@ -59,6 +59,7 @@ public struct TimerTables: Hashable, Sendable {
         entry: entry,
         openSegment: segments.first(where: \.isOpen),
         closedDuration: closed.reduce(0, +),
+        lastEnd: segments.compactMap(\.end).max(),
       )
     }
     let openPause = globalPauses.values

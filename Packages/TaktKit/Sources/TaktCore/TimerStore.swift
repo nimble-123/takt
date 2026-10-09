@@ -7,10 +7,11 @@ public struct ActiveEntry: Hashable, Sendable {
 
   // MARK: Lifecycle
 
-  public init(entry: TimeEntry, openSegment: Segment?, closedDuration: TimeInterval) {
+  public init(entry: TimeEntry, openSegment: Segment?, closedDuration: TimeInterval, lastEnd: Timestamp? = nil) {
     self.entry = entry
     self.openSegment = openSegment
     self.closedDuration = closedDuration
+    self.lastEnd = lastEnd
   }
 
   // MARK: Public
@@ -20,6 +21,8 @@ public struct ActiveEntry: Hashable, Sendable {
   public var openSegment: Segment?
   /// Sum of all closed segments of the entry.
   public var closedDuration: TimeInterval
+  /// End of the latest closed segment, i.e. when a paused entry was paused.
+  public var lastEnd: Timestamp?
 
   public var id: EntryID {
     entry.id
