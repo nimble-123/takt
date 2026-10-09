@@ -41,6 +41,7 @@ public final class MainWindowModel {
     self.clock = clock
     self.calendar = calendar
     day = clock.now()
+    loadTimeline = { [queries] range, now in try await queries.timeline(in: range, now: now) }
   }
 
   // MARK: Public
@@ -198,18 +199,21 @@ public final class MainWindowModel {
   }
 
   public func reload() async {
-    // Reloads overlap when the day or section changes; a result for a range no longer shown is
-    // dropped, the reload for the new range sets the data.
+    // Reloads overlap: after edits, timer updates and changes of the day or section. Only the
+    // latest one sets the data, so an older result arriving late cannot overwrite a newer one,
+    // and a result for a range no longer shown is dropped.
+    reloadGeneration += 1
+    let generation = reloadGeneration
     let range = shownRange
     do {
-      let loaded = try await queries.timeline(in: range, now: clock.now())
+      let loaded = try await loadTimeline(range, clock.now())
       let links = loaded.entries.contains { $0.entry.workItemLinkID != nil } ? try await queries.workItemLinks() : nil
-      guard range == shownRange else { return }
+      guard generation == reloadGeneration, range == shownRange else { return }
       data = loaded
       if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
     } catch {
-      guard range == shownRange else { return }
+      guard generation == reloadGeneration, range == shownRange else { return }
       show(error)
     }
   }
@@ -393,10 +397,14 @@ public final class MainWindowModel {
   }
 
   /// Title, note, counting mode or weight for one or many entries (HW-04 bulk edit).
-  public func update(_ ids: Set<EntryID>, name: String, _ edit: (inout TimeEntry) -> Void) async {
-    let now = clock.now()
-    let changes = ids.compactMap(entry).flatMap { EntryEdits.update($0.entry, now: now, edit) }
-    await apply(changes, name: name)
+  /// Edits run one after another, each on the data the previous one reloaded: two quick edits of
+  /// the same entry (e.g. a title committed on blur and a picker) would otherwise conflict.
+  public func update(_ ids: Set<EntryID>, name: String, _ edit: @escaping (inout TimeEntry) -> Void) async {
+    await serialized { [self] in
+      let now = clock.now()
+      let changes = ids.compactMap(entry).flatMap { EntryEdits.update($0.entry, now: now, edit) }
+      await apply(changes, name: name)
+    }
   }
 
   // MARK: Internal
@@ -406,6 +414,9 @@ public final class MainWindowModel {
 
   let clock: any TaktClock
   let calendar: Calendar
+
+  /// Reads the timeline of a range; tests replace it to decide when a reload answers.
+  @ObservationIgnored var loadTimeline: @Sendable (Range<Timestamp>, Timestamp) async throws -> TimelineData
 
   /// The running search; tests await it.
   @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
@@ -448,6 +459,10 @@ public final class MainWindowModel {
   private var entriesByID = [EntryID: EntryWithSegments]()
   @ObservationIgnored private var layoutCache = [Range<Timestamp>: (now: Timestamp, layout: TimelineLayout)]()
   @ObservationIgnored private var hasOpenSegment = false
+  /// Counts reloads; see `reload()`.
+  @ObservationIgnored private var reloadGeneration = 0
+  /// The last edit of `update`; the next one waits for it.
+  @ObservationIgnored private var lastEdit: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
 
@@ -460,6 +475,16 @@ public final class MainWindowModel {
     } catch {
       show(error)
     }
+  }
+
+  private func serialized(_ body: @escaping @MainActor () async -> Void) async {
+    let previous = lastEdit
+    let task = Task { @MainActor in
+      await previous?.value
+      await body()
+    }
+    lastEdit = task
+    await task.value
   }
 
   private func dataDidChange() {

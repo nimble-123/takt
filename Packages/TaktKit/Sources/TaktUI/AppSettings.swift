@@ -6,6 +6,8 @@ import TaktAnalytics
 import TaktCore
 import TaktSystem
 
+// MARK: - AppSettings
+
 /// User settings in `UserDefaults`. A configuration profile (MDM) can force values; those are
 /// read-only in the UI (TECHNICAL_CONCEPT "Verwaltete Einstellungen").
 @Observable
@@ -16,28 +18,29 @@ public final class AppSettings {
   public init(defaults: UserDefaults = .standard, isForced: ((String) -> Bool)? = nil) {
     self.defaults = defaults
     self.isForced = isForced ?? { defaults.objectIsForced(forKey: $0) }
+    let stored = Stored(defaults)
     let snapshot = Snapshot(
-      idleThresholdMinutes: max(1, defaults.object(forKey: Key.idleThresholdMinutes.rawValue) as? Int ?? 10),
-      lockCountsAsPause: defaults.bool(forKey: Key.lockCountsAsPause.rawValue),
-      reduceRemainingWork: defaults.object(forKey: Key.reduceRemainingWork.rawValue) as? Bool ?? true,
-      bookingIncludesNote: defaults.object(forKey: Key.bookingIncludesNote.rawValue) as? Bool ?? true,
-      gitFolders: defaults.stringArray(forKey: Key.gitFolders.rawValue) ?? [],
+      idleThresholdMinutes: stored.idleThresholdMinutes,
+      lockCountsAsPause: stored.lockCountsAsPause,
+      reduceRemainingWork: stored.reduceRemainingWork,
+      bookingIncludesNote: stored.bookingIncludesNote,
+      gitFolders: stored.gitFolders,
     )
     snapshotLock = OSAllocatedUnfairLock(initialState: snapshot)
-    startMode = defaults.string(forKey: Key.startMode.rawValue) == "parallel" ? .parallel : .switchTo
-    countingMode = defaults.string(forKey: Key.countingMode.rawValue).flatMap(CountingMode.init) ?? .split
-    idleThresholdMinutes = snapshot.idleThresholdMinutes
-    lockCountsAsPause = snapshot.lockCountsAsPause
-    roundingMinutes = max(0, defaults.integer(forKey: Key.roundingMinutes.rawValue))
-    bookingMode = defaults.string(forKey: Key.bookingMode.rawValue).flatMap(BookingMode.init) ?? .review
-    dailyGoalHours = defaults.object(forKey: Key.dailyGoalHours.rawValue) as? Double ?? 8
-    showElapsedInMenuBar = defaults.object(forKey: Key.showElapsedInMenuBar.rawValue) as? Bool ?? true
-    onboardingCompleted = defaults.bool(forKey: Key.onboardingCompleted.rawValue)
-    reduceRemainingWork = snapshot.reduceRemainingWork
-    bookingIncludesNote = snapshot.bookingIncludesNote
-    weeklyHours = defaults.object(forKey: Key.weeklyHours.rawValue) as? Double ?? 40
-    workDays = Set(defaults.array(forKey: Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
-    gitFolders = snapshot.gitFolders
+    startMode = stored.startMode
+    countingMode = stored.countingMode
+    idleThresholdMinutes = stored.idleThresholdMinutes
+    lockCountsAsPause = stored.lockCountsAsPause
+    roundingMinutes = stored.roundingMinutes
+    bookingMode = stored.bookingMode
+    dailyGoalHours = stored.dailyGoalHours
+    showElapsedInMenuBar = stored.showElapsedInMenuBar
+    onboardingCompleted = stored.onboardingCompleted
+    reduceRemainingWork = stored.reduceRemainingWork
+    bookingIncludesNote = stored.bookingIncludesNote
+    weeklyHours = stored.weeklyHours
+    workDays = stored.workDays
+    gitFolders = stored.gitFolders
   }
 
   // MARK: Public
@@ -123,8 +126,9 @@ public final class AppSettings {
   /// MB-08; kept at 0.1 h steps within `dailyGoalRange`, e.g. 7.6 h for a 38-hour week.
   public var dailyGoalHours: Double {
     didSet {
+      // A profile's value is kept as it is, e.g. 7.75 h.
       let hours = Self.hours(dailyGoalHours, in: Self.dailyGoalRange)
-      if hours != dailyGoalHours { dailyGoalHours = hours }
+      if hours != dailyGoalHours, !isLocked(.dailyGoalHours) { dailyGoalHours = hours }
       write(.dailyGoalHours, dailyGoalHours)
     }
   }
@@ -141,7 +145,7 @@ public final class AppSettings {
   public var weeklyHours: Double {
     didSet {
       let hours = Self.hours(weeklyHours, in: Self.weeklyHoursRange)
-      if hours != weeklyHours { weeklyHours = hours }
+      if hours != weeklyHours, !isLocked(.weeklyHours) { weeklyHours = hours }
       write(.weeklyHours, weeklyHours)
     }
   }
@@ -210,6 +214,13 @@ public final class AppSettings {
   @ObservationIgnored private nonisolated let snapshotLock: OSAllocatedUnfairLock<Snapshot>
 
   private func write(_ key: Key, _ value: Any) {
+    // A value set by a configuration profile wins, also for controls that do not check
+    // `isLocked`, e.g. in the onboarding (#147).
+    if isLocked(key) {
+      restoreManagedValue(key)
+    } else {
+      defaults.set(value, forKey: key.rawValue)
+    }
     let snapshot = Snapshot(
       idleThresholdMinutes: idleThresholdMinutes,
       lockCountsAsPause: lockCountsAsPause,
@@ -218,7 +229,76 @@ public final class AppSettings {
       gitFolders: gitFolders,
     )
     snapshotLock.withLock { $0 = snapshot }
-    guard !isLocked(key) else { return }
-    defaults.set(value, forKey: key.rawValue)
   }
+
+  /// Sets the property of a locked key back to the profile's value. Assigns only on a difference:
+  /// the assignment calls `write` again, which then finds the values equal and stops.
+  private func restoreManagedValue(_ key: Key) {
+    let stored = Stored(defaults)
+    switch key {
+    case .startMode: if startMode != stored.startMode { startMode = stored.startMode }
+    case .countingMode: if countingMode != stored.countingMode { countingMode = stored.countingMode }
+    case .idleThresholdMinutes:
+      if idleThresholdMinutes != stored.idleThresholdMinutes { idleThresholdMinutes = stored.idleThresholdMinutes }
+    case .lockCountsAsPause:
+      if lockCountsAsPause != stored.lockCountsAsPause { lockCountsAsPause = stored.lockCountsAsPause }
+    case .roundingMinutes: if roundingMinutes != stored.roundingMinutes { roundingMinutes = stored.roundingMinutes }
+    case .bookingMode: if bookingMode != stored.bookingMode { bookingMode = stored.bookingMode }
+    case .dailyGoalHours: if dailyGoalHours != stored.dailyGoalHours { dailyGoalHours = stored.dailyGoalHours }
+    case .showElapsedInMenuBar:
+      if showElapsedInMenuBar != stored.showElapsedInMenuBar { showElapsedInMenuBar = stored.showElapsedInMenuBar }
+    case .onboardingCompleted:
+      if onboardingCompleted != stored.onboardingCompleted { onboardingCompleted = stored.onboardingCompleted }
+    case .reduceRemainingWork:
+      if reduceRemainingWork != stored.reduceRemainingWork { reduceRemainingWork = stored.reduceRemainingWork }
+    case .bookingIncludesNote:
+      if bookingIncludesNote != stored.bookingIncludesNote { bookingIncludesNote = stored.bookingIncludesNote }
+    case .weeklyHours: if weeklyHours != stored.weeklyHours { weeklyHours = stored.weeklyHours }
+    case .workDays: if workDays != stored.workDays { workDays = stored.workDays }
+    case .gitFolders: if gitFolders != stored.gitFolders { gitFolders = stored.gitFolders }
+    }
+  }
+}
+
+// MARK: - Stored
+
+/// The values as `UserDefaults` holds them, with a profile's values taking precedence.
+private struct Stored {
+
+  // MARK: Lifecycle
+
+  init(_ defaults: UserDefaults) {
+    startMode = defaults.string(forKey: AppSettings.Key.startMode.rawValue) == "parallel" ? .parallel : .switchTo
+    countingMode = defaults.string(forKey: AppSettings.Key.countingMode.rawValue).flatMap(CountingMode.init) ?? .split
+    idleThresholdMinutes = max(1, defaults.object(forKey: AppSettings.Key.idleThresholdMinutes.rawValue) as? Int ?? 10)
+    lockCountsAsPause = defaults.bool(forKey: AppSettings.Key.lockCountsAsPause.rawValue)
+    roundingMinutes = max(0, defaults.integer(forKey: AppSettings.Key.roundingMinutes.rawValue))
+    bookingMode = defaults.string(forKey: AppSettings.Key.bookingMode.rawValue)
+      .flatMap(AppSettings.BookingMode.init) ?? .review
+    dailyGoalHours = defaults.object(forKey: AppSettings.Key.dailyGoalHours.rawValue) as? Double ?? 8
+    showElapsedInMenuBar = defaults.object(forKey: AppSettings.Key.showElapsedInMenuBar.rawValue) as? Bool ?? true
+    onboardingCompleted = defaults.bool(forKey: AppSettings.Key.onboardingCompleted.rawValue)
+    reduceRemainingWork = defaults.object(forKey: AppSettings.Key.reduceRemainingWork.rawValue) as? Bool ?? true
+    bookingIncludesNote = defaults.object(forKey: AppSettings.Key.bookingIncludesNote.rawValue) as? Bool ?? true
+    weeklyHours = defaults.object(forKey: AppSettings.Key.weeklyHours.rawValue) as? Double ?? 40
+    workDays = Set(defaults.array(forKey: AppSettings.Key.workDays.rawValue) as? [Int] ?? [1, 2, 3, 4, 5])
+    gitFolders = defaults.stringArray(forKey: AppSettings.Key.gitFolders.rawValue) ?? []
+  }
+
+  // MARK: Internal
+
+  let startMode: TimerEngine.StartMode
+  let countingMode: CountingMode
+  let idleThresholdMinutes: Int
+  let lockCountsAsPause: Bool
+  let roundingMinutes: Int
+  let bookingMode: AppSettings.BookingMode
+  let dailyGoalHours: Double
+  let showElapsedInMenuBar: Bool
+  let onboardingCompleted: Bool
+  let reduceRemainingWork: Bool
+  let bookingIncludesNote: Bool
+  let weeklyHours: Double
+  let workDays: Set<Int>
+  let gitFolders: [String]
 }
