@@ -37,6 +37,14 @@ public struct DatabaseBackup: Sendable {
     return url
   }
 
+  /// `backupIfNeeded` on the concurrent pool, so the main actor stays responsive while the
+  /// database is copied.
+  @concurrent
+  @discardableResult
+  public func backupIfNeededInBackground(_ database: AppDatabase, now: Timestamp) async throws -> URL? {
+    try backupIfNeeded(database, now: now)
+  }
+
   /// Backups, oldest first.
   public func backups() throws -> [URL] {
     try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)

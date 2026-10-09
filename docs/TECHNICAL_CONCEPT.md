@@ -249,7 +249,7 @@ Ein `TimerChange` beschreibt genau eine Zeile als Paar aus altem und neuem Stand
 
 **Undo.** Jeder Befehl liefert ein `CommandResult` mit Wert und Umkehrung (`TimerUndo`: die vertauschten Änderungen in umgekehrter Reihenfolge), die der `UndoManager` des Fensters bzw. der Undo-Stapel des Popovers aufnimmt. Im Hauptfenster registriert `EngineUndo` jede Änderung beim `UndoManager` des Fensters (Bearbeiten-Menü, ⌘Z/⇧⌘Z); weil die Engine asynchron arbeitet, registriert jeder Undo-Handler die Gegenrichtung sofort mit dem noch ausstehenden Ergebnis. Das Popover führt einen eigenen Stapel, weil die Befehle asynchron laufen und ein `UndoManager` das Redo nur synchron registrieren kann; mehrere Befehle einer Aktion („Alle stoppen“) werden zu einem Undo zusammengefasst. Wurde eine betroffene Zeile inzwischen anders geändert, schlägt das Undo mit einem Konflikt fehl, statt neuere Daten zu überschreiben. Damit funktionieren „Rückgängig ⌘Z“ im Toast und in der Timeline gleich.
 
-**Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting` (Schlüssel `engine.heartbeat`, UTC-Millisekunden); die App ruft dazu `TimerEngine.heartbeat()` auf und beim Start einmal `recoverAfterLaunch(idleThreshold:)`. Findet sie beim Start offene Segmente und liegt der letzte Heartbeat länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente beim Heartbeat und erzeugt ein `idle_event`. Der Nutzer entscheidet dann im Inaktivitätsdialog.
+**Absturz und Neustart.** Die Engine schreibt jede Minute einen Heartbeat in `setting` (Schlüssel `engine.heartbeat`, UTC-Millisekunden); die App ruft dazu `TimerEngine.heartbeat()` in einer eigenen Schleife auf, getrennt von Backup, Warteschlange und anderen Hintergrundarbeiten, damit diese ihn weder verzögern noch per Fehler überspringen, und beim Start einmal `recoverAfterLaunch(idleThreshold:)`. Findet sie beim Start offene Segmente und liegt der letzte Heartbeat länger zurück als die Inaktivitätsschwelle, schließt sie die Segmente beim Heartbeat und erzeugt ein `idle_event`. Der Nutzer entscheidet dann im Inaktivitätsdialog.
 
 **Anzeige ohne Dauer-Polling.** Die Engine sendet nur Zustandswechsel. Die Laufzeit rechnet die UI aus abgeschlossener Dauer plus Startzeit des offenen Segments: im sichtbaren Popover per `TimelineView` sekündlich, in der Menüleiste einmal pro Minute, ausgerichtet auf die Minutengrenze.
 
@@ -426,7 +426,7 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
 
 Takt hat keine eigene Server-Komponente; das schützenswerte Gut sind die lokale Datenbank und die ADO-Tokens.
 
-- **Daten:** Datenbank in `~/Library/Application Support/Takt/`, geschützt durch FileVault. Tägliches Backup per SQLite-Backup-API, 14 Generationen (`takt-YYYY-MM-DD.sqlite`, lokaler Tag).
+- **Daten:** Datenbank in `~/Library/Application Support/Takt/`, geschützt durch FileVault. Tägliches Backup per SQLite-Backup-API außerhalb des Main Actors, 14 Generationen (`takt-YYYY-MM-DD.sqlite`, lokaler Tag).
 - **Export/Import:** JSON mit allen Tabellen als Zeilen mit Rohwerten und der Liste der angewandten Migrationen. Neue Tabellen und Spalten sind ohne Zusatzcode abgedeckt. Der Import ersetzt alle Daten in einer Transaktion, prüft Fremdschlüssel beim Commit und lehnt Archive eines neueren Schemas ab.
 - **Geheimnisse:** Tokens und PAT nur im Schlüsselbund, nie in Datei, Log oder Export.
 - **Netzwerk:** nur HTTPS zu `dev.azure.com` (und in Phase 3 zu `graph.microsoft.com`). Keine Telemetrie.

@@ -120,7 +120,9 @@ final class Composition {
         tasks.append(Task { await sendQueueWhenOnline() })
         tasks.append(Task { await menuBar.run() })
         tasks.append(Task { await mainWindow.run() })
+        tasks.append(Task { await writeHeartbeats() })
         tasks.append(Task { await runChores() })
+        tasks.append(Task { await sendQueueRegularly() })
         tasks.append(Task { await idleMonitor.run() })
         tasks.append(Task { await forwardIdleReturns() })
       }
@@ -141,20 +143,46 @@ final class Composition {
     }
   }
 
-  /// Once a minute: heartbeat, daily backup, today's total, long-runner warning.
-  private func runChores() async {
+  /// TM-07: once a minute, in a loop of its own, so a slow backup or network never delays it and
+  /// a failed chore never skips it; recovery after a crash closes timers at the last heartbeat.
+  private func writeHeartbeats() async {
     while !Task.isCancelled {
       do {
         try await engine.heartbeat()
-        try backup.backupIfNeeded(database, now: clock.now())
-        await warnAboutLongRunners(try await engine.snapshot())
-        await remindAboutExpiringTokens()
-        if booking.pendingCount > 0 { await booking.processPending() }
       } catch {
-        logger.error("Background chore failed: \(String(describing: error), privacy: .public)")
+        logger.error("Heartbeat failed: \(String(describing: error), privacy: .private)")
       }
+      try? await Task.sleep(for: .seconds(60))
+    }
+  }
+
+  /// Once a minute: daily backup, long-runner warning, token reminder, today's total. Each chore
+  /// on its own, so one failing does not skip the others.
+  private func runChores() async {
+    while !Task.isCancelled {
+      do {
+        // Copying the database takes a while: off the main actor.
+        try await backup.backupIfNeededInBackground(database, now: clock.now())
+      } catch {
+        logger.error("Daily backup failed: \(String(describing: error), privacy: .private)")
+      }
+      do {
+        await warnAboutLongRunners(try await engine.snapshot())
+      } catch {
+        logger.error("Long-runner check failed: \(String(describing: error), privacy: .private)")
+      }
+      await remindAboutExpiringTokens()
       await menuBar.refresh()
       try? await Task.sleep(for: .seconds(60))
+    }
+  }
+
+  /// DO-26: once a minute, if bookings wait; the queue keeps its backoff. Network calls, so they
+  /// run apart from the other chores.
+  private func sendQueueRegularly() async {
+    while !Task.isCancelled {
+      try? await Task.sleep(for: .seconds(60))
+      if booking.pendingCount > 0 { await booking.processPending() }
     }
   }
 

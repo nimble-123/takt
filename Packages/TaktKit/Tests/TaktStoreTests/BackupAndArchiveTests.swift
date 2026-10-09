@@ -31,6 +31,19 @@ struct DatabaseBackupTests {
   }
 
   @Test
+  @MainActor
+  func backupFromTheMainActorRunsInTheBackground() async throws {
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let backup = DatabaseBackup(directory: directory, timeZone: TimeZone(identifier: "Europe/Berlin") ?? .gmt)
+    let now = Timestamp(milliseconds: 1_790_000_000_000)
+
+    let url = try await backup.backupIfNeededInBackground(try AppDatabase.inMemory(), now: now)
+
+    #expect(url?.lastPathComponent == "takt-2026-09-21.sqlite")
+    #expect(try await backup.backupIfNeededInBackground(try AppDatabase.inMemory(), now: now) == nil)
+  }
+
+  @Test
   func backupContainsTheData() async throws {
     defer { try? FileManager.default.removeItem(at: directory) }
     let database = try AppDatabase.inMemory()
