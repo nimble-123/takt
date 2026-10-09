@@ -3031,6 +3031,16 @@
         }
       }
     },
+    "The times of an entry cannot overlap.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Zeiten eines Eintrags dürfen sich nicht überschneiden."
+          }
+        }
+      }
+    },
     "The work item is unknown.": {
       "localizations": {
         "de": {

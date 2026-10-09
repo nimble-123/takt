@@ -46,7 +46,7 @@ struct EntryEditsTests {
     let before = await store.tables
     let segment = try #require(await segments(of: entry.id).first)
 
-    let undo = try await engine.apply(try EntryEdits.move(segment, by: 15 * 60, now: t(600))).undo
+    let undo = try await engine.apply(try EntryEdits.move(segment, by: 15 * 60, among: [segment], now: t(600))).undo
     let moved = try #require(await segments(of: entry.id).first)
     #expect(moved.start == t(75) && moved.end == t(135))
 
@@ -57,10 +57,63 @@ struct EntryEditsTests {
   @Test
   func runningSegmentOnlyMovesItsStart() throws {
     let segment = Segment(entryID: EntryID(), start: t(60))
-    let changes = try EntryEdits.setBounds(of: segment, start: t(30), end: t(90), now: t(100))
+    let changes = try EntryEdits.setBounds(of: segment, start: t(30), end: t(90), among: [segment], now: t(100))
     var moved = segment
     moved.start = t(30)
     #expect(changes == [.segment(before: segment, after: moved)])
+  }
+
+  @Test
+  func setBoundsRejectsOverlapWithAnotherSegment() {
+    let entry = EntryID()
+    let first = Segment(entryID: entry, start: t(0), end: t(30))
+    let second = Segment(entryID: entry, start: t(45), end: t(60))
+    let all = [first, second]
+
+    #expect(throws: EntryEdits.EditError.overlapsSegment) {
+      try EntryEdits.setBounds(of: second, start: t(20), end: t(60), among: all, now: t(100))
+    }
+    #expect(throws: EntryEdits.EditError.overlapsSegment) {
+      try EntryEdits.move(first, by: 40 * 60, among: all, now: t(100))
+    }
+    // Touching is fine.
+    #expect(throws: Never.self) {
+      try EntryEdits.setBounds(of: second, start: t(30), end: t(60), among: all, now: t(100))
+    }
+  }
+
+  @Test
+  func setBoundsRejectsOverlapWithTheOpenSegment() {
+    let entry = EntryID()
+    let closed = Segment(entryID: entry, start: t(0), end: t(30))
+    let open = Segment(entryID: entry, start: t(45))
+
+    #expect(throws: EntryEdits.EditError.overlapsSegment) {
+      try EntryEdits.setBounds(of: open, start: t(20), end: nil, among: [closed, open], now: t(100))
+    }
+    #expect(throws: EntryEdits.EditError.overlapsSegment) {
+      try EntryEdits.setBounds(of: closed, start: t(0), end: t(50), among: [closed, open], now: t(100))
+    }
+  }
+
+  @Test
+  func setBoundsWithoutEndRejectsClosedSegment() {
+    let segment = Segment(entryID: EntryID(), start: t(0), end: t(30))
+    #expect(throws: EntryEdits.EditError.invalidRange) {
+      try EntryEdits.setBounds(of: segment, start: t(0), end: nil, among: [segment], now: t(100))
+    }
+  }
+
+  @Test
+  func closeGapRejectsSegmentInTheGap() {
+    let entry = EntryID()
+    let first = Segment(entryID: entry, start: t(0), end: t(30))
+    let middle = Segment(entryID: entry, start: t(40), end: t(50))
+    let last = Segment(entryID: entry, start: t(60), end: t(90))
+
+    #expect(throws: EntryEdits.EditError.overlapsSegment) {
+      try EntryEdits.closeGap(between: first, and: last, among: [first, middle, last])
+    }
   }
 
   @Test
@@ -71,10 +124,10 @@ struct EntryEditsTests {
     let earlier = Segment(entryID: entry, start: t(-30), end: t(-10))
     let open = Segment(entryID: entry, start: t(0))
 
-    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: other) }
-    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: earlier) }
+    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: other, among: []) }
+    #expect(throws: EntryEdits.EditError.invalidRange) { try EntryEdits.closeGap(between: first, and: earlier, among: []) }
     #expect(throws: EntryEdits.EditError.invalidRange) {
-      try EntryEdits.closeGap(between: open, and: Segment(entryID: entry, start: t(45), end: t(60)))
+      try EntryEdits.closeGap(between: open, and: Segment(entryID: entry, start: t(45), end: t(60)), among: [])
     }
   }
 
@@ -89,7 +142,7 @@ struct EntryEditsTests {
       .segment(before: nil, after: second),
     ])
 
-    try await engine.apply(try EntryEdits.closeGap(between: first, and: second))
+    try await engine.apply(try EntryEdits.closeGap(between: first, and: second, among: [first, second]))
 
     let segments = await segments(of: entry.id)
     #expect(segments.count == 1)
