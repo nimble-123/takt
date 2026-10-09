@@ -98,6 +98,10 @@ struct DayCloseScreen: View {
     .task(id: model.dayRange.lowerBound) {
       await dayClose.load(model.dayRange)
     }
+    // Entries edited here (inspector) change the amounts to book.
+    .onChange(of: model.data) {
+      Task { await dayClose.reload() }
+    }
   }
 
   static func hours(_ seconds: Int, signed: Bool = false) -> String {
