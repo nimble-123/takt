@@ -333,6 +333,13 @@ public final class MainWindowModel {
     }
   }
 
+  /// ⌫ / Edit › Delete: only where the selected entries are on screen, never on Projects,
+  /// Analytics or Settings, where the selection is invisible.
+  public func deleteSelection() async {
+    guard hasInspector else { return }
+    await delete(selection)
+  }
+
   public func delete(_ ids: Set<EntryID>) async {
     let now = clock.now()
     let changes = ids.compactMap(entry).flatMap {

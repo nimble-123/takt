@@ -122,6 +122,28 @@ struct MainWindowModelTests {
     #expect(model.selection.isEmpty)
   }
 
+  @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
+  func deleteKeyLeavesEntriesAloneOnScreensWithoutThem(section: MainWindowModel.Section) async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(8)))
+    model.selection = [id]
+    model.section = section
+
+    await model.deleteSelection()
+
+    #expect(model.data.entries.map(\.id) == [id])
+  }
+
+  @Test
+  func deleteKeyRemovesTheSelectionOnEntryScreens() async throws {
+    let id = try #require(await model.createEntry(from: at(7), to: at(8)))
+    model.selection = [id]
+    model.section = .week
+
+    await model.deleteSelection()
+
+    #expect(model.data.entries.isEmpty)
+  }
+
   @Test
   func bulkCountingModeChangesAllSelected() async throws {
     let a = try #require(await model.createEntry(from: at(7), to: at(8)))

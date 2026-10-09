@@ -97,7 +97,7 @@ public struct MainWindowView: View {
       }
     }
     .onDeleteCommand {
-      Task { await model.delete(model.selection) }
+      Task { await model.deleteSelection() }
     }
     .onAppear { model.undoManager = undoManager }
     .onChange(of: undoManager) { model.undoManager = undoManager }
