@@ -61,11 +61,14 @@ public enum EntryEdits {
   }
 
   /// Splits an entry at `time`: everything after it moves to a new entry with the same settings
-  /// and state; the original is stopped. A segment containing `time` is cut in two.
+  /// and state; the original is stopped. A segment containing `time` is cut in two. The new entry
+  /// takes the original's place in `timer`'s open global pause and pending idle events, so
+  /// "Resume all" and the idle decision still reach it. Tags are not timer rows; the caller copies them.
   public static func split(
     _ entry: TimeEntry,
     segments: [Segment],
     at time: Timestamp,
+    timer: TimerSnapshot,
     now: Timestamp,
   ) throws -> (newEntry: TimeEntry, changes: [TimerChange]) {
     let tracked = segments.filter { $0.start < time }
@@ -99,6 +102,17 @@ public enum EntryEdits {
         changes.append(.segment(before: segment, after: moved))
       }
     }
+    let replace = { (ids: [EntryID]) in ids.map { $0 == entry.id ? newEntry.id : $0 } }
+    if let pause = timer.globalPause, pause.entryIDs.contains(entry.id) {
+      var moved = pause
+      moved.entryIDs = replace(pause.entryIDs)
+      changes.append(.globalPause(before: pause, after: moved))
+    }
+    for event in timer.pendingIdleEvents where event.entryIDs.contains(entry.id) {
+      var moved = event
+      moved.entryIDs = replace(event.entryIDs)
+      changes.append(.idleEvent(before: event, after: moved))
+    }
     return (newEntry, changes)
   }
 
@@ -126,7 +140,7 @@ public enum EntryEdits {
   public static func update(_ entry: TimeEntry, now: Timestamp, _ edit: (inout TimeEntry) -> Void) -> [TimerChange] {
     var edited = entry
     edit(&edited)
-    if edited.weight <= 0 { edited.weight = entry.weight }
+    if !(edited.weight > 0 && edited.weight.isFinite) { edited.weight = entry.weight }
     guard edited != entry else { return [] }
     edited.updatedAt = now
     return [.entry(before: entry, after: edited)]

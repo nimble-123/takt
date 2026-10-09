@@ -107,7 +107,13 @@ struct EntryEditsTests {
       .segment(before: nil, after: second),
     ])
 
-    let (newEntry, changes) = try EntryEdits.split(entry, segments: [first, second], at: t(70), now: t(200))
+    let (newEntry, changes) = try EntryEdits.split(
+      entry,
+      segments: [first, second],
+      at: t(70),
+      timer: TimerSnapshot(),
+      now: t(200),
+    )
     try await engine.apply(changes)
 
     #expect(newEntry.title == "A" && newEntry.countingMode == .full && newEntry.weight == 2)
@@ -123,7 +129,13 @@ struct EntryEditsTests {
     clock.set(t(60))
     let entry = try #require(await store.tables.entries[id])
 
-    let (newEntry, changes) = try EntryEdits.split(entry, segments: await segments(of: id), at: t(30), now: t(60))
+    let (newEntry, changes) = try EntryEdits.split(
+      entry,
+      segments: await segments(of: id),
+      at: t(30),
+      timer: await store.snapshot(),
+      now: t(60),
+    )
     try await engine.apply(changes)
 
     let snapshot = await store.snapshot()
@@ -133,11 +145,32 @@ struct EntryEditsTests {
   }
 
   @Test
+  func splitHandsTheLaterPartThePlaceInPauseAndIdleEvent() async throws {
+    clock.set(t(0))
+    let id = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.set(t(60))
+    let event = try #require(try await engine.recordIdle(from: t(50), to: t(60)))
+    let entry = try #require(await store.tables.entries[id])
+    let timer = await store.snapshot()
+
+    let (newEntry, changes) = try EntryEdits.split(
+      entry,
+      segments: await segments(of: id),
+      at: t(30),
+      timer: timer,
+      now: t(60),
+    )
+    try await engine.apply(changes)
+
+    #expect(await store.tables.idleEvents[event.id]?.entryIDs == [newEntry.id])
+  }
+
+  @Test
   func splitOutsideTheEntryFails() {
     let entry = TimeEntry(title: "A", createdAt: t(0), updatedAt: t(0))
     let segment = Segment(entryID: entry.id, start: t(0), end: t(30))
     #expect(throws: EntryEdits.EditError.splitOutsideEntry) {
-      try EntryEdits.split(entry, segments: [segment], at: t(45), now: t(100))
+      try EntryEdits.split(entry, segments: [segment], at: t(45), timer: TimerSnapshot(), now: t(100))
     }
   }
 
@@ -161,6 +194,13 @@ struct EntryEditsTests {
     #expect(EntryEdits.update(entry, now: t(1)) { $0.title = "A" }.isEmpty)
     #expect(EntryEdits.update(entry, now: t(1)) { $0.weight = 0 }.isEmpty)
     #expect(EntryEdits.update(entry, now: t(1)) { $0.weight = 0.7 }.count == 1)
+  }
+
+  @Test
+  func updateIgnoresNaNAndInfiniteWeight() {
+    let entry = TimeEntry(title: "A", createdAt: t(0), updatedAt: t(0))
+    #expect(EntryEdits.update(entry, now: t(1)) { $0.weight = .nan }.isEmpty)
+    #expect(EntryEdits.update(entry, now: t(1)) { $0.weight = .infinity }.isEmpty)
   }
 
   // MARK: Private

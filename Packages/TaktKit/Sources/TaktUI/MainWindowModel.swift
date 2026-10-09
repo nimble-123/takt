@@ -321,14 +321,24 @@ public final class MainWindowModel {
     await apply(changes, name: String(localized: "Convert Pause to Work", bundle: .module))
   }
 
+  /// The later part keeps the tags and the place of the original in an open pause or idle event.
   public func split(_ id: EntryID, at time: Timestamp) async {
+    guard let entry = entry(id) else { return }
+    let timer: TimerSnapshot
+    do {
+      timer = try await engine.snapshot()
+    } catch {
+      show(error)
+      return
+    }
     guard
-      let entry = entry(id),
       let split = attempt({
-        try EntryEdits.split(entry.entry, segments: entry.segments, at: time, now: clock.now())
+        try EntryEdits.split(entry.entry, segments: entry.segments, at: time, timer: timer, now: clock.now())
       })
     else { return }
+    let tags = await catalog.tags(of: [id])[id] ?? []
     if await apply(split.changes, name: String(localized: "Split Entry", bundle: .module)) {
+      if !tags.isEmpty { await catalog.setTags(named: tags.map(\.name), on: [split.newEntry.id]) }
       selection = [split.newEntry.id]
     }
   }

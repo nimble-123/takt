@@ -131,6 +131,14 @@ struct GRDBTimerStoreTests {
   }
 
   @Test
+  func nanWeightIsAnInvalidValueLikeInMemory() async throws {
+    await #expect(throws: TimerStoreError.invalidValue) {
+      try await engine.start(EntryDraft(title: "A", weight: .nan), mode: .switchTo)
+    }
+    #expect(try await store.snapshot().entries.isEmpty)
+  }
+
+  @Test
   func segmentEndingAtItsStartIsAnInvalidValueLikeInMemory() async throws {
     let entry = TimeEntry(title: "A", createdAt: clock.now(), updatedAt: clock.now())
     let empty = Segment(entryID: entry.id, start: clock.now(), end: clock.now())

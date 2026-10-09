@@ -117,6 +117,45 @@ struct IdleTests {
     #expect(await store.tables == before)
   }
 
+  @Test
+  func recoveryStartsAtTheLastSignOfLife() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    try await engine.heartbeat()
+    clock.advance(seconds: 30)
+    // Started after the last heartbeat, shortly before the app was gone.
+    let b = try await engine.start(EntryDraft(title: "B"), mode: .parallel).value
+    let started = clock.now()
+    clock.advance(seconds: 3600)
+
+    let event = try #require(try await engine.recoverAfterLaunch(idleThreshold: 600))
+
+    #expect(event.start == started)
+    #expect(Set(event.entryIDs) == [a, b])
+    #expect(await store.snapshot().entry(a)?.closedDuration == 90)
+
+    try await engine.resolveIdle(event.id, .keep)
+    let kept = await segments(of: b).filter { $0.source == .idle }
+    #expect(kept.map(\.start) == [started])
+  }
+
+  @Test
+  func recoveryAfterSwitchingDoesNotCountTimeTwice() async throws {
+    let a = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    try await engine.heartbeat()
+    clock.advance(seconds: 30)
+    let b = try await engine.start(EntryDraft(title: "B"), mode: .switchTo).value
+    clock.advance(seconds: 3600)
+
+    let event = try #require(try await engine.recoverAfterLaunch(idleThreshold: 600))
+    try await engine.resolveIdle(event.id, .keep)
+
+    let aEnd = try #require(await segments(of: a).last?.end)
+    let bStart = try #require(await segments(of: b).first?.start)
+    #expect(bStart >= aEnd)
+  }
+
   // MARK: Private
 
   private let clock = ManualClock()
