@@ -245,10 +245,20 @@ public actor BookingService {
           try await markSynced(record, revision: revision)
           continue
         }
-      } catch {
-        if case .queued = handleTransient(error) { break }
-        _ = await fail(record, BookingFailure(error))
+      } catch ADOError.notFound {
+        // The work item is gone, so nothing can be booked on it any more, whatever arrived before.
+        _ = await fail(record, .workItemGone)
         continue
+      } catch ADOError.unauthorized {
+        // Whether the booking arrived is still unknown: it stays pending until the token works again,
+        // like an organization that is not connected.
+        clients[link.organization] = .some(nil)
+        schedule(after: backoff)
+        continue
+      } catch {
+        // Unknown as well (server error, offline, the record could not be stored): ask again later.
+        _ = keepPending(after: error)
+        break
       }
       let entryNote = await note(of: record)
       if await send(record, note: entryNote, client: client) == .queued { break }
@@ -281,6 +291,16 @@ public actor BookingService {
   private var recordsInFlight = Set<SyncRecordID>()
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "booking")
 
+  /// Whether Azure DevOps provably did not apply a patch: the token, the work item or the request
+  /// was rejected. Any other failure (5xx, an answer that does not decode) leaves it open.
+  private static func wasRejected(_ error: any Error) -> Bool {
+    switch error {
+    case ADOError.unauthorized, ADOError.notFound: true
+    case ADOError.server(let status): status < 500
+    default: false
+    }
+  }
+
   private static func rounded(_ hours: Double) -> Double {
     (hours * 100).rounded() / 100
   }
@@ -304,25 +324,38 @@ public actor BookingService {
     var record = record
     let options = options()
     for _ in 0..<Self.maxConflictRetries {
+      let patch: [PatchOperation]
       do {
         record.field = try await timeField(for: link, client: client)
         let current = try await client.timeValues(of: link.workItemID)
-        let revision = try await client.patch(
-          workItem: link.workItemID,
-          operations(for: record, current: current, note: note, options: options),
-        )
-        try await markSynced(record, revision: revision)
-        backoff = Self.initialBackoff
-        nextAttempt = nil
-        return .booked
+        patch = operations(for: record, current: current, note: note, options: options)
+      } catch {
+        // Nothing was sent yet, so a lasting failure is final.
+        if handleTransient(error) == .queued { return .queued }
+        return await fail(record, BookingFailure(error))
+      }
+      let revision: Int
+      do {
+        revision = try await client.patch(workItem: link.workItemID, patch)
       } catch ADOError.conflict {
         // Someone changed the work item in the meantime: read again and reapply.
         continue
       } catch {
-        let outcome = handleTransient(error)
-        if outcome == .queued { return .queued }
+        guard Self.wasRejected(error) else {
+          // The patch may have been applied: the queue looks for the marker before sending again.
+          return keepPending(after: error)
+        }
         return await fail(record, BookingFailure(error))
       }
+      do {
+        try await markSynced(record, revision: revision)
+      } catch {
+        // Booked, but not stored: the queue finds the marker and marks the record synced.
+        return keepPending(after: error)
+      }
+      backoff = Self.initialBackoff
+      nextAttempt = nil
+      return .booked
     }
     return await fail(record, .keepsChanging)
   }
@@ -417,6 +450,15 @@ public actor BookingService {
     default:
       return .failed(BookingFailure(error))
     }
+  }
+
+  /// The outcome of a sent patch is unknown: the record stays pending and the queue resolves it
+  /// through the marker in the history, after the backoff (DO-26).
+  private func keepPending(after error: any Error) -> Outcome {
+    if handleTransient(error) == .queued { return .queued }
+    logger.error("Booking outcome unknown, checked again later: \(String(describing: error), privacy: .public)")
+    schedule(after: backoff)
+    return .queued
   }
 
   private func schedule(after seconds: TimeInterval) {
