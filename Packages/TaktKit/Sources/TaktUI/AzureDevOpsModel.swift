@@ -136,7 +136,7 @@ public final class AzureDevOpsModel {
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "ado")
 
   private func show(_ error: any Error) {
-    logger.error("Azure DevOps failed: \(String(describing: error), privacy: .public)")
+    logger.error("Azure DevOps failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage =
       switch error {
       case ADOError.unauthorized:

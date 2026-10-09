@@ -150,7 +150,7 @@ public final class AnalyticsModel {
       recompute()
     } catch {
       guard range == self.range else { return }
-      logger.error("Analytics failed: \(String(describing: error), privacy: .public)")
+      logger.error("Analytics failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
       errorMessage = String(localized: "The evaluation could not be loaded.", bundle: .module)
     }
   }

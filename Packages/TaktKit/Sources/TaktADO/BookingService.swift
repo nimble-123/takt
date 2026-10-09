@@ -456,7 +456,10 @@ public actor BookingService {
   /// through the marker in the history, after the backoff (DO-26).
   private func keepPending(after error: any Error) -> Outcome {
     if handleTransient(error) == .queued { return .queued }
-    logger.error("Booking outcome unknown, checked again later: \(String(describing: error), privacy: .public)")
+    logger
+      .error(
+        "Booking outcome unknown, checked again later: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)"
+      )
     schedule(after: backoff)
     return .queued
   }

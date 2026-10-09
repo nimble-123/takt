@@ -285,7 +285,10 @@ public final class MenuBarModel {
       // The branch just checked out first, then the current iteration and recently used items.
       suggestedWorkItems = Array(Self.merge(fromBranches, suggested, recentlyUsed).prefix(5))
     } catch {
-      logger.info("Work item suggestions failed: \(String(describing: error), privacy: .public)")
+      logger
+        .info(
+          "Work item suggestions failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)"
+        )
     }
   }
 
@@ -533,7 +536,8 @@ public final class MenuBarModel {
           fresh + cached.filter { !freshKeys.contains("\($0.organization)#\($0.workItemID)") }
       } catch {
         // Offline or not allowed: the cached hits stay.
-        self?.logger.info("Work item search failed: \(String(describing: error), privacy: .public)")
+        self?.logger
+          .info("Work item search failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
       }
     }
   }
@@ -569,7 +573,7 @@ public final class MenuBarModel {
   }
 
   private func show(_ error: any Error) {
-    logger.error("Timer action failed: \(String(describing: error), privacy: .public)")
+    logger.error("Timer action failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage =
       error as? TimerStoreError == .conflict
         ? String(localized: "The entry was changed in the meantime.", bundle: .module)
