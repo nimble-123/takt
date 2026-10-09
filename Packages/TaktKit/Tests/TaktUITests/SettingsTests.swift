@@ -30,6 +30,7 @@ struct SettingsTests {
     #expect(settings.showElapsedInMenuBar)
     #expect(!settings.onboardingCompleted)
     #expect(settings.noTimerReminder == NoTimerReminderSettings())
+    #expect(settings.federalState == nil)
   }
 
   @Test

@@ -51,6 +51,8 @@
         <integer>4</integer>
         <integer>5</integer>
       </array>
+      <key>federalState</key>
+      <string></string>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

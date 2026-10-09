@@ -6,9 +6,10 @@ public struct TargetPlan: Hashable, Sendable {
 
   // MARK: Lifecycle
 
-  public init(weeklyHours: Double = 40, workDays: Set<Int> = [1, 2, 3, 4, 5]) {
+  public init(weeklyHours: Double = 40, workDays: Set<Int> = [1, 2, 3, 4, 5], federalState: FederalState? = nil) {
     self.weeklyHours = max(0, weeklyHours)
     self.workDays = workDays.filter { (1...7).contains($0) }
+    self.federalState = federalState
   }
 
   // MARK: Public
@@ -27,10 +28,14 @@ public struct TargetPlan: Hashable, Sendable {
   public private(set) var weeklyHours: Double
   /// Working days, 1 = Monday … 7 = Sunday.
   public private(set) var workDays: Set<Int>
+  /// Public holidays of this state have no target (AZ-03); `nil` knows no holidays.
+  public private(set) var federalState: FederalState?
 
-  /// Target seconds of a local day: the weekly hours spread evenly over the working days.
+  /// Target seconds of a local day: the weekly hours spread evenly over the working days; 0 on a
+  /// public holiday.
   public func target(on day: Timestamp, calendar: Calendar) -> TimeInterval {
     guard !workDays.isEmpty, workDays.contains(day.mondayBasedWeekday(in: calendar)) else { return 0 }
+    if let federalState, PublicHoliday.on(day, state: federalState, calendar: calendar) != nil { return 0 }
     return weeklyHours * 3600 / Double(workDays.count)
   }
 

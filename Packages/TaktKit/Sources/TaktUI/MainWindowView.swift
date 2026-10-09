@@ -156,13 +156,23 @@ public struct MainWindowView: View {
   private var title: String {
     switch model.section {
     case .today, .dayClose:
-      model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year())
+      // The holiday follows the date, e.g. "Thursday, 4 June 2026 · Corpus Christi" (AZ-03).
+      [
+        model.dayRange.lowerBound.date.formatted(.dateTime.weekday(.wide).day().month(.wide).year()),
+        model.holiday(on: model.dayRange.lowerBound)?.name,
+      ]
+      .compactMap(\.self)
+      .joined(separator: " · ")
+
     case .projects:
       String(localized: "Projects", bundle: .module)
+
     case .analytics:
       String(localized: "Analytics", bundle: .module)
+
     case .settings:
       String(localized: "Settings", bundle: .module)
+
     case .week, .entries:
       String(
         localized: "Week \(model.weekRange.lowerBound.date.formatted(.dateTime.week()))",

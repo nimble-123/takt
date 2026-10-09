@@ -28,6 +28,16 @@ struct TargetPlanTests {
   }
 
   @Test
+  func publicHolidaysHaveNoTarget() throws {
+    // Thursday 4 June 2026: Corpus Christi in Hesse, not in Berlin.
+    let corpusChristi = Timestamp(try #require(calendar.date(from: DateComponents(year: 2026, month: 6, day: 4))))
+
+    #expect(TargetPlan(weeklyHours: 40, federalState: .hesse).target(on: corpusChristi, calendar: calendar) == 0)
+    #expect(TargetPlan(weeklyHours: 40, federalState: .berlin).target(on: corpusChristi, calendar: calendar) == 8 * 3600)
+    #expect(TargetPlan(weeklyHours: 40).target(on: corpusChristi, calendar: calendar) == 8 * 3600)
+  }
+
+  @Test
   func balanceCountsOnlyDaysUpToToday() {
     let entry = TimeEntry(title: "A", createdAt: monday, updatedAt: monday)
     let segments = [
