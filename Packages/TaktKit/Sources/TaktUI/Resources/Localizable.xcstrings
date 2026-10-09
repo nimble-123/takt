@@ -361,6 +361,16 @@
         }
       }
     },
+    "Backup imported. Bookings without an entry in the backup: %lld. Their time may still be in Azure DevOps.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung importiert. Buchungen ohne Eintrag in der Sicherung: %lld. Ihre Zeit kann noch in Azure DevOps stehen."
+          }
+        }
+      }
+    },
     "Backup saved.": {
       "localizations": {
         "de": {
@@ -407,6 +417,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alles buchen"
+          }
+        }
+      }
+    },
+    "Book all open differences (⌘↩)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle offenen Differenzen buchen (⌘↩)"
           }
         }
       }
@@ -3017,6 +3037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Die Organisation wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "The times of an entry cannot overlap.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Zeiten eines Eintrags dürfen sich nicht überschneiden."
           }
         }
       }

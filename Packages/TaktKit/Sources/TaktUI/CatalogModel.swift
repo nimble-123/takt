@@ -132,7 +132,7 @@ public final class CatalogModel {
   }
 
   private func show(_ error: any Error) {
-    logger.error("Catalog change failed: \(String(describing: error), privacy: .public)")
+    logger.error("Catalog change failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage =
       error as? CatalogStore.CatalogError == .emptyName
         ? String(localized: "A name is required.", bundle: .module)

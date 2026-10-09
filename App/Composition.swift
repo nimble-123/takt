@@ -109,7 +109,7 @@ final class Composition {
             onIdleNeedsDecision?()
           }
         } catch {
-          logger.error("Recovery failed: \(String(describing: error), privacy: .public)")
+          logger.error("Recovery failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
         }
         await catalog.seedDefaults()
         await rules.reload()
@@ -196,7 +196,8 @@ final class Composition {
     }
   }
 
-  /// DO-26: the offline queue goes out as soon as the network is back.
+  /// DO-26: the offline queue goes out as soon as the network is back. The state at launch is not
+  /// reported, so this does not repeat the launch run; only a return skips the backoff.
   private func sendQueueWhenOnline() async {
     for await online in NetworkMonitor.changes() where online {
       await booking.processPending(force: true)

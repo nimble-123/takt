@@ -7,12 +7,18 @@ import TaktStore
 
 /// What should be booked for one entry, work item and local day (DO-20, DO-24).
 public struct BookingLine: Hashable, Sendable, Identifiable {
+
+  // MARK: Public
+
   /// One line per entry, work item and day.
   public struct Key: Hashable, Sendable {
     public var entryID: EntryID
     public var workItemID: WorkItemLinkID
     public var localDay: String
   }
+
+  /// Azure DevOps keeps hours with two decimals, so differences are booked in steps of 0.01 h.
+  public static let step = 36
 
   public var entryID: EntryID
   public var title: String
@@ -33,9 +39,17 @@ public struct BookingLine: Hashable, Sendable, Identifiable {
     Key(entryID: entryID, workItemID: workItem.id, localDay: localDay)
   }
 
-  /// Soll − Gebucht. Positive increases Completed Work, negative reduces it.
+  /// Soll − Gebucht in steps of 0.01 h. Positive increases Completed Work, negative reduces it.
   public var difference: Int {
-    target - booked - inFlight
+    Self.quantized(target - booked - inFlight)
+  }
+
+  // MARK: Internal
+
+  /// `seconds` rounded to whole steps, halves away from zero. A record holds exactly what reaches
+  /// Azure DevOps; the rest (under half a step) stays in the next difference instead of adding up.
+  static func quantized(_ seconds: Int) -> Int {
+    seconds.signum() * ((abs(seconds) + step / 2) / step) * step
   }
 }
 
@@ -227,10 +241,13 @@ public actor BookingService {
     guard let pending = try? await records.pending() else { return 0 }
     // One keychain read per organization and run; nil means not connected.
     var clients = [String: ADOClient?]()
-    for record in pending {
+    for listed in pending {
       // Being sent right now by `book` or another run of the queue.
-      guard recordsInFlight.insert(record.id).inserted else { continue }
-      defer { recordsInFlight.remove(record.id) }
+      guard recordsInFlight.insert(listed.id).inserted else { continue }
+      defer { recordsInFlight.remove(listed.id) }
+      // The list was read before the earlier records were sent: `book` or another run may have
+      // finished this one meanwhile, so only a record that is still pending goes out.
+      guard let record = try? await records.record(listed.id), record.status == .pending else { continue }
       guard let link = try? await cache.link(record.workItemLinkID) else {
         _ = await fail(record, .workItemUnknown)
         continue
@@ -313,7 +330,7 @@ public actor BookingService {
     }
     guard !stored.contains(where: { $0.status == .pending }) else { return nil }
     let booked = stored.filter { $0.status == .synced }.reduce(0) { $0 + $1.deltaSeconds }
-    let difference = line.target - booked
+    let difference = BookingLine.quantized(line.target - booked)
     return difference == 0 ? nil : difference
   }
 
@@ -328,7 +345,17 @@ public actor BookingService {
       do {
         record.field = try await timeField(for: link, client: client)
         let current = try await client.timeValues(of: link.workItemID)
-        patch = operations(for: record, current: current, note: note, options: options)
+        let taken = try await remainingWorkTaken(onLineOf: record)
+        (patch, record.remainingDeltaSeconds) = operations(
+          for: record,
+          current: current,
+          remainingWorkTaken: taken,
+          note: note,
+          options: options,
+        )
+        // Stored before sending: if the outcome stays unknown and the queue finds the marker, the
+        // record still says what the patch did to Remaining Work.
+        try await records.update(record)
       } catch {
         // Nothing was sent yet, so a lasting failure is final.
         if handleTransient(error) == .queued { return .queued }
@@ -360,23 +387,31 @@ public actor BookingService {
     return await fail(record, .keepsChanging)
   }
 
+  /// The patch and what it changes Remaining Work by, in seconds. A booking takes its time from
+  /// Remaining Work down to 0; a correction gives back at most what the line took (DO-22).
   private func operations(
     for record: SyncRecord,
     current: ADOClient.TimeValues,
+    remainingWorkTaken: Int,
     note: String?,
     options: Options,
-  ) -> [PatchOperation] {
+  ) -> (operations: [PatchOperation], remainingDelta: Int) {
     let hours = Double(record.deltaSeconds) / 3600
     var operations = [PatchOperation(op: "test", path: "/rev", value: .int(current.revision))]
+    var remainingDelta = 0
     if record.field == TimeField.completedWork {
       let completed = Self.rounded(max(0, (current.completedWork ?? 0) + hours))
       operations.append(
         PatchOperation(op: "add", path: "/fields/\(TimeField.completedWork)", value: .double(completed))
       )
       if options.reduceRemainingWork, let remaining = current.remainingWork {
-        let reduced = Self.rounded(max(0, remaining - hours))
+        let changed =
+          hours >= 0
+            ? Self.rounded(max(0, remaining - hours))
+            : Self.rounded(remaining + min(-hours, Double(remainingWorkTaken) / 3600))
+        remainingDelta = Int(((changed - remaining) * 3600).rounded())
         operations.append(
-          PatchOperation(op: "add", path: "/fields/\(TimeField.remainingWork)", value: .double(reduced))
+          PatchOperation(op: "add", path: "/fields/\(TimeField.remainingWork)", value: .double(changed))
         )
       }
     }
@@ -387,7 +422,20 @@ public actor BookingService {
         value: .string(comment(record, hours: hours, note: options.includeNote ? note : nil)),
       )
     )
-    return operations
+    return (operations, remainingDelta)
+  }
+
+  /// Remaining Work the synced bookings of the record's line took and did not give back yet.
+  /// Records from before this was kept count with their full time, as Takt assumed back then.
+  private func remainingWorkTaken(onLineOf record: SyncRecord) async throws -> Int {
+    let line = try await records.records(onDay: record.localDay).filter {
+      $0.entryID == record.entryID && $0.workItemLinkID == record.workItemLinkID && $0.status == .synced
+        && $0.id != record.id
+    }
+    let taken = line.reduce(0) { sum, booked in
+      sum - (booked.remainingDeltaSeconds ?? (booked.field == TimeField.completedWork ? -booked.deltaSeconds : 0))
+    }
+    return max(0, taken)
   }
 
   /// `Takt: +0,25 h am 06.10.2026 · Notiz [takt:3f9c…]`
@@ -456,7 +504,10 @@ public actor BookingService {
   /// through the marker in the history, after the backoff (DO-26).
   private func keepPending(after error: any Error) -> Outcome {
     if handleTransient(error) == .queued { return .queued }
-    logger.error("Booking outcome unknown, checked again later: \(String(describing: error), privacy: .public)")
+    logger
+      .error(
+        "Booking outcome unknown, checked again later: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)"
+      )
     schedule(after: backoff)
     return .queued
   }

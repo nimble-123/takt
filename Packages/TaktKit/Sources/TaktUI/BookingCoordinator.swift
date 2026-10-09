@@ -92,7 +92,8 @@ public final class BookingCoordinator {
         await book(lines)
       }
     } catch {
-      logger.error("Booking an entry failed: \(String(describing: error), privacy: .public)")
+      logger
+        .error("Booking an entry failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     }
   }
 

@@ -133,6 +133,44 @@ struct DatabaseArchiveTests {
   }
 
   @Test
+  func importKeepsBookingsMadeAfterTheExport() async throws {
+    let target = try await filledDatabase()
+    let (entry, link) = try await linkedEntry(in: target)
+    let records = SyncRecordStore(database: target)
+    let sentBefore = booking(entry, link, status: .pending)
+    try await records.insert(sentBefore)
+    let archive = try DatabaseArchive.export(target)
+    // After the export: the pending booking arrived, and another one was sent.
+    var arrived = sentBefore
+    arrived.status = .synced
+    arrived.adoRevision = 58
+    try await records.update(arrived)
+    let sentAfter = booking(entry, link, status: .synced)
+    try await records.insert(sentAfter)
+
+    try DatabaseArchive.importReplacingAll(archive, into: target)
+
+    // Azure DevOps has both bookings; without them the time would be booked a second time.
+    #expect(try await records.record(sentBefore.id)?.status == .synced)
+    #expect(try await records.record(sentAfter.id) == sentAfter)
+  }
+
+  @Test
+  func importReportsBookingsWhoseEntryIsNotInTheArchive() async throws {
+    let target = try await filledDatabase()
+    let archive = try DatabaseArchive.export(target)
+    let (entry, link) = try await linkedEntry(in: target)
+    let records = SyncRecordStore(database: target)
+    try await records.insert(booking(entry, link, status: .synced))
+
+    let summary = try DatabaseArchive.importReplacingAll(archive, into: target)
+
+    #expect(summary.droppedBookings == 1)
+    #expect(try await records.pending().isEmpty)
+    #expect(try await records.records(for: [entry]).isEmpty)
+  }
+
+  @Test
   func fileExportAndImportRoundTrip() async throws {
     let source = try await filledDatabase()
     let url = FileManager.default.temporaryDirectory.appending(path: "takt-archive-\(UUID().uuidString).json")
@@ -146,6 +184,35 @@ struct DatabaseArchiveTests {
   }
 
   // MARK: Private
+
+  /// An entry linked to a cached work item.
+  private func linkedEntry(in database: AppDatabase) async throws -> (EntryID, WorkItemLinkID) {
+    let links = try await WorkItemCache(database: database).store([
+      WorkItemLink(organization: "contoso", project: "Kundenportal", workItemID: 1234, cachedTitle: "Token")
+    ])
+    let link = try #require(links.first).id
+    let (entry, changes) = try EntryEdits.create(
+      EntryDraft(title: "Refresh", workItemLinkID: link),
+      from: Timestamp(milliseconds: 1_000_000),
+      to: Timestamp(milliseconds: 1_000_000 + 1_800_000),
+      now: Timestamp(milliseconds: 3_000_000),
+    )
+    try await TimerEngine(store: GRDBTimerStore(database: database), clock: ManualClock()).apply(changes)
+    return (entry.id, link)
+  }
+
+  private func booking(_ entry: EntryID, _ link: WorkItemLinkID, status: SyncRecord.Status) -> SyncRecord {
+    SyncRecord(
+      entryID: entry,
+      workItemLinkID: link,
+      localDay: "1970-01-01",
+      field: "Microsoft.VSTS.Scheduling.CompletedWork",
+      deltaSeconds: 1800,
+      status: status,
+      adoRevision: status == .synced ? 58 : nil,
+      createdAt: Timestamp(milliseconds: 3_000_000),
+    )
+  }
 
   private func filledDatabase() async throws -> AppDatabase {
     let database = try AppDatabase.inMemory()

@@ -41,6 +41,7 @@ public final class MainWindowModel {
     self.clock = clock
     self.calendar = calendar
     day = clock.now()
+    loadTimeline = { [queries] range, now in try await queries.timeline(in: range, now: now) }
   }
 
   // MARK: Public
@@ -198,18 +199,21 @@ public final class MainWindowModel {
   }
 
   public func reload() async {
-    // Reloads overlap when the day or section changes; a result for a range no longer shown is
-    // dropped, the reload for the new range sets the data.
+    // Reloads overlap: after edits, timer updates and changes of the day or section. Only the
+    // latest one sets the data, so an older result arriving late cannot overwrite a newer one,
+    // and a result for a range no longer shown is dropped.
+    reloadGeneration += 1
+    let generation = reloadGeneration
     let range = shownRange
     do {
-      let loaded = try await queries.timeline(in: range, now: clock.now())
+      let loaded = try await loadTimeline(range, clock.now())
       let links = loaded.entries.contains { $0.entry.workItemLinkID != nil } ? try await queries.workItemLinks() : nil
-      guard range == shownRange else { return }
+      guard generation == reloadGeneration, range == shownRange else { return }
       data = loaded
       if let links { workItemLinks = links }
       selection.formIntersection(Set(data.entries.map(\.id)))
     } catch {
-      guard range == shownRange else { return }
+      guard generation == reloadGeneration, range == shownRange else { return }
       show(error)
     }
   }
@@ -306,29 +310,48 @@ public final class MainWindowModel {
   }
 
   public func setBounds(of segment: Segment, start: Timestamp, end: Timestamp?) async {
-    guard let changes = attempt({ try EntryEdits.setBounds(of: segment, start: start, end: end, now: clock.now()) })
+    let siblings = segments(of: segment.entryID)
+    guard
+      let changes = attempt({
+        try EntryEdits.setBounds(of: segment, start: start, end: end, among: siblings, now: clock.now())
+      })
     else { return }
     await apply(changes, name: String(localized: "Change Time", bundle: .module))
   }
 
   public func move(_ segment: Segment, by seconds: TimeInterval) async {
-    guard let changes = attempt({ try EntryEdits.move(segment, by: seconds, now: clock.now()) }) else { return }
+    let siblings = segments(of: segment.entryID)
+    guard
+      let changes = attempt({ try EntryEdits.move(segment, by: seconds, among: siblings, now: clock.now()) })
+    else { return }
     await apply(changes, name: String(localized: "Move Entry", bundle: .module))
   }
 
   public func closeGap(between first: Segment, and second: Segment) async {
-    guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second) }) else { return }
+    let siblings = segments(of: first.entryID)
+    guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second, among: siblings) })
+    else { return }
     await apply(changes, name: String(localized: "Convert Pause to Work", bundle: .module))
   }
 
+  /// The later part keeps the tags and the place of the original in an open pause or idle event.
   public func split(_ id: EntryID, at time: Timestamp) async {
+    guard let entry = entry(id) else { return }
+    let timer: TimerSnapshot
+    do {
+      timer = try await engine.snapshot()
+    } catch {
+      show(error)
+      return
+    }
     guard
-      let entry = entry(id),
       let split = attempt({
-        try EntryEdits.split(entry.entry, segments: entry.segments, at: time, now: clock.now())
+        try EntryEdits.split(entry.entry, segments: entry.segments, at: time, timer: timer, now: clock.now())
       })
     else { return }
+    let tags = await catalog.tags(of: [id])[id] ?? []
     if await apply(split.changes, name: String(localized: "Split Entry", bundle: .module)) {
+      if !tags.isEmpty { await catalog.setTags(named: tags.map(\.name), on: [split.newEntry.id]) }
       selection = [split.newEntry.id]
     }
   }
@@ -393,10 +416,14 @@ public final class MainWindowModel {
   }
 
   /// Title, note, counting mode or weight for one or many entries (HW-04 bulk edit).
-  public func update(_ ids: Set<EntryID>, name: String, _ edit: (inout TimeEntry) -> Void) async {
-    let now = clock.now()
-    let changes = ids.compactMap(entry).flatMap { EntryEdits.update($0.entry, now: now, edit) }
-    await apply(changes, name: name)
+  /// Edits run one after another, each on the data the previous one reloaded: two quick edits of
+  /// the same entry (e.g. a title committed on blur and a picker) would otherwise conflict.
+  public func update(_ ids: Set<EntryID>, name: String, _ edit: @escaping (inout TimeEntry) -> Void) async {
+    await serialized { [self] in
+      let now = clock.now()
+      let changes = ids.compactMap(entry).flatMap { EntryEdits.update($0.entry, now: now, edit) }
+      await apply(changes, name: name)
+    }
   }
 
   // MARK: Internal
@@ -406,6 +433,9 @@ public final class MainWindowModel {
 
   let clock: any TaktClock
   let calendar: Calendar
+
+  /// Reads the timeline of a range; tests replace it to decide when a reload answers.
+  @ObservationIgnored var loadTimeline: @Sendable (Range<Timestamp>, Timestamp) async throws -> TimelineData
 
   /// The running search; tests await it.
   @ObservationIgnored private(set) var searchTask: Task<Void, Never>?
@@ -428,13 +458,15 @@ public final class MainWindowModel {
   }
 
   func show(_ error: any Error) {
-    logger.error("Edit failed: \(String(describing: error), privacy: .public)")
+    logger.error("Edit failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage =
       switch error {
       case TimerStoreError.conflict:
         String(localized: "The entry was changed in the meantime.", bundle: .module)
       case EntryEdits.EditError.invalidRange:
         String(localized: "An entry must end after it starts and cannot end in the future.", bundle: .module)
+      case EntryEdits.EditError.overlapsSegment:
+        String(localized: "The times of an entry cannot overlap.", bundle: .module)
       case EntryEdits.EditError.splitOutsideEntry:
         String(localized: "Choose a time within the entry to split it.", bundle: .module)
       default:
@@ -448,6 +480,10 @@ public final class MainWindowModel {
   private var entriesByID = [EntryID: EntryWithSegments]()
   @ObservationIgnored private var layoutCache = [Range<Timestamp>: (now: Timestamp, layout: TimelineLayout)]()
   @ObservationIgnored private var hasOpenSegment = false
+  /// Counts reloads; see `reload()`.
+  @ObservationIgnored private var reloadGeneration = 0
+  /// The last edit of `update`; the next one waits for it.
+  @ObservationIgnored private var lastEdit: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
 
@@ -460,6 +496,16 @@ public final class MainWindowModel {
     } catch {
       show(error)
     }
+  }
+
+  private func serialized(_ body: @escaping @MainActor () async -> Void) async {
+    let previous = lastEdit
+    let task = Task { @MainActor in
+      await previous?.value
+      await body()
+    }
+    lastEdit = task
+    await task.value
   }
 
   private func dataDidChange() {
@@ -512,6 +558,11 @@ public final class MainWindowModel {
       await reload()
       return false
     }
+  }
+
+  /// All loaded segments of an entry, to check an edit against the others.
+  private func segments(of id: EntryID) -> [Segment] {
+    entry(id)?.segments ?? []
   }
 
   private func attempt<T>(_ body: () throws -> T) -> T? {

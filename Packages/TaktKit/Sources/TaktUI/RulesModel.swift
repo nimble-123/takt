@@ -80,7 +80,7 @@ public final class RulesModel {
   }
 
   private func show(_ error: any Error) {
-    logger.error("Rules failed: \(String(describing: error), privacy: .public)")
+    logger.error("Rules failed: \(error.logSummary, privacy: .public) \(String(describing: error), privacy: .private)")
     errorMessage = String(localized: "The action failed.", bundle: .module)
   }
 }
