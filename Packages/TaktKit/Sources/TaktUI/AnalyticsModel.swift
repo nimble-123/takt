@@ -212,6 +212,43 @@ public final class AnalyticsModel {
     }
   }
 
+  /// AZ-09: the working time record of the shown period, with the 24 weeks before it for the rest
+  /// period and the average, and the flex account from its start day.
+  public func timeRecord() async throws -> TimeRecord {
+    let range = reportRange
+    let now = clock.now()
+    let flexStart = showsTarget ? try await flexStartDay() : nil
+    let lookBack = calendar.date(byAdding: .day, value: -7 * WorkTimeRules.compensationWeeks - 1, to: range.lowerBound.date)
+      .map(Timestamp.init) ?? range.lowerBound
+    let start = min(lookBack, flexStart ?? lookBack)
+    let history = start..<range.upperBound
+    let data = try await source.load(history, now: now)
+    let days = WorkDay.days(in: history, from: data, now: now, calendar: calendar)
+    let checks = WorkTimeRules(calendar: calendar, federalState: settings.federalState).check(days)
+    let absences = try await source.absences(history, calendar: calendar)
+    var flex: (plan: TargetPlan, openingBalance: TimeInterval, startDay: Timestamp)?
+    if let flexStart {
+      var plan = settings.targetPlan
+      plan.absences = absences
+      let startBalance = settings.flexStartBalanceHours * 3600
+      let account = FlexAccount(plan: plan, startBalance: startBalance, startDay: flexStart, calendar: calendar)
+      let dayBefore = range.lowerBound.adding(seconds: -1)
+      let opening = flexStart < range.lowerBound ? account.balance(days, now: dayBefore) : startBalance
+      flex = (plan, opening, flexStart)
+    }
+    return TimeRecord.make(
+      range: range,
+      checks: checks,
+      segments: data.entries.flatMap(\.segments).filter { $0.start < range.upperBound && ($0.end ?? now) > range.lowerBound },
+      changes: try await source.changes(affecting: range),
+      absences: absences,
+      federalState: settings.federalState,
+      flex: flex,
+      now: now,
+      calendar: calendar,
+    )
+  }
+
   // MARK: Internal
 
   var defaultMode: CountingMode {
@@ -246,14 +283,19 @@ public final class AnalyticsModel {
     }
   }
 
-  /// AZ-05: from the start day (or the first tracked day) through today.
-  private func loadFlexBalance(now: Timestamp) async throws -> TimeInterval? {
-    guard showsTarget else { return nil }
+  /// AZ-05: the configured start day, else the first tracked day.
+  private func flexStartDay() async throws -> Timestamp? {
     let configured = settings.flexStartDay.flatMap(Timestamp.localDayParts).flatMap { parts in
       calendar.date(from: DateComponents(year: parts.year, month: parts.month, day: parts.day)).map(Timestamp.init)
     }
     let first = configured == nil ? try await source.firstTrackedTime() : nil
-    guard let start = configured ?? first else { return settings.flexStartBalanceHours * 3600 }
+    return (configured ?? first)?.localDay(in: calendar).lowerBound
+  }
+
+  /// AZ-05: from the start day (or the first tracked day) through today.
+  private func loadFlexBalance(now: Timestamp) async throws -> TimeInterval? {
+    guard showsTarget else { return nil }
+    guard let start = try await flexStartDay() else { return settings.flexStartBalanceHours * 3600 }
     let range = start.localDay(in: calendar).lowerBound..<now.localDay(in: calendar).upperBound
     var plan = settings.targetPlan
     plan.absences = try await source.absences(range, calendar: calendar)

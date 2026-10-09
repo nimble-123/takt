@@ -36,6 +36,22 @@ public struct SegmentChangeStore: Sendable {
     }
   }
 
+  /// Records whose old or new times touch `range`, oldest first: the change log of a period (AZ-09).
+  public func records(affecting range: Range<Timestamp>) async throws -> [SegmentChangeRecord] {
+    try await database.writer.read { db in
+      try Row.fetchAll(
+        db,
+        sql: """
+          SELECT * FROM segment_change
+          WHERE (old_start_at < :to AND COALESCE(old_end_at, old_start_at + 1) > :from)
+             OR (new_start_at < :to AND COALESCE(new_end_at, new_start_at + 1) > :from)
+          ORDER BY changed_at, rowid
+          """,
+        arguments: ["from": range.lowerBound.milliseconds, "to": range.upperBound.milliseconds],
+      ).map(SegmentChangeRecord.init(row:))
+    }
+  }
+
   // MARK: Private
 
   private let database: AppDatabase
