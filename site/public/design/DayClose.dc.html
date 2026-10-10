@@ -87,7 +87,7 @@ input.sw:disabled{opacity:.55;cursor:default}
 <div style="display: flex; align-items: center; gap: 6px; color: #B45309"><svg class="i" width="16" height="16" aria-hidden="true" style="color: #B45309"><use href="#i-cloudx"></use></svg><span>2 warten auf das Netz</span></div>
 <button type="button" class="btn" style="height: 28px; font-size: 13px">Erneut senden</button>
 <div style="flex: 1"></div>
-<button type="button" class="btn-p" title="Alles buchen (↩)">Alles buchen</button>
+<button type="button" class="btn-p" title="Ausgewählte buchen (⌘↩)">2 Einträge buchen · +3,75 h</button>
 </div>
 <div aria-label="Monatsabschluss" role="group" style="display: flex; flex-direction: column; gap: 6px; padding: 0 20px 12px; color: #55555A">
 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><svg class="i" width="15" height="15" aria-hidden="true"><use href="#i-archive"></use></svg><span>Der Arbeitszeitnachweis für September 2026 ist noch nicht archiviert.</span><button type="button" class="btn" style="height: 22px; font-size: 11px; color: #1C1C1E">Archivieren</button></div>
@@ -103,6 +103,10 @@ input.sw:disabled{opacity:.55;cursor:default}
 </div>
 <sc-for list="{{g.lines}}" as="l" hint-placeholder-count="2">
 <div style="display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #F0F0F3">
+<span style="width: 16px; flex: none; display: flex">
+<sc-if value="{{l.isChecked}}" hint-placeholder-val="{{true}}"><input type="checkbox" aria-label="{{l.title}} buchen" checked></sc-if>
+<sc-if value="{{l.isUnchecked}}" hint-placeholder-val="{{false}}"><input type="checkbox" aria-label="{{l.title}} buchen"></sc-if>
+</span>
 <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
 <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{l.title}}</span>
 <sc-if value="{{l.isFail}}" hint-placeholder-val="{{false}}"><span style="font-size: 11px; color: #B91C1C">{{l.failure}}</span></sc-if>
@@ -143,7 +147,9 @@ class Component extends DCLogic {
     const line = (title, target, booked, diff, state, failure) => ({
       title: title, target: target, booked: booked, diff: diff,
       diffColor: diff === '0,00 h' ? sec : pri,
-      isWait: state === 'wait', isFail: state === 'fail', isDone: state === 'done', failure: failure || ''
+      isWait: state === 'wait', isFail: state === 'fail', isDone: state === 'done', failure: failure || '',
+      // Open differences can be unchecked; the failed one is, so the button books two lines.
+      isChecked: state === '', isUnchecked: state === 'fail'
     });
     const types = { Bug: '#B91C1C', Task: '#A16207', 'User Story': '#0369A1' };
     const group = (id, type, title, lines) => ({ id: id, type: type, letter: type.charAt(0), badge: types[type], title: title, lines: lines });

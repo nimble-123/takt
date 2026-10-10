@@ -112,6 +112,28 @@ struct DayCloseModelTests {
   }
 
   @Test
+  func uncheckedLinesAreNotBookedAndStayUncheckedUntilTheDayChanges() async {
+    let first = line(1, target: 3600)
+    let second = line(2, target: 1800)
+    bookings.linesByDay[monday.lowerBound] = [first, second]
+    await model.load(monday)
+
+    model.setSelected(false, second)
+    #expect(model.selected.map(\.title) == ["#1"])
+    #expect(model.selectedSeconds == 3600)
+    await model.reload()
+    #expect(!model.isSelected(second))
+
+    await model.bookAll()
+    #expect(bookings.booked == [[first]])
+    #expect(model.open.map(\.title) == ["#2"])
+
+    await model.load(tuesday)
+    await model.load(monday)
+    #expect(model.isSelected(second))
+  }
+
+  @Test
   func anotherDayClearsTheOutcomes() async {
     bookings.linesByDay[monday.lowerBound] = [line(1, target: 3600)]
     await model.load(monday)

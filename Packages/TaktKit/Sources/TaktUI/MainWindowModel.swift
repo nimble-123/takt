@@ -190,6 +190,14 @@ public final class MainWindowModel {
     total(in: dayRange)
   }
 
+  /// Time in which entries ran in parallel and focus blocks of the shown day, as in the analyses
+  /// (AN-03).
+  public var dayFocus: (parallel: TimeInterval, focusBlocks: Int) {
+    let report = Analyzer(calendar: calendar)
+      .report(AnalyticsData(entries: data.entries), in: dayRange, now: clock.now(), by: .project)
+    return (report.wallClock * report.multitaskingShare, report.focusBlocks)
+  }
+
   /// Pauses between segments of the same entry on the shown day (TM-02).
   public var dayPauses: TimeInterval {
     // Pauses do not depend on `now`, so the layout the timeline already cached will do.
