@@ -195,14 +195,9 @@ struct DayCloseScreen: View {
     }
   }
 
-  /// A click selects, a double-click also opens the inspector (docs/DESIGN.md). One gesture with
-  /// the event's click count, so a single click is not delayed.
+  /// A click selects and opens the inspector (docs/DESIGN.md).
   private func click(_ id: EntryID) {
-    if DayTimeline.isDoubleClick {
-      model.openInspector(for: id)
-    } else {
-      model.selection = [id]
-    }
+    model.click(id)
   }
 
 }
