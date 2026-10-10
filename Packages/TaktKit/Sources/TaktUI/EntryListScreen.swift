@@ -58,12 +58,16 @@ struct EntryListScreen: View {
       }
       .width(min: 70, ideal: 90)
     }
+    // A click on a row shows the inspector, as in the timelines.
+    .onChange(of: model.selection) { _, selection in
+      if !selection.isEmpty { model.isInspectorShown = true }
+    }
     .contextMenu(forSelectionType: EntryID.self) { ids in
       Button(String(localized: "Delete", bundle: .module), role: .destructive) {
         Task { await model.delete(ids) }
       }
     } primaryAction: { ids in
-      // Double-click or ↩ opens the inspector (#79).
+      // ↩ (or a double-click) on the selection opens the inspector, too (#79).
       if ids.count == 1, let id = ids.first {
         model.openInspector(for: id)
       } else {
