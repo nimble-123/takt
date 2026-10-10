@@ -12,6 +12,13 @@ struct TimeRecordExport {
 
   // MARK: Internal
 
+  enum Format {
+    case pdf
+    case csv
+    /// AN-08
+    case xlsx
+  }
+
   /// The app's version from the bundle, e.g. `0.5.1`.
   static var appVersion: String {
     AppVersion.version
@@ -34,6 +41,14 @@ struct TimeRecordExport {
     return "\(record.range.lowerBound.date.formatted(date: .long, time: .omitted)) – \(last.formatted(date: .long, time: .omitted))"
   }
 
+  static func kind(_ kind: SegmentChangeRecord.Kind) -> String {
+    switch kind {
+    case .created: String(localized: "added", bundle: .module)
+    case .changed: String(localized: "changed", bundle: .module)
+    case .deleted: String(localized: "removed", bundle: .module)
+    }
+  }
+
   func csv() -> Data {
     let header = [
       ["record", "working_time_record"],
@@ -53,12 +68,187 @@ struct TimeRecordExport {
     TimeRecordPDF.render(self)
   }
 
+  /// AN-08: the days with typed cells (date, times, hours to the minute), the details with the
+  /// totals, and the change log, each on its own sheet.
+  func xlsx() -> Data {
+    let flex = record.rows.contains { $0.target != nil }
+    var dayHeader = [
+      String(localized: "Date", bundle: .module),
+      String(localized: "Weekday", bundle: .module),
+      String(localized: "Remark", bundle: .module),
+      String(localized: "Start", bundle: .module),
+      String(localized: "End", bundle: .module),
+      String(localized: "Break (h)", bundle: .module),
+      String(localized: "Net (h)", bundle: .module),
+      String(localized: "Rest (h)", bundle: .module),
+    ]
+    if flex {
+      dayHeader += [
+        String(localized: "Target (h)", bundle: .module),
+        String(localized: "Balance (h)", bundle: .module),
+        String(localized: "Flex account (h)", bundle: .module),
+        String(localized: "Overtime (h)", bundle: .module),
+        String(localized: "Paid out (h)", bundle: .module),
+      ]
+    }
+    dayHeader += [String(localized: "Findings", bundle: .module), String(localized: "Corrected", bundle: .module)]
+    let days = record.rows.map { dayCells($0, flex: flex) }
+
+    let changes = record.changes.map { change -> [XLSXWriter.Cell] in
+      [
+        dateTime(change.changedAt),
+        .text(Self.kind(change.kind)),
+        dateTime(change.oldStart),
+        dateTime(change.oldEnd),
+        dateTime(change.newStart),
+        dateTime(change.newEnd),
+        change.reason.map { .text($0) } ?? .empty,
+      ]
+    }
+
+    return XLSXWriter.workbook([
+      XLSXWriter.Sheet(name: String(localized: "Days", bundle: .module), header: dayHeader, rows: days),
+      XLSXWriter.Sheet(
+        name: String(localized: "Details", bundle: .module),
+        header: [String(localized: "Detail", bundle: .module), String(localized: "Value", bundle: .module)],
+        rows: details(),
+      ),
+      XLSXWriter.Sheet(
+        name: String(localized: "Change log", bundle: .module),
+        header: [
+          String(localized: "Changed", bundle: .module),
+          String(localized: "Kind", bundle: .module),
+          String(localized: "Start before", bundle: .module),
+          String(localized: "End before", bundle: .module),
+          String(localized: "Start after", bundle: .module),
+          String(localized: "End after", bundle: .module),
+          String(localized: "Reason", bundle: .module),
+        ],
+        rows: changes,
+      ),
+    ])
+  }
+
+  func data(_ format: Format) -> Data {
+    switch format {
+    case .pdf: pdf()
+    case .csv: csv()
+    case .xlsx: xlsx()
+    }
+  }
+
   // MARK: Private
+
+  /// Hours to the minute, as in the PDF; empty without a value.
+  private static func hours(_ seconds: TimeInterval?) -> XLSXWriter.Cell {
+    guard let seconds else { return .empty }
+    return .number((seconds / 60).rounded() / 60, .decimal)
+  }
 
   private static func escape(_ field: String) -> String {
     guard field.contains(where: { $0 == "," || $0 == "\"" || $0 == "\n" || $0 == "\r" }) else { return field }
     return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
   }
+
+  private func dayCells(_ row: TimeRecord.Row, flex: Bool) -> [XLSXWriter.Cell] {
+    let worked = row.start != nil
+    var cells: [XLSXWriter.Cell] = [
+      .day(row.date),
+      .text(row.day.date.formatted(Date.FormatStyle(calendar: calendar).weekday(.abbreviated))),
+      (row.absence?.name ?? row.holiday?.name).map { .text($0) } ?? .empty,
+      time(row.start),
+      time(row.end),
+      worked ? Self.hours(row.breakTime) : .empty,
+      worked ? Self.hours(row.net) : .empty,
+      Self.hours(row.restBefore),
+    ]
+    if flex {
+      cells += [
+        Self.hours(row.target),
+        Self.hours(row.balance),
+        Self.hours(row.cumulative),
+        row.overtime == 0 ? .empty : Self.hours(row.overtime),
+        Self.hours(row.paidOut),
+      ]
+    }
+    let findings = row.findings.map(\.rule.shortName).joined(separator: ", ")
+    cells += [
+      findings.isEmpty ? .empty : .text(findings),
+      row.corrected ? .text(String(localized: "yes", bundle: .module)) : .empty,
+    ]
+    return cells
+  }
+
+  /// Header data and totals, one per row; durations in hours.
+  private func details() -> [[XLSXWriter.Cell]] {
+    let totals = record.totals
+    let lastDay = Timestamp(milliseconds: record.range.upperBound.milliseconds - 1)
+    var rows = [[XLSXWriter.Cell]]()
+    func add(_ title: String, _ value: XLSXWriter.Cell) {
+      rows.append([.text(title), value])
+    }
+    if let name { add(String(localized: "Name", bundle: .module), .text(name)) }
+    add(String(localized: "From", bundle: .module), .day(record.range.lowerBound.localDayString(in: calendar)))
+    add(String(localized: "To", bundle: .module), .day(lastDay.localDayString(in: calendar)))
+    add(String(localized: "Created", bundle: .module), dateTime(Timestamp(created)))
+    add(String(localized: "Version", bundle: .module), .text("Takt \(version)"))
+    add("SHA-256", .text(checksum))
+    add(String(localized: "Net working time (h)", bundle: .module), Self.hours(totals.net))
+    add(
+      String(localized: "Work beyond 8 hours a day (§ 16 para. 2 ArbZG) (h)", bundle: .module),
+      Self.hours(totals.beyondEightHours),
+    )
+    add(String(localized: "Work on Sundays and public holidays (h)", bundle: .module), Self.hours(totals.sundayOrHoliday))
+    for rule in WorkTimeFinding.Rule.allCases {
+      add(
+        String(localized: "Findings: \(rule.shortName)", bundle: .module),
+        .number(Double(totals.findings[rule] ?? 0), .integer),
+      )
+    }
+    for quarter in totals.quarters {
+      add(String(localized: "Overtime \(quarter.quarter) (h)", bundle: .module), Self.hours(quarter.overtime))
+      add(String(localized: "Paid out \(quarter.quarter) (h)", bundle: .module), Self.hours(quarter.paidOut))
+    }
+    for (year, seconds) in totals.forfeited.sorted(by: { $0.key < $1.key }) {
+      add(
+        String(localized: "Flex account forfeited at the end of \(String(year)) (h)", bundle: .module),
+        Self.hours(seconds),
+      )
+    }
+    if let vacation = record.vacation {
+      let year = String(vacation.account.year)
+      add(String(localized: "Vacation days in the period", bundle: .module), .number(Double(vacation.days), .integer))
+      add(String(localized: "Vacation \(year): available", bundle: .module), .number(Double(vacation.account.available)))
+      add(String(localized: "Vacation \(year): taken", bundle: .module), .number(Double(vacation.account.taken)))
+      add(String(localized: "Vacation \(year): planned", bundle: .module), .number(Double(vacation.account.planned)))
+      add(String(localized: "Vacation \(year): left", bundle: .module), .number(Double(vacation.account.left)))
+    }
+    add(
+      String(localized: "Notice", bundle: .module),
+      .text(String(
+        localized: "Takt supports the duty to record working time; it does not guarantee legal compliance. Times are raw to the minute, without rounding.",
+        bundle: .module,
+      )),
+    )
+    return rows
+  }
+
+  /// Local time of day as a fraction of a day, to the minute.
+  private func time(_ timestamp: Timestamp?) -> XLSXWriter.Cell {
+    guard let timestamp else { return .empty }
+    let parts = calendar.dateComponents([.hour, .minute], from: timestamp.date)
+    return .number(Double((parts.hour ?? 0) * 60 + (parts.minute ?? 0)) / 1440, .time)
+  }
+
+  /// Local date and time as a serial date, to the minute.
+  private func dateTime(_ timestamp: Timestamp?) -> XLSXWriter.Cell {
+    guard let timestamp, let day = XLSXWriter.serial(ofDay: timestamp.localDayString(in: calendar)) else {
+      return .empty
+    }
+    let parts = calendar.dateComponents([.hour, .minute], from: timestamp.date)
+    return .number(Double(day) + Double((parts.hour ?? 0) * 60 + (parts.minute ?? 0)) / 1440, .dateTime)
+  }
+
 }
 
 // MARK: - WorkTimeFinding.Rule + shortName
@@ -329,7 +519,7 @@ private struct ChangeTable: View {
         ForEach(changes) { change in
           GridRow {
             Text(change.changedAt.date.formatted(date: .numeric, time: .shortened)).monospacedDigit()
-            Text(kind(change.kind))
+            Text(TimeRecordExport.kind(change.kind))
             Text(span(change.oldStart, change.oldEnd)).monospacedDigit()
             Text(span(change.newStart, change.newEnd)).monospacedDigit()
             Text(change.reason ?? "").lineLimit(1)
@@ -341,14 +531,6 @@ private struct ChangeTable: View {
   }
 
   // MARK: Private
-
-  private func kind(_ kind: SegmentChangeRecord.Kind) -> String {
-    switch kind {
-    case .created: String(localized: "added", bundle: .module)
-    case .changed: String(localized: "changed", bundle: .module)
-    case .deleted: String(localized: "removed", bundle: .module)
-    }
-  }
 
   private func span(_ start: Timestamp?, _ end: Timestamp?) -> String {
     guard let start else { return "" }
