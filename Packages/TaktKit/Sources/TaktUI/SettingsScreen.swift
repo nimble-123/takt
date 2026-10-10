@@ -111,6 +111,19 @@ struct SettingsScreen: View {
           )
           .managed(settings.isLocked(.flexStartDay))
         }
+        Stepper(value: $settings.vacationDaysPerYear, in: AppSettings.vacationDaysRange) {
+          LabeledContent(String(localized: "Vacation days per year", bundle: .module)) {
+            Text("\(settings.vacationDaysPerYear) days", bundle: .module).monospacedDigit()
+          }
+        }
+        .managed(settings.isLocked(.vacationDaysPerYear))
+        Stepper(value: $settings.vacationCarryoverDays, in: AppSettings.vacationCarryoverRange) {
+          LabeledContent(String(localized: "Vacation left from last year", bundle: .module)) {
+            Text("\(settings.vacationCarryoverDays) days", bundle: .module).monospacedDigit()
+          }
+        }
+        .managed(settings.isLocked(.vacationCarryoverDays))
+        .help(String(localized: "Only for the first year Takt counts; later years carry over what is left.", bundle: .module))
         Picker(String(localized: "Public holidays", bundle: .module), selection: $settings.federalState) {
           Text("None", bundle: .module).tag(FederalState?.none)
           ForEach(FederalState.allCases.sorted { $0.name < $1.name }, id: \.self) { state in

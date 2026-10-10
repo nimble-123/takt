@@ -20,7 +20,14 @@ struct AnalyticsScreen: View {
       VStack(alignment: .leading, spacing: 20) {
         controls
         if let report = model.report {
-          KPIRow(report: report, previous: model.previous, comparison: model.comparison, flexBalance: model.flexBalance)
+          KPIRow(
+            report: report,
+            previous: model.previous,
+            comparison: model.comparison,
+            flexBalance: model.flexBalance,
+            vacation: model.vacation,
+            openCarryover: model.openCarryover,
+          )
           HStack(alignment: .top, spacing: 20) {
             DayBars(model: model, report: report)
               .frame(maxWidth: .infinity)
@@ -168,6 +175,8 @@ private struct KPIRow: View {
   let previous: Report?
   let comparison: TargetPlan.Comparison?
   let flexBalance: TimeInterval?
+  let vacation: VacationAccount.Year?
+  let openCarryover: (days: Int, deadlinePassed: Bool)?
 
   var body: some View {
     HStack(spacing: 28) {
@@ -207,6 +216,18 @@ private struct KPIRow: View {
           (flexBalance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(flexBalance)),
           help: String(
             localized: "Start balance plus net working time minus target, from the start day through today. Vacation, sick days, days off and public holidays have no target.",
+            bundle: .module,
+          ),
+        )
+      }
+      if let vacation {
+        // AZ-06: the current year, independent of the shown period.
+        figure(
+          String(localized: "Vacation \(String(vacation.year))", bundle: .module),
+          String(localized: "\(vacation.left) of \(vacation.available)", bundle: .module),
+          detail: vacationDetail(vacation),
+          help: String(
+            localized: "Vacation days left this year: carryover plus entitlement minus days taken and planned. Only working days without a public holiday count.",
             bundle: .module,
           ),
         )
@@ -266,6 +287,17 @@ private struct KPIRow: View {
 
   private static let percent = FloatingPointFormatStyle<Double>.Percent().precision(.fractionLength(0))
   private static let decimal = FloatingPointFormatStyle<Double>().precision(.fractionLength(1))
+
+  /// Days left and planned, or last year's days still to take by 31 March (§ 7 para. 3 BUrlG).
+  private func vacationDetail(_ vacation: VacationAccount.Year) -> String {
+    if let openCarryover {
+      let previous = String(vacation.year - 1)
+      return openCarryover.deadlinePassed
+        ? String(localized: "\(openCarryover.days) from \(previous) not taken by 31 Mar", bundle: .module)
+        : String(localized: "\(openCarryover.days) from \(previous) to take by 31 Mar", bundle: .module)
+    }
+    return String(localized: "left · \(vacation.planned) planned", bundle: .module)
+  }
 
   private func change(_ now: TimeInterval, _ before: TimeInterval) -> Double? {
     before > 0 ? (now - before) / before : nil

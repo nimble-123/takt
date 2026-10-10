@@ -24,6 +24,8 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `workTimeModel` | String | `flexTime` (Default), `trust` | Gleitzeit mit Soll und Flexkonto oder Vertrauensarbeitszeit ohne beides (AZ-05) |
 | `flexStartBalanceHours` | Real | Default 0, −999–999 | Stand des Flexkontos vor dem Stichtag, z. B. Übertrag aus dem Vorjahr |
 | `flexStartDay` | String | `YYYY-MM-DD`; leer = erster erfasster Tag (Default) | Stichtag, ab dem das Flexkonto zählt |
+| `vacationDaysPerYear` | Integer | Default 30, 0–60 | Urlaubsanspruch in Tagen pro Jahr (AZ-06) |
+| `vacationCarryoverDays` | Integer | Default 0, 0–99 | Resturlaub aus dem Vorjahr beim Start des Urlaubskontos; Folgejahre berechnet Takt |
 | `federalState` | String | `BW`, `BY`, `BE`, `BB`, `HB`, `HH`, `HE`, `MV`, `NI`, `NW`, `RP`, `SL`, `SN`, `ST`, `SH`, `TH`; leer = keins (Default) | Gesetzliche Feiertage dieses Bundeslands haben kein Soll (AZ-03) |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |

@@ -61,6 +61,10 @@
       <real>0</real>
       <key>flexStartDay</key>
       <string></string>
+      <key>vacationDaysPerYear</key>
+      <integer>30</integer>
+      <key>vacationCarryoverDays</key>
+      <integer>0</integer>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

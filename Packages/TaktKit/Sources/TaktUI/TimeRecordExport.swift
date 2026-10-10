@@ -253,6 +253,14 @@ private struct TotalsView: View {
         ForEach(WorkTimeFinding.Rule.allCases, id: \.self) { rule in
           line(rule.shortName, String(totals.findings[rule] ?? 0))
         }
+        if let vacation = export.record.vacation {
+          line(String(localized: "Vacation days in the period", bundle: .module), String(vacation.days))
+          line(
+            String(localized: "Vacation \(String(vacation.account.year)): taken / planned / left", bundle: .module),
+            "\(vacation.account.taken) / \(vacation.account.planned) / \(vacation.account.left) "
+              + String(localized: "of \(vacation.account.available)", bundle: .module),
+          )
+        }
       }
       .font(.system(size: 9))
       Text(

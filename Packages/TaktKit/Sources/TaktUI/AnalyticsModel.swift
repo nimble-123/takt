@@ -56,6 +56,9 @@ public final class AnalyticsModel {
   /// the first load.
   public private(set) var flexBalance: TimeInterval?
 
+  /// AZ-06: the vacation account of the current year as of today; `nil` before the first load.
+  public private(set) var vacation: VacationAccount.Year?
+
   public var period = Period.week {
     didSet { reloadSoon() }
   }
@@ -134,6 +137,13 @@ public final class AnalyticsModel {
     return "Takt \(from) – \(Exporter.dayString(lastDay, calendar: calendar))"
   }
 
+  /// AZ-06: last year's vacation days not taken by 31 March (§ 7 para. 3 BUrlG); `deadlinePassed`
+  /// after that day. Only a hint, nothing is removed.
+  public var openCarryover: (days: Int, deadlinePassed: Bool)? {
+    guard let vacation, vacation.carryoverOpen > 0 else { return nil }
+    return (vacation.carryoverOpen, calendar.component(.month, from: clock.now().date) > 3)
+  }
+
   /// Target hours of a day, for the line in the bar chart.
   public func targetHours(on day: Timestamp) -> Double {
     guard showsTarget else { return 0 }
@@ -163,9 +173,11 @@ public final class AnalyticsModel {
       let previousLoaded = try await source.load(previousRange, now: now)
       let loadedAbsences = try await source.absences(range, calendar: calendar)
       let balance = try await loadFlexBalance(now: now)
+      let loadedVacation = try await loadVacation(now: now)
       guard range == self.range else { return }
       absences = loadedAbsences
       flexBalance = balance
+      vacation = loadedVacation
       data = loaded
       previousData = previousLoaded
       loadedRange = range
@@ -236,6 +248,14 @@ public final class AnalyticsModel {
       let opening = flexStart < range.lowerBound ? account.balance(days, now: dayBefore) : startBalance
       flex = (plan, opening, flexStart)
     }
+    let lastDay = range.upperBound.adding(seconds: -1)
+    let vacationYear = calendar.component(.year, from: lastDay.date)
+    let account = try await vacationAccount(through: vacationYear, now: now)
+    let vacation = TimeRecord.Vacation(
+      days: account.account.days(in: range, absences: account.absences),
+      // As of the period's last day, or today while the period runs.
+      account: account.account.year(vacationYear, absences: account.absences, now: min(lastDay, now)),
+    )
     return TimeRecord.make(
       range: range,
       checks: checks,
@@ -244,6 +264,7 @@ public final class AnalyticsModel {
       absences: absences,
       federalState: settings.federalState,
       flex: flex,
+      vacation: vacation,
       now: now,
       calendar: calendar,
     )
@@ -283,7 +304,8 @@ public final class AnalyticsModel {
     }
   }
 
-  /// AZ-05: the configured start day, else the first tracked day.
+  /// AZ-05: the configured start day, else the first tracked day. The vacation account starts in
+  /// its year, too (AZ-06).
   private func flexStartDay() async throws -> Timestamp? {
     let configured = settings.flexStartDay.flatMap(Timestamp.localDayParts).flatMap { parts in
       calendar.date(from: DateComponents(year: parts.year, month: parts.month, day: parts.day)).map(Timestamp.init)
@@ -307,6 +329,35 @@ public final class AnalyticsModel {
       calendar: calendar,
     )
     return account.balance(WorkDay.days(in: range, from: data, now: now, calendar: calendar), now: now)
+  }
+
+  /// AZ-06: the account and the absences from 1 January of its start year through the end of
+  /// `year`. It starts in the year of the flex account's start day or the first tracked day.
+  private func vacationAccount(
+    through year: Int,
+    now: Timestamp,
+  ) async throws -> (account: VacationAccount, absences: [String: AbsenceKind]) {
+    let startYear = try await flexStartDay().map { calendar.component(.year, from: $0.date) }
+      ?? calendar.component(.year, from: now.date)
+    let account = VacationAccount(
+      plan: settings.targetPlan,
+      daysPerYear: settings.vacationDaysPerYear,
+      carryover: settings.vacationCarryoverDays,
+      startYear: startYear,
+      calendar: calendar,
+    )
+    guard
+      let first = calendar.date(from: DateComponents(year: min(startYear, year), month: 1, day: 1)),
+      let end = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1))
+    else { return (account, [:]) }
+    return (account, try await source.absences(Timestamp(first)..<Timestamp(end), calendar: calendar))
+  }
+
+  /// AZ-06: the current year as of today.
+  private func loadVacation(now: Timestamp) async throws -> VacationAccount.Year {
+    let year = calendar.component(.year, from: now.date)
+    let loaded = try await vacationAccount(through: year, now: now)
+    return loaded.account.year(year, absences: loaded.absences, now: now)
   }
 
   private func reloadSoon() {
