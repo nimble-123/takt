@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/nimble-123/takt/compare/v0.6.1...v0.7.0) (2026-10-10)
+
+
+### Neue Funktionen
+
+* **ui:** reset Takt to factory settings from the settings ([#210](https://github.com/nimble-123/takt/issues/210)) ([687c807](https://github.com/nimble-123/takt/commit/687c8078e6e78ebe9e87a58dc0bcff2c4e40ae53))
+* **ui:** show the version in the sidebar and an About section in the settings ([#212](https://github.com/nimble-123/takt/issues/212)) ([fca6829](https://github.com/nimble-123/takt/commit/fca6829c4d4fbb2a1a8ebf0f3bc285b15d005e93))
+
 ## [0.6.1](https://github.com/nimble-123/takt/compare/v0.6.0...v0.6.1) (2026-10-10)
 
 
