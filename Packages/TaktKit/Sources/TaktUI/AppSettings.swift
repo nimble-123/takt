@@ -371,6 +371,16 @@ public final class AppSettings {
     isForced(key.rawValue)
   }
 
+  /// Sets the property of a locked key back to the profile's value. Assigns only on a difference:
+  /// the assignment calls `write` again, which then finds the values equal and stops.
+  /// Takes over values another process wrote, e.g. `takt import --settings` (#190); the app
+  /// otherwise reads `UserDefaults` only at launch.
+  public func reloadFromDefaults() {
+    for key in Key.allCases {
+      restoreManagedValue(key)
+    }
+  }
+
   // MARK: Private
 
   @ObservationIgnored private let defaults: UserDefaults
@@ -396,8 +406,6 @@ public final class AppSettings {
     snapshotLock.withLock { $0 = snapshot }
   }
 
-  /// Sets the property of a locked key back to the profile's value. Assigns only on a difference:
-  /// the assignment calls `write` again, which then finds the values equal and stops.
   private func restoreManagedValue(_ key: Key) {
     let stored = Stored(defaults)
     switch key {

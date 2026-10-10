@@ -235,8 +235,11 @@ struct ImportCommand: AsyncParsableCommand {
 
   @OptionGroup var options: GlobalOptions
 
-  @Argument(help: "The JSON file.")
-  var file: String
+  @Argument(help: "The JSON file (not needed with --remove).")
+  var file: String?
+
+  @Flag(help: "Remove everything imported before, e.g. to import again with other options; absences stay.")
+  var remove = false
 
   @Flag(help: "Show what would be imported and compare the monthly flex time, without writing.")
   var dryRun = false
@@ -267,6 +270,14 @@ struct ImportCommand: AsyncParsableCommand {
 
   func run() async throws {
     try await report {
+      if remove {
+        let session = try options.session()
+        let removed = try await session.removeImported(backupFolder: session.folder?.appending(path: "Backups"))
+        return options.json
+          ? try Format.json(["removedEntries": "\(removed.entries)", "backup": removed.backup ?? ""])
+          : "Removed \(removed.entries) imported entries." + (removed.backup.map { "\nBackup: \($0)" } ?? "")
+      }
+      guard let file else { throw CLIError.invalid("Give the JSON file of scripts/timesheet-to-json.py.") }
       let data = try Data(contentsOf: URL(filePath: file))
       let sheet: Timesheet
       do {

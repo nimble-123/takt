@@ -29,6 +29,18 @@ public struct ImportStore: Sendable {
     }
   }
 
+  /// Deletes the entries that have imported segments, with their segments and tags. Returns how
+  /// many. Imported entries are never linked to a work item, so no booking refers to them.
+  @discardableResult
+  public func removeImported() async throws -> Int {
+    try await database.writer.write { db in
+      try db.execute(
+        sql: "DELETE FROM time_entry WHERE id IN (SELECT DISTINCT entry_id FROM segment WHERE source = 'import')"
+      )
+      return db.changesCount
+    }
+  }
+
   // MARK: Private
 
   private let database: AppDatabase
