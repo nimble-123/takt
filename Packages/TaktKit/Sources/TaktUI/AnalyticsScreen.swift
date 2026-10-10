@@ -127,6 +127,7 @@ struct AnalyticsScreen: View {
 
       Menu {
         Button(String(localized: "Export as CSV …", bundle: .module)) { export(.csv) }
+        Button(String(localized: "Export as Excel (.xlsx) …", bundle: .module)) { export(.xlsx) }
         Button(String(localized: "Export as JSON …", bundle: .module)) { export(.json) }
         Button(String(localized: "Export as PDF Report …", bundle: .module)) { export(.pdf) }
         Divider()
@@ -920,6 +921,7 @@ extension AnalyticsScreen {
     let type: UTType =
       switch format {
       case .csv: .commaSeparatedText
+      case .xlsx: UTType("org.openxmlformats.spreadsheetml.sheet") ?? UTType(filenameExtension: "xlsx") ?? .data
       case .json: .json
       case .pdf: .pdf
       }

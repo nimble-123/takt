@@ -157,6 +157,7 @@ Seitenleiste mit Heute, Kalender, Einträge, Analysen, Projekte, Einstellungen.
 | AN-05 | Drilldown vom Diagramm zu den zugrunde liegenden Einträgen | Should |
 | AN-06 | Export als CSV und JSON | Must |
 | AN-07 | PDF-Report und Soll/Ist gegen Wochenstunden | Could |
+| AN-08 | Export als Excel (XLSX): Blatt „Einträge“ mit denselben Zeilen wie der CSV-Export als typisierte Zellen (Datum, Zahlen, Text), Blatt „Summen“ je Projekt und Kategorie; Kopfzeile fixiert, Autofilter | Should |
 
 ### Arbeitszeit & Konten
 

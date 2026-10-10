@@ -1991,6 +1991,16 @@
         }
       }
     },
+    "Export as Excel (.xlsx) …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als Excel (.xlsx) exportieren …"
+          }
+        }
+      }
+    },
     "Export Working Time Record as CSV …": {
       "localizations": {
         "de": {
@@ -4001,6 +4011,16 @@
         }
       }
     },
+    "Rounded hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerundete Stunden"
+          }
+        }
+      }
+    },
     "Rounding": {
       "localizations": {
         "de": {
@@ -4131,6 +4151,16 @@
         }
       }
     },
+    "Seconds": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sekunden"
+          }
+        }
+      }
+    },
     "Segments": {
       "localizations": {
         "de": {
@@ -4187,6 +4217,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mehrere"
+          }
+        }
+      }
+    },
+    "Share": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anteil"
           }
         }
       }

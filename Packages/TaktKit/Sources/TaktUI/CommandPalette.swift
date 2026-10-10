@@ -190,6 +190,14 @@ public final class CommandPaletteModel {
       )
       items.append(
         PaletteItem(
+          id: "export-xlsx",
+          title: String(localized: "Export as Excel (.xlsx) …", bundle: .module),
+          symbol: "tablecells",
+          keywords: ["export", "excel", "xlsx", "tabelle"],
+        ) { [weak self] in self?.export?(.xlsx) }
+      )
+      items.append(
+        PaletteItem(
           id: "export-json",
           title: String(localized: "Export as JSON …", bundle: .module),
           symbol: "square.and.arrow.up",
