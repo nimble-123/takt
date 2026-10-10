@@ -209,7 +209,10 @@ final class Composition {
       { _, observer, _, _, _ in
         guard let observer else { return }
         let composition = Unmanaged<Composition>.fromOpaque(observer).takeUnretainedValue()
-        Task { @MainActor in await composition.mainWindow.dataWasReplaced() }
+        Task { @MainActor in
+          composition.settings.reloadFromDefaults()
+          await composition.mainWindow.dataWasReplaced()
+        }
       },
       DataChangeSignal.name as CFString,
       nil,

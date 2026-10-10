@@ -89,11 +89,43 @@ struct TimesheetImportTests {
     // 5 October: 7:30 net against 7:36 target.
     #expect(result.months.map(\.taktHours) == [-0.1])
     #expect(result.months.first?.matches == true)
-    #expect(result.settings.first { $0.key == "weeklyHours" }?.applied == false)
-    #expect(defaults.double(forKey: "weeklyHours") == 40)
-    #expect(defaults.double(forKey: "flexStartBalanceHours") == 94.82)
+    #expect(result.settings.first { $0.key == "weeklyHours" }?.applied == true)
+    #expect(defaults.double(forKey: "weeklyHours") == 38)
+    #expect(defaults.string(forKey: "federalState") == "BW")
+    #expect(defaults.double(forKey: "flexStartBalanceHours") == 94.8)
     #expect(defaults.string(forKey: "flexStartDay") == "2026-01-01")
     #expect(defaults.integer(forKey: "vacationCarryoverDays") == 18)
+  }
+
+  @Test
+  func importCanBeRemovedAndRepeatedWithADistribution() async throws {
+    let catalog = CatalogStore(database: session.database)
+    try await catalog.save(EntryCategory(name: "Entwicklung", color: "#2563EB"))
+    try await catalog.save(EntryCategory(name: "Meeting", color: "#C2410C"))
+
+    let first = try await session.importTimesheet(
+      sheet,
+      until: "2026-10-05",
+      dryRun: false,
+      defaults: defaults,
+      backupFolder: nil,
+    )
+    #expect(first.categories == ["Entwicklung": 1])
+
+    let removed = try await session.removeImported(backupFolder: nil)
+    #expect(removed.entries == 1)
+    #expect(try await session.log(.day, around: day(2026, 10, 5)).rows.isEmpty)
+
+    let again = try await session.importTimesheet(
+      sheet,
+      until: "2026-10-05",
+      distribution: [("Meeting", 40), ("Entwicklung", 60)],
+      dryRun: false,
+      defaults: defaults,
+      backupFolder: nil,
+    )
+    #expect(again.categories == ["Entwicklung": 1, "Meeting": 1])
+    #expect(try await session.log(.day, around: day(2026, 10, 5)).totalSeconds == 7.5 * 3600)
   }
 
   @Test

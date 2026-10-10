@@ -158,6 +158,10 @@ public enum Format {
     var lines = [String]()
     if result.dryRun { lines.append("Dry run, nothing written.") }
     lines.append("\(result.workDays) working days → \(result.entries) entries, \(result.absences) absences")
+    if !result.categories.isEmpty {
+      let list = result.categories.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }.joined(separator: ", ")
+      lines.append("Entries per category: \(list)")
+    }
     if !result.skipped.isEmpty {
       lines.append("Skipped \(result.skipped.count):")
       lines += result.skipped.map { "  \($0.date)  \($0.reason)" }
@@ -174,7 +178,12 @@ public enum Format {
     if !result.settings.isEmpty {
       lines.append("Settings (Excel / Takt):")
       lines += result.settings.map { setting in
-        let state = setting.applied ? "  → taken over" : setting.excel == setting.takt ? "  ✓" : ""
+        let state =
+          setting.applied
+            ? "  → taken over"
+            : setting.excel == setting.takt
+              ? "  ✓"
+              : result.dryRun ? "  (--settings takes it over)" : ""
         return "  \(setting.key.rightPadded(22)) \(setting.excel) / \(setting.takt)\(state)"
       }
     }

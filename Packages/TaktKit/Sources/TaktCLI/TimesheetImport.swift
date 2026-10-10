@@ -82,6 +82,8 @@ public struct ImportResult: Codable, Equatable, Sendable {
 
   public var dryRun: Bool
   public var workDays: Int
+  /// Entries per category, e.g. `Entwicklung: 160`; with `--distribute` one per share and day.
+  public var categories = [String: Int]()
   public var entries: Int
   public var absences: Int
   public var skipped: [Skipped]
@@ -161,6 +163,8 @@ extension Session {
       result.workDays += 1
     }
     result.entries = entries.count
+    result.categories = Dictionary(grouping: entries) { catalog.category($0.entry.categoryID)?.name ?? "(none)" }
+      .mapValues(\.count)
     result.absences = absences.count
     // Excel sums only days with an entry, so the comparison ends with the last day of work; later
     // days, e.g. planned vacation, have no time yet.
@@ -179,7 +183,12 @@ extension Session {
       apply: applySettings && !dryRun,
       start: "\(sheet.year ?? 0)-01-01",
     )
-    if dryRun || entries.isEmpty && absences.isEmpty { return result }
+    if dryRun { return result }
+    if entries.isEmpty, absences.isEmpty {
+      // Settings may still have been taken over; a running app reloads them.
+      if result.settings.contains(where: \.applied) { DataChangeSignal.post() }
+      return result
+    }
 
     if let backupFolder {
       try FileManager.default.createDirectory(at: backupFolder, withIntermediateDirectories: true)
@@ -190,6 +199,22 @@ extension Session {
     try await ImportStore(database: database).add(entries, absences: absences)
     DataChangeSignal.post()
     return result
+  }
+
+  /// `takt import --remove`: deletes every entry with imported time, e.g. to import again with
+  /// other options. Absences stay, since they cannot be told apart from ones entered in Takt.
+  /// Backs the database up into `backupFolder` first. Returns the number of removed entries.
+  public func removeImported(backupFolder: URL?) async throws -> (entries: Int, backup: String?) {
+    var backup: String?
+    if let backupFolder {
+      try FileManager.default.createDirectory(at: backupFolder, withIntermediateDirectories: true)
+      let url = backupFolder.appending(path: "takt-before-remove-\(clock.now().milliseconds).sqlite")
+      try database.backup(to: url)
+      backup = url.path
+    }
+    let removed = try await ImportStore(database: database).removeImported()
+    if removed > 0 { DataChangeSignal.post() }
+    return (removed, backup)
   }
 
   // MARK: Internal
@@ -255,13 +280,13 @@ extension Session {
       if write { defaults?.set(excel, forKey: key) }
       checks.append(.init(key: key, excel: excelText, takt: taktText, applied: write))
     }
-    // Weekly hours and the federal state are only compared (#190); the accounts can be taken over.
-    check("weeklyHours", excel: sheet.weeklyHours, takt: defaults?.object(forKey: "weeklyHours") ?? 40.0, writable: false)
-    check("federalState", excel: sheet.federalState, takt: defaults?.string(forKey: "federalState"), writable: false)
+    check("weeklyHours", excel: sheet.weeklyHours, takt: defaults?.object(forKey: "weeklyHours") ?? 40.0, writable: true)
+    check("federalState", excel: sheet.federalState, takt: defaults?.string(forKey: "federalState"), writable: true)
     if let minutes = sheet.flexStartBalanceMinutes {
       check(
         "flexStartBalanceHours",
-        excel: (Double(minutes) / 60 * 100).rounded() / 100,
+        // The app keeps the start balance to 0.1 h (`AppSettings.hours`).
+        excel: (Double(minutes) / 6).rounded() / 10,
         takt: defaults?.object(forKey: "flexStartBalanceHours") ?? 0.0,
         writable: true,
       )

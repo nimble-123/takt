@@ -34,6 +34,25 @@ struct SettingsTests {
   }
 
   @Test
+  func valuesWrittenByAnotherProcessAreTakenOverOnReload() {
+    let store = defaults()
+    let settings = AppSettings(defaults: store)
+    // As `takt import --settings` writes them (#190).
+    store.set(38.0, forKey: "weeklyHours")
+    store.set("BW", forKey: "federalState")
+    store.set(94.82, forKey: "flexStartBalanceHours")
+    store.set(18, forKey: "vacationCarryoverDays")
+    #expect(settings.weeklyHours == 40)
+
+    settings.reloadFromDefaults()
+
+    #expect(settings.weeklyHours == 38)
+    #expect(settings.federalState == .badenWuerttemberg)
+    #expect(settings.flexStartBalanceHours == 94.8)
+    #expect(settings.vacationCarryoverDays == 18)
+  }
+
+  @Test
   func changesArePersistedUnderTheKeysOtherModulesRead() {
     let store = defaults()
     let settings = AppSettings(defaults: store)

@@ -132,7 +132,8 @@ To bring hours recorded in the German Excel template â€žZeiterfassungstabelle â€
 ```bash
 uv run --with openpyxl scripts/timesheet-to-json.py Zeiterfassung.xlsx ~/timesheet.json
 takt import ~/timesheet.json --dry-run    # counts, skipped days, flex time per month: Excel vs. Takt
-takt import ~/timesheet.json --settings   # import; also takes over flex start balance and vacation days
+takt import ~/timesheet.json --settings   # import; also takes over weekly hours, state, flex balance and vacation days
+takt import --remove                      # undo the import, e.g. to run it again with --distribute
 ```
 
 The database is backed up first. Options: `--until 2026-09-30`, `--category Development`, `--distribute Meeting=30,Development=70`. Details are in the [technical concept](docs/TECHNICAL_CONCEPT.md#kommandozeile).
