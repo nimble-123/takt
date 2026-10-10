@@ -108,6 +108,19 @@ public enum DatabaseArchive {
     }
   }
 
+  /// All tables that hold app data, i.e. not SQLite's or GRDB's own and not the full-text index,
+  /// which its triggers rebuild while the rows are imported.
+  /// Factory reset: deletes the rows of every data table in one transaction; the schema and the
+  /// applied migrations stay, so the app starts as on first launch.
+  public static func eraseAll(_ database: AppDatabase) async throws {
+    try await database.writer.write { db in
+      try db.execute(sql: "PRAGMA defer_foreign_keys = ON")
+      for table in try dataTables(db) {
+        try db.execute(sql: "DELETE FROM \(table)")
+      }
+    }
+  }
+
   // MARK: Internal
 
   struct Archive: Codable {
@@ -205,8 +218,6 @@ public enum DatabaseArchive {
     )
   }
 
-  /// All tables that hold app data, i.e. not SQLite's or GRDB's own and not the full-text index,
-  /// which its triggers rebuild while the rows are imported.
   private static func dataTables(_ db: Database) throws -> [String] {
     try String.fetchAll(
       db,
