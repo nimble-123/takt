@@ -59,6 +59,10 @@ public final class AnalyticsModel {
   public private(set) var previous: Report?
   public private(set) var data = AnalyticsData(entries: [])
   public private(set) var errorMessage: String?
+  /// Time per project in the period, whatever the grouping; largest first.
+  public private(set) var projectGroups = [Report.GroupTotal]()
+  /// The work items with the most time in the period, at most four.
+  public private(set) var topWorkItems = [Report.GroupTotal]()
 
   /// AZ-05: the flex account at the end of today; `nil` with trust-based working time or before
   /// the first load.
@@ -168,6 +172,37 @@ public final class AnalyticsModel {
   public var openCarryover: (days: Int, deadlinePassed: Bool)? {
     guard let vacation, vacation.carryoverOpen > 0 else { return nil }
     return (vacation.carryoverOpen, calendar.component(.month, from: clock.now().date) > 3)
+  }
+
+  /// The previous period for "vs. …": "CW 40", "September", "Monday" or "previous period".
+  public var previousPeriodName: String {
+    let start = Analyzer.previous(range, period: calendarPeriod, calendar: calendar).lowerBound.date
+    switch period {
+    case .day:
+      return start.formatted(.dateTime.weekday(.wide))
+    case .week:
+      return String(localized: "CW \(calendar.component(.weekOfYear, from: start))", bundle: .module)
+    case .month:
+      return start.formatted(.dateTime.month(.wide))
+    case .custom:
+      return String(localized: "previous period", bundle: .module)
+    }
+  }
+
+  /// One sentence on the period, e.g. "Tuesday was the longest day, Development prevails."
+  public var insight: String? {
+    guard let report else { return nil }
+    // "Without" a project or category says nothing about the period.
+    let group = report.groups.first { $0.key != GroupKey.none && $0.seconds > 0 }.map { label($0.key) }
+    let tracked = report.days.filter { $0.total > 0 }
+    let longest = tracked.count > 1 ? tracked.max { $0.total < $1.total } : nil
+    let day = longest?.start.date.formatted(.dateTime.weekday(.wide))
+    switch (day, group) {
+    case (let day?, let group?): return String(localized: "\(day) was the longest day, \(group) prevails", bundle: .module)
+    case (let day?, nil): return String(localized: "\(day) was the longest day", bundle: .module)
+    case (nil, let group?): return String(localized: "\(group) prevails", bundle: .module)
+    case (nil, nil): return nil
+    }
   }
 
   /// AZ-07: what speaks against paying out `hours` on `date`; hints only, nothing is blocked.
@@ -471,6 +506,15 @@ public final class AnalyticsModel {
     let analyzer = Analyzer(calendar: calendar, defaultMode: defaultMode)
     let now = clock.now()
     report = analyzer.report(data, in: range, now: now, by: grouping, mode: modeOverride)
+    projectGroups =
+      grouping == .project
+        ? report?.groups ?? []
+        : analyzer.report(data, in: range, now: now, by: .project, mode: modeOverride).groups
+    topWorkItems = Array(
+      analyzer.report(data, in: range, now: now, by: .workItem, mode: modeOverride).groups
+        .filter { $0.key != GroupKey.none }
+        .prefix(4)
+    )
     previous = analyzer.report(
       previousData,
       in: previousRange,

@@ -70,6 +70,26 @@ struct AnalyticsModelTests {
   }
 
   @Test
+  func projectSharesInsightAndComparisonDoNotDependOnTheGrouping() async throws {
+    let project = Project(name: "Portal", color: "#2563EB", createdAt: clock.now())
+    try await CatalogStore(database: database).save(project)
+    try await track("A", project: project.id, hours: 1)
+    try await track("B", hours: 0.5)
+    model.period = .week
+    model.grouping = .category
+    await model.reload()
+
+    #expect(model.projectGroups.map(\.key) == [.project(project.id), GroupKey.none])
+    #expect(model.projectGroups.map(\.seconds) == [3600, 1800])
+    #expect(model.topWorkItems.isEmpty)
+    // One day with time: no longest day, and "Without" a category is no insight.
+    #expect(model.insight == nil)
+    model.grouping = .project
+    #expect(model.insight == "Portal prevails")
+    #expect(model.previousPeriodName == "CW 40")
+  }
+
+  @Test
   func exportUsesTheShownRange() async throws {
     try await track("A", hours: 1)
     model.period = .day
