@@ -501,20 +501,21 @@ public final class MainWindowModel {
   /// Without a focused block it starts in the first of `days`, e.g. the shown day.
   @discardableResult
   public func moveTimelineFocus(_ step: TimelineLayout.Step, extend: Bool, days: [Range<Timestamp>]) -> Bool {
-    let day = timelineFocus.map(\.day).flatMap { days.contains($0) ? $0 : nil } ?? days.first { day in
-      !layout(for: day, now: now).keyboardOrder.isEmpty
+    let focusedDay = timelineFocus.map(\.day).flatMap { days.contains($0) ? $0 : nil }
+    let day = focusedDay ?? days.first { candidate in
+      !layout(for: candidate, now: now).keyboardOrder.isEmpty
     }
-    let layout = layout(for: day ?? dayRange, now: now)
+    let dayLayout = layout(for: day ?? dayRange, now: now)
     // Without a focused block the arrows start at a clicked entry, if it is in this day.
     if
       timelineFocus == nil, let selected = selection.first, selection.count == 1, let day,
-      let start = layout.keyboardOrder.first(where: { $0.entryID == selected })
+      let start = dayLayout.keyboardOrder.first(where: { $0.entryID == selected })
     {
-      let next = layout.item(from: start.id, step)
+      let next = dayLayout.item(from: start.id, step)
       focus(next ?? start, in: day, extend: extend)
       return true
     }
-    guard let day, let item = layout.item(from: focusedTimelineItem?.id, step) else { return false }
+    guard let day, let item = dayLayout.item(from: focusedTimelineItem?.id, step) else { return false }
     focus(item, in: day, extend: extend)
     return true
   }
