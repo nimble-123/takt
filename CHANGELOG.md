@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.6.0](https://github.com/nimble-123/takt/compare/v0.5.1...v0.6.0) (2026-10-10)
+
+
+### Neue Funktionen
+
+* **analytics:** add project shares, top work items, insight and duration comparison ([#194](https://github.com/nimble-123/takt/issues/194)) ([0a45473](https://github.com/nimble-123/takt/commit/0a45473896e70dac48e63bb438d0cc54dd8ba994))
+* **analytics:** add the flex account and absence days (AZ-05) ([#179](https://github.com/nimble-123/takt/issues/179)) ([d1081b2](https://github.com/nimble-123/takt/commit/d1081b2d1778b0eac1797985fa33072b0c55358e))
+* **analytics:** add the vacation account (AZ-06) ([#181](https://github.com/nimble-123/takt/issues/181)) ([ce4862b](https://github.com/nimble-123/takt/commit/ce4862bf86f5bf97253f4b9b3f4dc765587de98f))
+* **analytics:** archive the working time record at the month close (AZ-10) ([#187](https://github.com/nimble-123/takt/issues/187)) ([2f54b0d](https://github.com/nimble-123/takt/commit/2f54b0dd3cacc2e4c93a7135a553c1a06c830352))
+* **analytics:** cap the flex account at the year change (AZ-08) ([#183](https://github.com/nimble-123/takt/issues/183)) ([8032a56](https://github.com/nimble-123/takt/commit/8032a56d67fbef9af49cbf4ea6e026d80344eb91))
+* **analytics:** check working days against the ArbZG (AZ-02) ([#177](https://github.com/nimble-123/takt/issues/177)) ([3bb98ff](https://github.com/nimble-123/takt/commit/3bb98ffd88864253e47173e942259b064395daee))
+* **analytics:** compute the working day with start, end, breaks and net time (AZ-01) ([#175](https://github.com/nimble-123/takt/issues/175)) ([e83d39d](https://github.com/nimble-123/takt/commit/e83d39ddedf24f28971cee35a562ec11c3dedafc))
+* **analytics:** export the working time record as PDF and CSV (AZ-09) ([#180](https://github.com/nimble-123/takt/issues/180)) ([29db353](https://github.com/nimble-123/takt/commit/29db353dc007d1803536096546d2f8663095007c))
+* **analytics:** pay out overtime from the flex account (AZ-07) ([#182](https://github.com/nimble-123/takt/issues/182)) ([40c1ebf](https://github.com/nimble-123/takt/commit/40c1ebf1c4cbca860287555236b095dc8f5e1435))
+* **cli:** add the takt command line tool (CL-01–CL-06) ([#202](https://github.com/nimble-123/takt/issues/202)) ([d98eb37](https://github.com/nimble-123/takt/commit/d98eb37b87f00a0cf683c98bdee036d37fc63353))
+* **cli:** import the Excel timesheet once (CL-07) ([#206](https://github.com/nimble-123/takt/issues/206)) ([7959d43](https://github.com/nimble-123/takt/commit/7959d43f0e95c1bbf2cd157aa3aa1a5f7bbce4c9))
+* **cli:** ship takt in the app bundle and link it from the settings ([#204](https://github.com/nimble-123/takt/issues/204)) ([28e6a0e](https://github.com/nimble-123/takt/commit/28e6a0edc325507c6390e90ce8e9d8ec07ad8eb1))
+* **core:** add statutory public holidays per federal state (AZ-03) ([#176](https://github.com/nimble-123/takt/issues/176)) ([9495e92](https://github.com/nimble-123/takt/commit/9495e92d8cb74aa0845c939e81419730eb086194))
+* **store:** add the import segment source and an import store (AZ-04) ([#205](https://github.com/nimble-123/takt/issues/205)) ([171cb20](https://github.com/nimble-123/takt/commit/171cb205c0d8d27eb5a2529e2513166b78761d67))
+* **store:** log corrections of times in the same transaction (AZ-04) ([#178](https://github.com/nimble-123/takt/issues/178)) ([f7c841f](https://github.com/nimble-123/takt/commit/f7c841ffa1cf5b86e81c559228e2c839da2d43bf))
+* **system:** remind when no timer runs during working hours (TM-09) ([#173](https://github.com/nimble-123/takt/issues/173)) ([eb49f93](https://github.com/nimble-123/takt/commit/eb49f93b2c2d02c73ffa79a7d5a0d834276ac182))
+* **ui:** add segments, parallel hint, idle pause origin and booking difference in the inspector (HW-02) ([#195](https://github.com/nimble-123/takt/issues/195)) ([a0c39f5](https://github.com/nimble-123/takt/commit/a0c39f5cdb800dd879f5e0eb60b1633d054e921c))
+* **ui:** choose the start mode with cards in the onboarding ([#196](https://github.com/nimble-123/takt/issues/196)) ([0e69cc4](https://github.com/nimble-123/takt/commit/0e69cc48317f752857513682e873242659922610))
+* **ui:** close the popover and search gaps to the design canvas ([#188](https://github.com/nimble-123/takt/issues/188)) ([a2b6141](https://github.com/nimble-123/takt/commit/a2b614117b5a5fe8fc19a6b9bf8f4f6e8725a187))
+* **ui:** explain the inactivity options and add "Later" (TM-06) ([#191](https://github.com/nimble-123/takt/issues/191)) ([2ae70d8](https://github.com/nimble-123/takt/commit/2ae70d881a49b5b9f70b7e1951d64c3265be09ae))
+* **ui:** open a stop panel for missing required fields and show the duration in the toast (TM-11) ([#197](https://github.com/nimble-123/takt/issues/197)) ([8901c39](https://github.com/nimble-123/takt/commit/8901c39cb3ce2c5eb1e0baeb74c9f5228dfe9441))
+* **ui:** show parallel time and focus blocks today, uncheck bookings in the day close ([#192](https://github.com/nimble-123/takt/issues/192)) ([2d07e70](https://github.com/nimble-123/takt/commit/2d07e706e9f2dcdb80626c2c2b129b29ea19976f))
+
+
+### Fehlerbehebungen
+
+* **ui:** align stepper values and search work items from 3 characters ([#186](https://github.com/nimble-123/takt/issues/186)) ([612bf0c](https://github.com/nimble-123/takt/commit/612bf0c36f98e4b6057e6bee53b8c906c60e48fd))
+* **ui:** align the analytics KPIs at the top ([#198](https://github.com/nimble-123/takt/issues/198)) ([f92599b](https://github.com/nimble-123/takt/commit/f92599b4f1d7e2e7517690bfb8de9fd0a9de1782))
+* **ui:** scroll the day and week timeline to the current hour when the window opens ([#199](https://github.com/nimble-123/takt/issues/199)) ([855c15f](https://github.com/nimble-123/takt/commit/855c15f7a4653b9974936d1964aa06f78431c812))
+
 ## [0.5.1](https://github.com/nimble-123/takt/compare/v0.5.0...v0.5.1) (2026-10-09)
 
 
