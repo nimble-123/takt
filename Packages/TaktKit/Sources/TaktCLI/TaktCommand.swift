@@ -23,7 +23,16 @@ public struct TaktCommand: AsyncParsableCommand {
 
       Exit codes: 0 success, 1 invalid input, 3 nothing running or paused, 4 not found, 5 ambiguous.
       """,
-    subcommands: [Status.self, Start.self, Stop.self, Pause.self, Resume.self, LogCommand.self, ReportCommand.self],
+    subcommands: [
+      Status.self,
+      Start.self,
+      Stop.self,
+      Pause.self,
+      Resume.self,
+      LogCommand.self,
+      ReportCommand.self,
+      ImportCommand.self,
+    ],
     defaultSubcommand: Status.self,
   )
 }
@@ -209,6 +218,77 @@ struct ReportCommand: AsyncParsableCommand {
       return options.json ? try Format.json(report) : Format.report(report)
     }
   }
+}
+
+// MARK: - ImportCommand
+
+struct ImportCommand: AsyncParsableCommand {
+  static let configuration = CommandConfiguration(
+    commandName: "import",
+    abstract: "Import the Excel timesheet once, from the JSON of scripts/timesheet-to-json.py.",
+    discussion: """
+      Adds an entry per working day with its break and the vacation and sick days. Days that already \
+      have time in Takt are skipped and listed, existing absences stay, and nothing goes to Azure \
+      DevOps. A backup of the database is written first. Run it with --dry-run before.
+      """,
+  )
+
+  @OptionGroup var options: GlobalOptions
+
+  @Argument(help: "The JSON file.")
+  var file: String
+
+  @Flag(help: "Show what would be imported and compare the monthly flex time, without writing.")
+  var dryRun = false
+
+  @Option(help: "Import days up to and including this one (YYYY-MM-DD).")
+  var until: String?
+
+  @Option(help: "The category of the entries (default: Entwicklung or Development).")
+  var category: String?
+
+  @Option(help: "Split each day's time into categories, e.g. Meeting=30,Entwicklung=40,Support=20,Review=10.")
+  var distribute: String?
+
+  @Flag(help: "Take over the flex account's start balance and the vacation days into the settings.")
+  var settings = false
+
+  /// `Meeting=30,Entwicklung=70`
+  static func distribution(_ text: String?) throws -> Session.Distribution {
+    guard let text, !text.isEmpty else { return [] }
+    return try text.split(separator: ",").map { part in
+      let pair = part.split(separator: "=", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
+      guard pair.count == 2, let percent = Int(pair[1]), percent > 0 else {
+        throw CLIError.invalid("Use --distribute like Meeting=30,Entwicklung=70.")
+      }
+      return (pair[0], percent)
+    }
+  }
+
+  func run() async throws {
+    try await report {
+      let data = try Data(contentsOf: URL(filePath: file))
+      let sheet: Timesheet
+      do {
+        sheet = try JSONDecoder().decode(Timesheet.self, from: data)
+      } catch {
+        throw CLIError.invalid("Not a timesheet JSON: \(error.localizedDescription)")
+      }
+      let session = try options.session()
+      let result = try await session.importTimesheet(
+        sheet,
+        until: until,
+        category: category,
+        distribution: try Self.distribution(distribute),
+        applySettings: settings,
+        dryRun: dryRun,
+        defaults: UserDefaults(suiteName: "de.nilslutz.takt"),
+        backupFolder: session.folder?.appending(path: "Backups"),
+      )
+      return options.json ? try Format.json(result) : Format.importResult(result)
+    }
+  }
+
 }
 
 // MARK: - Session.Period + EnumerableFlag

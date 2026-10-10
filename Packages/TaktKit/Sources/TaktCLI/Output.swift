@@ -154,6 +154,38 @@ public enum Format {
     return lines.joined(separator: "\n")
   }
 
+  public static func importResult(_ result: ImportResult) -> String {
+    var lines = [String]()
+    if result.dryRun { lines.append("Dry run, nothing written.") }
+    lines.append("\(result.workDays) working days → \(result.entries) entries, \(result.absences) absences")
+    if !result.skipped.isEmpty {
+      lines.append("Skipped \(result.skipped.count):")
+      lines += result.skipped.map { "  \($0.date)  \($0.reason)" }
+    }
+    if !result.months.isEmpty {
+      lines.append("Flex time per month (Excel → Takt):")
+      lines += result.months.map { month in
+        let excel = month.excelHours.formatted(.number.precision(.fractionLength(2)))
+        let takt = month.taktHours.formatted(.number.precision(.fractionLength(2)))
+        let mark = month.partial ? "partial month, not compared" : month.matches ? "✓" : "✗ differs"
+        return "  \(month.month)  \(excel.leftPadded(8)) h → \(takt.leftPadded(8)) h  \(mark)"
+      }
+    }
+    if !result.settings.isEmpty {
+      lines.append("Settings (Excel / Takt):")
+      lines += result.settings.map { setting in
+        let state = setting.applied ? "  → taken over" : setting.excel == setting.takt ? "  ✓" : ""
+        return "  \(setting.key.rightPadded(22)) \(setting.excel) / \(setting.takt)\(state)"
+      }
+    }
+    if !result.warnings.isEmpty {
+      lines.append("Notes:")
+      lines += result.warnings.map { "  \($0)" }
+    }
+    if let backup = result.backup { lines.append("Backup: \(backup)") }
+    return lines.joined(separator: "\n")
+  }
+
   public static func report(_ report: TimeReport) -> String {
     let width = report.groups.map(\.name.count).max() ?? 0
     var lines = report.groups.map { group in

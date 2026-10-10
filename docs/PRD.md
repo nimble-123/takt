@@ -189,6 +189,7 @@ Takt lässt sich auch aus dem Terminal bedienen, ohne die Menüleiste zu öffnen
 | CL-04 | `takt log` und `takt report` für Tag, Woche oder Monat (`--date`), Report nach Projekt oder Kategorie | Should |
 | CL-05 | Ausgabe als Text oder mit `--json`; Exit-Codes 0 Erfolg, 1 ungültige Eingabe, 3 nichts aktiv, 4 nicht gefunden, 5 mehrdeutig; `--help` je Befehl und zsh-Completion | Should |
 | CL-06 | Schreibende Befehle laufen über die Timer-Engine; eine laufende App zeigt die Änderung sofort, ohne dass sie laufen muss | Should |
+| CL-07 | `takt import` übernimmt den Excel-Stundenzettel einmalig (#190): additiv, mit Trockenlauf, Backup und Abgleich der Monats-Flexsalden; Tage mit Zeiten in Takt bleiben unberührt | Could |
 
 ## Azure DevOps Integration
 
