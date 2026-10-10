@@ -10,6 +10,21 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
   init(model: MainWindowModel) {
     self.model = model
+    super.init()
+    // SwiftUI's `.searchable` cannot set the field's width. It adds an `NSSearchToolbarItem`
+    // whenever the toolbar is rebuilt, so the width is set each time one is added.
+    searchItemObserver = NotificationCenter.default.addObserver(
+      forName: NSToolbar.willAddItemNotification,
+      object: nil,
+      queue: .main,
+    ) { note in
+      guard let item = note.userInfo?["item"] as? NSSearchToolbarItem else { return }
+      MainActor.assumeIsolated { Self.fit(item) }
+    }
+  }
+
+  isolated deinit {
+    if let searchItemObserver { NotificationCenter.default.removeObserver(searchItemObserver) }
   }
 
   // MARK: Internal
@@ -23,6 +38,12 @@ final class MainWindowController: NSObject, NSWindowDelegate {
     // choosing "Open Takt" from the status item menu while another app is active.
     NSApp.activate(ignoringOtherApps: true)
     window.makeKeyAndOrderFront(nil)
+    // SwiftUI builds the toolbar after the first layout pass.
+    DispatchQueue.main.async { [weak window] in
+      for case let item as NSSearchToolbarItem in window?.toolbar?.items ?? [] {
+        Self.fit(item)
+      }
+    }
   }
 
   func windowWillClose(_: Notification) {
@@ -31,8 +52,25 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
   // MARK: Private
 
+  /// The inspector's width (300 pt in `MainWindowView`) less the toolbar's margin, so the search
+  /// field sits above the inspector and the buttons stay left of it.
+  private static let searchFieldWidth: CGFloat = 286
+
   private let model: MainWindowModel
   private var window: NSWindow?
+  private var searchItemObserver: (any NSObjectProtocol)?
+
+  private static func fit(_ item: NSSearchToolbarItem) {
+    item.preferredWidthForSearchField = searchFieldWidth
+    // SwiftUI may set its own preferred width later; a constraint keeps the field narrow anyway.
+    let field = item.searchField
+    if !field.constraints.contains(where: { $0.identifier == "takt.searchWidth" }) {
+      let limit = field.widthAnchor.constraint(lessThanOrEqualToConstant: searchFieldWidth)
+      limit.identifier = "takt.searchWidth"
+      limit.priority = .required
+      limit.isActive = true
+    }
+  }
 
   private func makeWindow() -> NSWindow {
     let window = NSWindow(contentViewController: NSHostingController(rootView: MainWindowView(model: model)))
