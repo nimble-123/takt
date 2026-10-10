@@ -42,6 +42,17 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func inspectorKnowsParallelEntriesAndAddsSegments() async throws {
+    let main = try #require(await model.createEntry(from: at(8), to: at(9)))
+    _ = try #require(await model.createEntry(from: at(8.5), to: at(9.5)))
+
+    #expect(model.parallelEntries(to: main).map(\.seconds) == [1800])
+
+    await model.addSegment(to: main)
+    #expect(model.entry(main)?.segments.map(\.end) == [at(9), at(9.5)])
+  }
+
+  @Test
   func theShownDayIsCheckedAgainstTheWorkingHoursAct() async throws {
     // Yesterday, 7:00–18:00 without a break.
     model.step(by: -1)

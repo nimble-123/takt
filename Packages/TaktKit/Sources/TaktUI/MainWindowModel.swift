@@ -393,6 +393,38 @@ public final class MainWindowModel {
     await apply(changes, name: String(localized: "Move Entry", bundle: .module))
   }
 
+  /// HW-02: "+ Segment" in the inspector.
+  public func addSegment(to id: EntryID) async {
+    let siblings = segments(of: id)
+    guard let changes = attempt({ try EntryEdits.addSegment(to: id, among: siblings, now: clock.now()) }) else { return }
+    await apply(changes, name: String(localized: "Add Segment", bundle: .module))
+  }
+
+  /// Other entries of the shown data that ran at the same time as `id`, with the shared seconds;
+  /// most first.
+  public func parallelEntries(to id: EntryID) -> [(title: String, seconds: TimeInterval)] {
+    guard let entry = entry(id) else { return [] }
+    let now = clock.now()
+    return data.entries.compactMap { other -> (title: String, seconds: TimeInterval)? in
+      guard other.id != id else { return nil }
+      let shared = entry.segments.reduce(0.0) { total, segment in
+        other.segments.reduce(total) { total, otherSegment in
+          let start = max(segment.start, otherSegment.start)
+          let end = min(segment.end ?? now, otherSegment.end ?? now)
+          return end > start ? total + end.seconds(since: start) : total
+        }
+      }
+      return shared > 0 ? (other.entry.title, shared) : nil
+    }
+    .sorted { $0.seconds > $1.seconds }
+  }
+
+  /// Whether the pause from `start` to `end` comes from an inactivity counted as a pause (TM-06).
+  public func isIdlePause(from start: Timestamp, to end: Timestamp) -> Bool {
+    // The engine pauses the entries where the inactivity began; they resume when the user is back.
+    data.idleEvents.contains { $0.resolution == .pause && $0.start == start && $0.end <= end }
+  }
+
   public func closeGap(between first: Segment, and second: Segment) async {
     let siblings = segments(of: first.entryID)
     guard let changes = attempt({ try EntryEdits.closeGap(between: first, and: second, among: siblings) })

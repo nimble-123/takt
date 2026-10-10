@@ -32,6 +32,32 @@ struct EntryEditsTests {
   }
 
   @Test
+  func addSegmentFollowsTheLastOneOrPrecedesTheFirst() throws {
+    let id = EntryID()
+    let first = Segment(entryID: id, start: t(60), end: t(120), source: .live)
+    func added(now: Double) throws -> Segment? {
+      try EntryEdits.addSegment(to: id, among: [first], now: t(now)).compactMap {
+        if case .segment(before: nil, let after) = $0 { after } else { nil }
+      }.first
+    }
+
+    let after = try added(now: 600)
+    #expect(after?.start == t(120))
+    #expect(after?.end == t(150))
+    #expect(after?.source == .manual)
+    // Up to now at most.
+    #expect(try added(now: 130)?.end == t(130))
+    // No room up to now: it ends where the first one starts.
+    let before = try added(now: 120.5)
+    #expect(before?.start == t(30))
+    #expect(before?.end == t(60))
+
+    #expect(throws: EntryEdits.EditError.invalidRange) {
+      try EntryEdits.addSegment(to: id, among: [Segment(entryID: id, start: t(60), end: nil, source: .live)], now: t(600))
+    }
+  }
+
+  @Test
   func createRejectsEmptyAndFutureRanges() {
     #expect(throws: EntryEdits.EditError.invalidRange) {
       try EntryEdits.create(EntryDraft(title: "A"), from: t(60), to: t(60), now: t(600))

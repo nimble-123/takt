@@ -28,6 +28,30 @@ public enum EntryEdits {
     return (entry, [.entry(before: nil, after: entry), .segment(before: nil, after: segment)])
   }
 
+  /// HW-02, "+ Segment": a new manual segment of `length` right after the entry's last one, up to
+  /// now at most; if there is less than a minute up to now, it ends where the first one starts.
+  /// A running entry gets no new segment.
+  public static func addSegment(
+    to entryID: EntryID,
+    among segments: [Segment],
+    length: TimeInterval = 30 * 60,
+    now: Timestamp,
+  ) throws -> [TimerChange] {
+    guard !segments.contains(where: \.isOpen) else { throw EditError.invalidRange }
+    let sorted = segments.sorted { $0.start < $1.start }
+    let start: Timestamp
+    let end: Timestamp
+    if let last = sorted.last?.end, now.seconds(since: last) >= 60 {
+      start = last
+      end = min(last.adding(seconds: length), now)
+    } else {
+      end = sorted.first?.start ?? now
+      start = end.adding(seconds: -length)
+    }
+    let segment = Segment(entryID: entryID, start: start, end: end, source: .manual)
+    return [.segment(before: nil, after: segment)]
+  }
+
   /// Sets new bounds. An open segment keeps running; only its start can move. A closed segment
   /// needs an `end`. `segments` are the entry's segments; the new bounds must not overlap the others.
   public static func setBounds(

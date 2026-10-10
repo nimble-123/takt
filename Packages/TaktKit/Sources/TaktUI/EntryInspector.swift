@@ -1,4 +1,5 @@
 import SwiftUI
+import TaktADO
 import TaktCore
 import TaktStore
 
@@ -70,6 +71,16 @@ private struct SingleEntryInspector: View {
       AssignmentSection(model: model, ids: [entry.id])
 
       Section(String(localized: "Counting", bundle: .module)) {
+        let parallel = model.parallelEntries(to: entry.id)
+        if let first = parallel.first {
+          // Which entries share the time, so the counting mode is chosen knowingly (TM-05).
+          Text(
+            "Parallel to \(parallel.prefix(2).map(\.title).formatted(.list(type: .and))), \(DurationText.span(first.seconds))",
+            bundle: .module,
+          )
+          .font(.system(size: 12))
+          .foregroundStyle(Palette.textSecondary)
+        }
         CountingModePicker(mode: entry.entry.countingMode) { mode in
           save(String(localized: "Change Counting", bundle: .module)) { $0.countingMode = mode }
         }
@@ -96,10 +107,17 @@ private struct SingleEntryInspector: View {
             if next.start > gapStart {
               HStack {
                 Label {
-                  Text(
-                    "Pause \(DurationText.span(next.start.seconds(since: gapStart)))",
-                    bundle: .module,
-                  )
+                  if model.isIdlePause(from: gapStart, to: next.start) {
+                    Text(
+                      "Pause \(DurationText.span(next.start.seconds(since: gapStart))) · from inactivity",
+                      bundle: .module,
+                    )
+                  } else {
+                    Text(
+                      "Pause \(DurationText.span(next.start.seconds(since: gapStart)))",
+                      bundle: .module,
+                    )
+                  }
                 } icon: {
                   Image(systemName: "pause.circle")
                 }
@@ -114,6 +132,12 @@ private struct SingleEntryInspector: View {
             }
           }
         }
+        Button(String(localized: "+ Segment", bundle: .module)) {
+          Task { await model.addSegment(to: entry.id) }
+        }
+        .buttonStyle(.borderless)
+        // A running entry grows by itself.
+        .disabled(entry.segments.contains(where: \.isOpen))
         LabeledContent(String(localized: "Total", bundle: .module)) {
           // Re-rendered every minute, so a running entry keeps counting.
           TimelineView(.everyMinute) { _ in
@@ -414,12 +438,13 @@ private struct AssignmentSection: View {
             Button(String(localized: "Book Now", bundle: .module)) {
               Task {
                 if let id = ids.first { await booking.book(entry: id) }
-                booked = await booking.bookedSeconds(of: Array(ids)).values.first
+                await loadBooking(booking)
               }
             }
             .controlSize(.small)
           }
-          .task(id: ids) { booked = await booking.bookedSeconds(of: Array(ids)).values.first ?? 0 }
+          // Reloaded when the times change, so the difference follows the edit.
+          .task(id: ids.map { model.entry($0)?.segments ?? [] }) { await loadBooking(booking) }
         }
       }
       Picker(String(localized: "Project", bundle: .module), selection: projectBinding(entries)) {
@@ -470,22 +495,42 @@ private struct AssignmentSection: View {
 
   @State private var pickingWorkItem = false
   @State private var booked: Int?
+  /// The entry's line in the day close: what it would book now.
+  @State private var line: BookingLine?
 
   private var catalog: CatalogModel {
     model.catalog
   }
 
-  /// HW-02: what was booked; later changes are booked as differences.
+  /// HW-02: what was booked and, after a change, the difference the next day close books.
   private var bookedText: String {
-    let hours = Double(booked ?? 0) / 3600
-    let value = hours.formatted(.number.precision(.fractionLength(2)))
-    return String(localized: "Booked: \(value) h · changes are booked as a difference", bundle: .module)
+    let booked = line?.booked ?? booked ?? 0
+    guard let line, line.difference != 0 else {
+      return String(localized: "Booked: \(DayCloseScreen.hours(booked)) · changes are booked as a difference", bundle: .module)
+    }
+    if booked == 0 {
+      return String(localized: "Not booked yet: \(DayCloseScreen.hours(line.target)) in the next day close", bundle: .module)
+    }
+    return String(
+      localized: "Booked: \(DayCloseScreen.hours(booked)). Now \(DayCloseScreen.hours(line.target)); the difference of \(DayCloseScreen.hours(line.difference, signed: true)) is booked in the next day close.",
+      bundle: .module,
+    )
   }
 
   /// The value all entries share, or `nil` if they differ.
   private static func common<Value: Hashable>(_ value: (TimeEntry) -> Value, of entries: [TimeEntry]) -> Value? {
     let values = Set(entries.map(value))
     return values.count == 1 ? values.first : nil
+  }
+
+  private func loadBooking(_ booking: BookingCoordinator) async {
+    guard let id = ids.first else { return }
+    booked = await booking.bookedSeconds(of: [id]).values.first ?? 0
+    guard let start = model.entry(id)?.segments.first?.start else {
+      line = nil
+      return
+    }
+    line = try? await booking.lines(for: start.localDay(in: .current)).first { $0.entryID == id }
   }
 
   /// Active projects plus archived ones still assigned, so the picker shows them.
