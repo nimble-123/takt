@@ -40,6 +40,11 @@ public struct MainWindowView: View {
     .sheet(isPresented: $palette.isPresented) {
       CommandPaletteView(model: palette)
     }
+    .sheet(isPresented: $isPayoutShown) {
+      if let analytics = model.analytics {
+        OvertimePayoutSheet(model: analytics)
+      }
+    }
     .alert(
       Text("Reason for the Correction", bundle: .module),
       isPresented: Binding(get: { model.correctionReasonRequest != nil }) { shown in
@@ -88,6 +93,14 @@ public struct MainWindowView: View {
         Task {
           await analytics.reload()
           AnalyticsScreen.saveTimeRecord(analytics, csv: csv)
+        }
+      }
+      palette.payOutOvertime = { [model] in
+        guard let analytics = model.analytics else { return }
+        // The hints need the balance and this quarter's payouts.
+        Task {
+          await analytics.reload()
+          isPayoutShown = true
         }
       }
     }
@@ -142,6 +155,8 @@ public struct MainWindowView: View {
   @Environment(\.undoManager) private var undoManager
   @State private var palette: CommandPaletteModel
   @State private var correctionReason = ""
+  /// AZ-07: the payout sheet opened from ⌘K.
+  @State private var isPayoutShown = false
 
   private var detail: some View {
     VStack(spacing: 0) {

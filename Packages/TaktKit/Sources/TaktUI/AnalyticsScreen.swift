@@ -21,6 +21,7 @@ struct AnalyticsScreen: View {
         controls
         if let report = model.report {
           KPIRow(
+            model: model,
             report: report,
             previous: model.previous,
             comparison: model.comparison,
@@ -171,6 +172,7 @@ private struct KPIRow: View {
 
   // MARK: Internal
 
+  let model: AnalyticsModel
   let report: Report
   let previous: Report?
   let comparison: TargetPlan.Comparison?
@@ -210,15 +212,26 @@ private struct KPIRow: View {
         )
       }
       if let flexBalance {
-        // AZ-05: independent of the shown period, always through today.
-        figure(
-          String(localized: "Flex account", bundle: .module),
-          (flexBalance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(flexBalance)),
-          help: String(
-            localized: "Start balance plus net working time minus target, from the start day through today. Vacation, sick days, days off and public holidays have no target.",
-            bundle: .module,
-          ),
-        )
+        // AZ-05: independent of the shown period, always through today. AZ-07: a click shows the
+        // payouts; the quarter's quota only when one is set.
+        Button {
+          isFlexDetailShown = true
+        } label: {
+          figure(
+            String(localized: "Flex account", bundle: .module),
+            (flexBalance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(flexBalance)),
+            detail: model.overtimeQuota.map(OvertimePayoutText.quota),
+            help: String(
+              localized: "Start balance plus net working time minus target and payouts, from the start day through today. Vacation, sick days, days off and public holidays have no target. Click for payouts.",
+              bundle: .module,
+            ),
+          )
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $isFlexDetailShown, arrowEdge: .bottom) {
+          FlexAccountDetail(model: model)
+        }
       }
       if let vacation {
         // AZ-06: the current year, independent of the shown period.
@@ -287,6 +300,8 @@ private struct KPIRow: View {
 
   private static let percent = FloatingPointFormatStyle<Double>.Percent().precision(.fractionLength(0))
   private static let decimal = FloatingPointFormatStyle<Double>().precision(.fractionLength(1))
+
+  @State private var isFlexDetailShown = false
 
   /// Days left and planned, or last year's days still to take by 31 March (§ 7 para. 3 BUrlG).
   private func vacationDetail(_ vacation: VacationAccount.Year) -> String {

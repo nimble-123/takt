@@ -1,3 +1,4 @@
+import GRDB
 import TaktCore
 import Testing
 
@@ -126,5 +127,29 @@ struct AbsenceStoreTests {
     try await store.set(nil, on: "2026-10-06")
 
     #expect(try await store.absences(from: "2026-10-01", through: "2026-10-31") == ["2026-10-05": .off])
+  }
+}
+
+// MARK: - OvertimePayoutStoreTests
+
+struct OvertimePayoutStoreTests {
+  @Test
+  func removedPayoutsStayButAreNotListed() async throws {
+    let database = try AppDatabase.inMemory()
+    let store = OvertimePayoutStore(database: database)
+    let created = Timestamp(milliseconds: 1_790_000_000_000)
+    let kept = OvertimePayout(day: "2026-10-05", seconds: 3600, note: "Q4", createdAt: created)
+    let removed = OvertimePayout(day: "2026-10-06", seconds: 7200, createdAt: created)
+
+    try await store.add(kept)
+    try await store.add(removed)
+    try await store.add(OvertimePayout(day: "2026-11-02", seconds: 1800, createdAt: created))
+    try await store.remove(removed.id, at: created.adding(seconds: 60))
+
+    #expect(try await store.payouts(from: "2026-10-01", through: "2026-10-31") == [kept])
+    let rows = try await database.writer.read { db in
+      try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM overtime_payout WHERE deleted_at IS NOT NULL")
+    }
+    #expect(rows == 1)
   }
 }

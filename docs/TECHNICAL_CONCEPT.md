@@ -216,6 +216,17 @@ CREATE TABLE absence (
   day TEXT PRIMARY KEY,                     -- YYYY-MM-DD
   kind TEXT NOT NULL CHECK (kind IN ('vacation', 'sick', 'off'))
 );
+
+-- Überstundenvergütungen (AZ-07, Migration v9-overtime-payout); entfernte bleiben mit deleted_at
+CREATE TABLE overtime_payout (
+  id TEXT PRIMARY KEY,
+  day TEXT NOT NULL,                        -- YYYY-MM-DD, an dem Tag mindert sie das Flexkonto
+  seconds INTEGER NOT NULL CHECK (seconds > 0),
+  note TEXT,
+  created_at INTEGER NOT NULL,
+  deleted_at INTEGER
+);
+CREATE INDEX overtime_payout_day ON overtime_payout(day);
 ```
 
 Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
@@ -466,7 +477,7 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - *Grund:* Einstellung `askCorrectionReason` (Standard aus, MDM). Berührt eine Bearbeitung Zeiten, die älter als 7 Tage sind, fragt das Hauptfenster nach einem optionalen Grund (§ 17 MiLoG); leer = ohne Grund.
   - *Korrigiert:* `source = manual` oder mindestens ein Protokolleintrag; der Inspektor zeigt dann „korrigiert“ mit den Änderungen im Tooltip. JSON-Export, -Import und Backup enthalten die Tabelle wie jede andere.
   - *Grenze:* Takt ist lokal und Single-User; gegen Änderungen durch den Nutzer selbst (z. B. direkt in der Datenbank) schützt das nicht. Ziel ist Nachvollziehbarkeit, nicht Unveränderbarkeit.
-- **Flexkonto (AZ-05, umgesetzt in `TaktAnalytics.FlexAccount`):** Saldo = Startsaldo + Σ (Netto − Soll) vom Stichtag bis einschließlich heute (− Σ Vergütungen, kommt mit AZ-07). Netto aus `WorkDay`, Soll aus `TargetPlan`; der heutige Tag zählt mit vollem Soll, spätere Tage gar nicht. Einstellungen `workTimeModel` (Gleitzeit Standard, Vertrauensarbeitszeit blendet Soll, Soll/Ist und Flexkonto aus), `flexStartBalanceHours` (auch negativ) und `flexStartDay` (leer = erster erfasster Tag), alle MDM-verwaltbar.
+- **Flexkonto (AZ-05, umgesetzt in `TaktAnalytics.FlexAccount`):** Saldo = Startsaldo + Σ (Netto − Soll) − Σ Vergütungen (AZ-07) vom Stichtag bis einschließlich heute. Netto aus `WorkDay`, Soll aus `TargetPlan`; der heutige Tag zählt mit vollem Soll, spätere Tage gar nicht. Einstellungen `workTimeModel` (Gleitzeit Standard, Vertrauensarbeitszeit blendet Soll, Soll/Ist und Flexkonto aus), `flexStartBalanceHours` (auch negativ) und `flexStartDay` (leer = erster erfasster Tag), alle MDM-verwaltbar.
   - *Abwesenheiten:* Tabelle `absence` (Tag + Art), nur Urlaub, Krank, Frei. Alle setzen das Soll auf 0 (`TargetPlan.absences`), die Art dient der Dokumentation. Abfeiern ist ein Tag mit weniger oder ohne Arbeitszeit und braucht keinen Marker; halbe Tage gibt es bewusst nicht. Setzen per Kontextmenü am Tag (Timeline „Heute“, Kopf der Wochenspalte) und ⌘K für den angezeigten Tag.
   - *Anzeige:* „Flexkonto“ als Kennzahl in den Analysen neben Soll/Ist, unabhängig vom gewählten Zeitraum immer bis heute.
 - **Urlaubskonto (AZ-06, umgesetzt in `TaktAnalytics.VacationAccount`):** In ganzen Tagen. Rest = Übertrag + Anspruch − genommen − geplant. Genommen und geplant sind die Urlaubsmarker (`absence`, Art Urlaub) an Arbeitstagen (`workDays`) ohne Feiertag, bis einschließlich heute bzw. danach.
@@ -474,7 +485,11 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - *Startjahr:* das Jahr des Stichtags des Flexkontos (`flexStartDay`), sonst des ersten erfassten Tags, sonst das laufende Jahr. Der eingestellte Übertrag gilt nur für das Startjahr; jedes weitere Jahr übernimmt den Rest des Vorjahrs, auch einen negativen. Gespeichert wird nichts davon.
   - *Verfall (§ 7 Abs. 3 BUrlG):* Urlaub bis 31.3. (auch geplanter) verbraucht zuerst den Übertrag. Was davon übrig ist, nennt die Kennzahl als Hinweis, nach dem 31.3. als „nicht genommen“; gestrichen wird nichts.
   - *Anzeige:* Kennzahl „Urlaub <Jahr>“ in den Analysen (übrig von verfügbar, geplant), immer für das laufende Jahr und unabhängig vom Arbeitszeitmodell. Der Arbeitszeitnachweis nennt die Urlaubstage im Zeitraum und den Stand des Kontos am letzten Tag des Zeitraums (bzw. heute, solange er läuft).
-- **Überstunden (AZ-07):** Überstunden des Tages = max(0, Netto − Soll). Vergütungen sind eigene Datensätze (Datum, Sekunden, Notiz) und mindern das Flexkonto. Das Quartalskontingent zählt nur Vergütungen, nach deren Datum.
+- **Überstunden (AZ-07, umgesetzt in `TaktAnalytics.FlexAccount` und `TaktStore.OvertimePayoutStore`):** Überstunden des Tages = max(0, Netto − Soll); an Tagen ohne Soll (Wochenende, Feiertag, Abwesenheit) also die ganze Netto-Zeit. Sie bleiben ohne eigene Buchung im Flexkonto.
+  - *Vergütungen:* eigene Datensätze in `overtime_payout` (Tag, Sekunden, Notiz, Erstellzeitpunkt) mindern das Flexkonto an ihrem Tag. Abweichung vom ursprünglichen Plan: Sie laufen nicht über `segment_change` (das protokolliert Segmente), sondern sind selbst unveränderlich. Korrigiert wird durch Entfernen und neu Erfassen; Entfernen setzt nur `deleted_at`, der Datensatz bleibt nachvollziehbar und im JSON-Export.
+  - *Quartalskontingent:* Einstellung `overtimeQuarterQuotaHours` (0 = keins, MDM-verwaltbar; 0 statt „leer“, weil ein Profil einen Real-Wert braucht). Es zählt nur Vergütungen, nach deren Tag im Kalenderquartal. Wird es überschritten, nennt der Dialog die Differenz, gesperrt wird nichts. Ebenso nur ein Hinweis: eine Vergütung, die das Flexkonto negativ macht.
+  - *UI:* Ein Klick auf die Kennzahl „Flexkonto“ öffnet ein Popover mit den Vergütungen des Jahres (entfernen per Papierkorb) und „Überstunden vergüten …“; dieselbe Aktion bietet ⌘K. Die Quartalszeile („In diesem Quartal vergütet: 10:00 von 40:00 · noch 30:00“) erscheint unter dem Saldo nur mit Kontingent.
+  - *Nachweis:* Spalten „Überstunden“ und „Vergütet“ je Tag, Summen je Quartal; der Saldo der Tageszeilen enthält die Vergütungen.
 - **Übertragsgrenze (AZ-08):** Beim Jahreswechsel wird ein positiver Saldo auf die Grenze gekappt (Standard 220 h, leer = keine). Die Kappung ist eine Rechenregel, keine Buchung.
 - **Arbeitszeitnachweis (AZ-09, umgesetzt in `TaktAnalytics.TimeRecord` und `TaktUI.TimeRecordExport`):** Eine Zeile je Kalendertag des angezeigten Analysezeitraums: Datum, Wochentag, Feiertag/Abwesenheit, Beginn, Ende, Pause, Netto, Ruhezeit zum Vortag, Befunde (AZ-02), Marker „korrigiert“ (manuelles Segment, Protokolleintrag oder gelöschtes Segment an dem Tag). Bei Gleitzeit zusätzlich Soll, Tagessaldo und Flexkonto nach dem Tag (ab dem Stichtag, bis heute). Summen: Netto, Arbeit über 8 h je Tag (§ 16 Abs. 2), Sonn-/Feiertagsarbeit, Befunde je Regel. Anhang: Protokolleinträge, deren alte oder neue Zeiten im Zeitraum liegen.
   - *Daten:* `AnalyticsModel.timeRecord()` lädt den Zeitraum plus 24 Wochen davor (Ruhezeit, Durchschnitt) bzw. ab dem Stichtag des Flexkontos (Anfangssaldo).

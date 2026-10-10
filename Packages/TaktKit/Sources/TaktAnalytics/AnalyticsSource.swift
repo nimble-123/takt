@@ -12,6 +12,7 @@ public struct AnalyticsSource: Sendable {
     catalog = CatalogStore(database: database)
     absenceStore = AbsenceStore(database: database)
     changeStore = SegmentChangeStore(database: database)
+    payoutStore = OvertimePayoutStore(database: database)
   }
 
   // MARK: Public
@@ -35,6 +36,23 @@ public struct AnalyticsSource: Sendable {
     )
   }
 
+  /// Overtime payouts on the local days that `range` touches (AZ-07).
+  public func payouts(_ range: Range<Timestamp>, calendar: Calendar) async throws -> [OvertimePayout] {
+    let last = Timestamp(milliseconds: max(range.lowerBound.milliseconds, range.upperBound.milliseconds - 1))
+    return try await payoutStore.payouts(
+      from: range.lowerBound.localDayString(in: calendar),
+      through: last.localDayString(in: calendar),
+    )
+  }
+
+  public func add(_ payout: OvertimePayout) async throws {
+    try await payoutStore.add(payout)
+  }
+
+  public func removePayout(_ id: OvertimePayoutID, at time: Timestamp) async throws {
+    try await payoutStore.remove(id, at: time)
+  }
+
   /// The first tracked time; the flex account starts there unless a start day is set.
   public func firstTrackedTime() async throws -> Timestamp? {
     try await queries.firstSegmentStart()
@@ -51,5 +69,6 @@ public struct AnalyticsSource: Sendable {
   private let catalog: CatalogStore
   private let absenceStore: AbsenceStore
   private let changeStore: SegmentChangeStore
+  private let payoutStore: OvertimePayoutStore
 
 }

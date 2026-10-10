@@ -36,6 +36,14 @@ public final class AnalyticsModel {
     }
   }
 
+  /// AZ-07: a reason to think twice before a payout.
+  public enum PayoutHint: Hashable {
+    /// The quarter's payouts would exceed the quota by these seconds.
+    case exceedsQuota(by: TimeInterval)
+    /// The flex account would end at this negative balance.
+    case negativeBalance(TimeInterval)
+  }
+
   public enum ExportFormat {
     case csv
     case json
@@ -55,6 +63,12 @@ public final class AnalyticsModel {
   /// AZ-05: the flex account at the end of today; `nil` with trust-based working time or before
   /// the first load.
   public private(set) var flexBalance: TimeInterval?
+
+  /// AZ-07: payouts from the flex account's start day through the end of the year, by day.
+  public private(set) var payouts = [OvertimePayout]()
+
+  /// AZ-07: paid-out overtime of the current quarter against the quota; `nil` without a quota.
+  public private(set) var overtimeQuota: OvertimeQuota?
 
   /// AZ-06: the vacation account of the current year as of today; `nil` before the first load.
   public private(set) var vacation: VacationAccount.Year?
@@ -144,6 +158,50 @@ public final class AnalyticsModel {
     return (vacation.carryoverOpen, calendar.component(.month, from: clock.now().date) > 3)
   }
 
+  /// AZ-07: what speaks against paying out `hours` on `date`; hints only, nothing is blocked.
+  public func payoutHints(hours: Double, on date: Date) -> [PayoutHint] {
+    let seconds = hours * 3600
+    var hints = [PayoutHint]()
+    if settings.overtimeQuarterQuotaHours > 0 {
+      let quarter = FlexAccount.quarter(containing: Timestamp(date), calendar: calendar)
+      let quota = OvertimeQuota(
+        quota: settings.overtimeQuarterQuotaHours * 3600,
+        paid: FlexAccount.paidOut(payouts, in: quarter, calendar: calendar) + seconds,
+      )
+      if quota.remaining < 0 { hints.append(.exceedsQuota(by: -quota.remaining)) }
+    }
+    if let flexBalance, flexBalance - seconds < 0 { hints.append(.negativeBalance(flexBalance - seconds)) }
+    return hints
+  }
+
+  /// AZ-07: records a payout; it reduces the flex account on its day.
+  public func payOut(hours: Double, on date: Date, note: String) async {
+    let payout = OvertimePayout(
+      day: Timestamp(date).localDayString(in: calendar),
+      seconds: (hours * 3600).rounded(),
+      note: note.nilIfBlank,
+      createdAt: clock.now(),
+    )
+    do {
+      try await source.add(payout)
+      await reload()
+    } catch {
+      logger.error("Payout failed: \(error.logSummary, privacy: .public)")
+      errorMessage = String(localized: "The payout could not be saved.", bundle: .module)
+    }
+  }
+
+  /// AZ-07: removes a payout; the record stays, marked with the time.
+  public func removePayout(_ id: OvertimePayoutID) async {
+    do {
+      try await source.removePayout(id, at: clock.now())
+      await reload()
+    } catch {
+      logger.error("Removing a payout failed: \(error.logSummary, privacy: .public)")
+      errorMessage = String(localized: "The payout could not be removed.", bundle: .module)
+    }
+  }
+
   /// Target hours of a day, for the line in the bar chart.
   public func targetHours(on day: Timestamp) -> Double {
     guard showsTarget else { return 0 }
@@ -172,11 +230,13 @@ public final class AnalyticsModel {
       let loaded = try await source.load(range, now: now)
       let previousLoaded = try await source.load(previousRange, now: now)
       let loadedAbsences = try await source.absences(range, calendar: calendar)
-      let balance = try await loadFlexBalance(now: now)
+      let flex = try await loadFlex(now: now)
       let loadedVacation = try await loadVacation(now: now)
       guard range == self.range else { return }
       absences = loadedAbsences
-      flexBalance = balance
+      flexBalance = flex.balance
+      payouts = flex.payouts
+      overtimeQuota = flex.quota
       vacation = loadedVacation
       data = loaded
       previousData = previousLoaded
@@ -238,6 +298,7 @@ public final class AnalyticsModel {
     let days = WorkDay.days(in: history, from: data, now: now, calendar: calendar)
     let checks = WorkTimeRules(calendar: calendar, federalState: settings.federalState).check(days)
     let absences = try await source.absences(history, calendar: calendar)
+    let payouts = flexStart == nil ? [] : try await source.payouts(history, calendar: calendar)
     var flex: (plan: TargetPlan, openingBalance: TimeInterval, startDay: Timestamp)?
     if let flexStart {
       var plan = settings.targetPlan
@@ -245,7 +306,7 @@ public final class AnalyticsModel {
       let startBalance = settings.flexStartBalanceHours * 3600
       let account = FlexAccount(plan: plan, startBalance: startBalance, startDay: flexStart, calendar: calendar)
       let dayBefore = range.lowerBound.adding(seconds: -1)
-      let opening = flexStart < range.lowerBound ? account.balance(days, now: dayBefore) : startBalance
+      let opening = flexStart < range.lowerBound ? account.balance(days, payouts: payouts, now: dayBefore) : startBalance
       flex = (plan, opening, flexStart)
     }
     let lastDay = range.upperBound.adding(seconds: -1)
@@ -264,6 +325,7 @@ public final class AnalyticsModel {
       absences: absences,
       federalState: settings.federalState,
       flex: flex,
+      payouts: payouts,
       vacation: vacation,
       now: now,
       calendar: calendar,
@@ -314,21 +376,36 @@ public final class AnalyticsModel {
     return (configured ?? first)?.localDay(in: calendar).lowerBound
   }
 
-  /// AZ-05: from the start day (or the first tracked day) through today.
-  private func loadFlexBalance(now: Timestamp) async throws -> TimeInterval? {
-    guard showsTarget else { return nil }
-    guard let start = try await flexStartDay() else { return settings.flexStartBalanceHours * 3600 }
+  /// AZ-05: the balance from the start day (or the first tracked day) through today; AZ-07: the
+  /// payouts through the end of the year and the quarter's quota.
+  private func loadFlex(
+    now: Timestamp
+  ) async throws -> (balance: TimeInterval?, payouts: [OvertimePayout], quota: OvertimeQuota?) {
+    guard showsTarget else { return (nil, [], nil) }
+    guard let start = try await flexStartDay() else { return (settings.flexStartBalanceHours * 3600, [], nil) }
     let range = start.localDay(in: calendar).lowerBound..<now.localDay(in: calendar).upperBound
     var plan = settings.targetPlan
     plan.absences = try await source.absences(range, calendar: calendar)
     let data = try await source.load(range, now: now)
+    let quarter = FlexAccount.quarter(containing: now, calendar: calendar)
+    let year = calendar.dateInterval(of: .year, for: now.date).map { Timestamp($0.end) } ?? quarter.upperBound
+    let payouts = try await source.payouts(min(range.lowerBound, quarter.lowerBound)..<year, calendar: calendar)
     let account = FlexAccount(
       plan: plan,
       startBalance: settings.flexStartBalanceHours * 3600,
       startDay: start,
       calendar: calendar,
     )
-    return account.balance(WorkDay.days(in: range, from: data, now: now, calendar: calendar), now: now)
+    let balance = account.balance(
+      WorkDay.days(in: range, from: data, now: now, calendar: calendar),
+      payouts: payouts,
+      now: now,
+    )
+    let quotaHours = settings.overtimeQuarterQuotaHours
+    let quota = quotaHours > 0
+      ? OvertimeQuota(quota: quotaHours * 3600, paid: FlexAccount.paidOut(payouts, in: quarter, calendar: calendar))
+      : nil
+    return (balance, payouts.filter { $0.day >= start.localDayString(in: calendar) }, quota)
   }
 
   /// AZ-06: the account and the absences from 1 January of its start year through the end of

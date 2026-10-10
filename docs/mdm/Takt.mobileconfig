@@ -65,6 +65,8 @@
       <integer>30</integer>
       <key>vacationCarryoverDays</key>
       <integer>0</integer>
+      <key>overtimeQuarterQuotaHours</key>
+      <real>0</real>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

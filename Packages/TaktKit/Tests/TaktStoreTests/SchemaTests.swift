@@ -32,6 +32,7 @@ struct SchemaTests {
         "global_pause",
         "grdb_migrations",
         "idle_event",
+        "overtime_payout",
         "project",
         "segment",
         "segment_change",
@@ -57,6 +58,7 @@ struct SchemaTests {
       "v6-category-counts-as-work",
       "v7-segment-change-log",
       "v8-absence",
+      "v9-overtime-payout",
     ])
   }
 

@@ -4,6 +4,8 @@ import Testing
 
 @testable import TaktAnalytics
 
+// MARK: - FlexAccountTests
+
 struct FlexAccountTests {
 
   // MARK: Lifecycle
@@ -83,5 +85,56 @@ struct FlexAccountTests {
       shortInterruptions: 0,
       net: hours * 3600,
     )
+  }
+}
+
+// MARK: - Overtime and payouts (AZ-07)
+
+extension FlexAccountTests {
+  @Test
+  func overtimeIsNetBeyondTheTargetAndAllOfItWithoutATarget() throws {
+    var plan = TargetPlan(weeklyHours: 40, federalState: .hesse)
+    plan.absences = ["2026-10-06": .vacation]
+    let account = FlexAccount(plan: plan, startBalance: 0, startDay: try day(2026, 10, 1), calendar: calendar)
+
+    // Monday 10 h, vacation on Tuesday with 2 h, Saturday 3 October (holiday) 4 h, Wednesday 6 h.
+    #expect(account.overtime(try work(day(2026, 10, 5), hours: 10)) == 2 * 3600)
+    #expect(account.overtime(try work(day(2026, 10, 6), hours: 2)) == 2 * 3600)
+    #expect(account.overtime(try work(day(2026, 10, 3), hours: 4)) == 4 * 3600)
+    #expect(account.overtime(try work(day(2026, 10, 7), hours: 6)) == 0)
+  }
+
+  @Test
+  func payoutsReduceTheBalanceAndMayMakeItNegative() throws {
+    let account = FlexAccount(
+      plan: TargetPlan(weeklyHours: 40),
+      startBalance: 5 * 3600,
+      startDay: try day(2026, 10, 5),
+      calendar: calendar,
+    )
+    let days = try [work(day(2026, 10, 5), hours: 8)]
+    let created = try day(2026, 10, 1)
+    let payouts = [
+      OvertimePayout(day: "2026-10-04", seconds: 3600, createdAt: created), // before the start day
+      OvertimePayout(day: "2026-10-05", seconds: 8 * 3600, createdAt: created),
+      OvertimePayout(day: "2026-10-09", seconds: 3600, createdAt: created), // after today
+    ]
+
+    #expect(account.balance(days, payouts: payouts, now: try day(2026, 10, 5).adding(seconds: 20 * 3600)) == -3 * 3600)
+  }
+
+  @Test
+  func quartersAndPayoutsAcrossTheirBoundary() throws {
+    let quarter = FlexAccount.quarter(containing: try day(2026, 11, 15), calendar: calendar)
+    #expect(quarter == (try day(2026, 10, 1))..<(try day(2027, 1, 1)))
+
+    let created = try day(2026, 9, 1)
+    let payouts = [
+      OvertimePayout(day: "2026-09-30", seconds: 3600, createdAt: created),
+      OvertimePayout(day: "2026-10-01", seconds: 2 * 3600, createdAt: created),
+      OvertimePayout(day: "2026-12-31", seconds: 4 * 3600, createdAt: created),
+    ]
+    #expect(FlexAccount.paidOut(payouts, in: quarter, calendar: calendar) == 6 * 3600)
+    #expect(OvertimeQuota(quota: 5 * 3600, paid: 6 * 3600).remaining == -3600)
   }
 }
