@@ -108,7 +108,7 @@ private struct SummaryPage: View {
   var body: some View {
     PageFrame(model: model, page: page, pageCount: of) {
       if let report = model.report {
-        HStack(spacing: 22) {
+        HStack(alignment: .top, spacing: 22) {
           figure(String(localized: "Total", bundle: .module), ReportPDF.hours(report.total))
           if let comparison = model.comparison {
             figure(String(localized: "Target", bundle: .module), ReportPDF.hours(comparison.target))

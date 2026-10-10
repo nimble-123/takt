@@ -189,7 +189,8 @@ private struct KPIRow: View {
   let openCarryover: (days: Int, deadlinePassed: Bool)?
 
   var body: some View {
-    HStack(spacing: 28) {
+    // Top, not centred: figures with a detail line would otherwise shift the titles and values (#193).
+    HStack(alignment: .top, spacing: 28) {
       figure(
         String(localized: "Total", bundle: .module),
         DurationText.hoursMinutes(report.total),
@@ -357,18 +358,25 @@ private struct KPIRow: View {
     help: String,
   ) -> some View {
     VStack(alignment: .leading, spacing: 2) {
+      // Title and value stay on one line each, so they line up across the row (#193); only the
+      // detail wraps.
       Text(title)
         .font(.system(size: 11, weight: .semibold))
         .textCase(.uppercase)
         .foregroundStyle(Palette.textSecondary)
+        .lineLimit(1)
+        .fixedSize()
       Text(value)
         .font(.system(size: 22, weight: .semibold))
         .monospacedDigit()
+        .lineLimit(1)
+        .fixedSize()
       if let detail {
         Text(detail)
           .font(.system(size: 11))
           .monospacedDigit()
           .foregroundStyle(detailColor)
+          .fixedSize(horizontal: false, vertical: true)
       }
     }
     .accessibilityElement(children: .combine)
