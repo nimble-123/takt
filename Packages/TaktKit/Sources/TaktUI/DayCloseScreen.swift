@@ -55,15 +55,22 @@ struct DayCloseScreen: View {
               .foregroundStyle(Palette.textSecondary)
             } rows: {
               ForEach(group.lines) { line in
-                BookingRow(line: line, outcome: dayClose.outcomes[line.id])
-                  .selectable(model.selection.contains(line.entryID))
-                  .onTapGesture { click(line.entryID) }
-                  // Opening needs a double-click, so VoiceOver gets it as a named action (#110).
-                  .accessibilityElement(children: .combine)
-                  .accessibilityAddTraits(model.selection.contains(line.entryID) ? .isSelected : [])
-                  .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
-                    model.openInspector(for: line.entryID)
-                  }
+                BookingRow(
+                  line: line,
+                  outcome: dayClose.outcomes[line.id],
+                  isSelected: Binding(
+                    get: { dayClose.isSelected(line) },
+                    set: { dayClose.setSelected($0, line) },
+                  ),
+                )
+                .selectable(model.selection.contains(line.entryID))
+                .onTapGesture { click(line.entryID) }
+                // Opening needs a double-click, so VoiceOver gets it as a named action (#110).
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(model.selection.contains(line.entryID) ? .isSelected : [])
+                .accessibilityAction(named: Text("Open in Inspector", bundle: .module)) {
+                  model.openInspector(for: line.entryID)
+                }
                 Divider()
               }
             }
@@ -170,13 +177,19 @@ struct DayCloseScreen: View {
       } label: {
         if dayClose.isBooking {
           ProgressView().controlSize(.small)
-        } else {
+        } else if dayClose.selected.count == dayClose.open.count {
           Text("Book All", bundle: .module).padding(.horizontal, 6)
+        } else {
+          Text(
+            "Book \(dayClose.selected.count) entries · \(Self.hours(dayClose.selectedSeconds, signed: true))",
+            bundle: .module,
+          )
+          .padding(.horizontal, 6)
         }
       }
       .buttonStyle(.borderedProminent)
       .tint(Palette.accent)
-      .disabled(dayClose.open.isEmpty || dayClose.isBooking)
+      .disabled(dayClose.selected.isEmpty || dayClose.isBooking)
       .keyboardShortcut(Self.bookAllShortcut)
       .help(Text("Book all open differences (⌘↩)", bundle: .module))
     }
@@ -235,9 +248,19 @@ private struct BookingRow: View {
 
   let line: BookingLine
   let outcome: BookingService.Outcome?
+  @Binding var isSelected: Bool
 
   var body: some View {
     HStack(spacing: 12) {
+      // Only open differences can be booked; the others keep the column free.
+      Toggle(isOn: $isSelected) {
+        Text("Book “\(line.title)”", bundle: .module)
+      }
+      .toggleStyle(.checkbox)
+      .labelsHidden()
+      .opacity(line.isOpen ? 1 : 0)
+      .disabled(!line.isOpen)
+      .accessibilityHidden(!line.isOpen)
       VStack(alignment: .leading, spacing: 2) {
         Text(line.title).lineLimit(1)
         if let failure = line.failure.flatMap(BookingFailure.init(rawValue:)) {

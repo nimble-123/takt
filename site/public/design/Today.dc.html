@@ -79,8 +79,8 @@ input.sw:disabled{opacity:.55;cursor:default}
 </nav>
 <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-wrap: wrap">
 <div style="flex: 999 1 400px; min-width: 0; display: flex; flex-direction: column">
-<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: center; gap: 12px; padding: 16px 20px">
-<sc-for list="{{kpis}}" as="k" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; align-items: center; gap: 12px; padding: 16px 20px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
 <div style="padding: 10px 14px; border-radius: 10px; background: #F6F6F8; display: flex; flex-direction: column; gap: 2px">
 <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: #55555A">{{k.label}}</span>
 <span class="mono" style="font-size: 22px; font-weight: 600">{{k.value}}</span>
@@ -198,7 +198,9 @@ class Component extends DCLogic {
       kpis: [
         { label: 'Erfasst', value: '7:02' },
         { label: 'Pausen', value: '1:08' },
-        { label: 'Einträge', value: '8' }
+        { label: 'Einträge', value: '8' },
+        { label: 'Parallel', value: '0:30' },
+        { label: 'Fokusblöcke', value: '4' }
       ],
       blocks: [
         b(dev, m(8, 30), m(9, 45), '#4821 Login-Flow refaktorieren', '08:30–09:45'),

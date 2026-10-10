@@ -25,6 +25,10 @@ struct DayScreen: View {
             value: DurationText.hoursMinutes(model.dayPauses),
           )
           KPI(title: String(localized: "Entries", bundle: .module), value: "\(model.data.entries.count)")
+          let focus = model.dayFocus
+          KPI(title: String(localized: "Parallel", bundle: .module), value: DurationText.hoursMinutes(focus.parallel))
+          KPI(title: String(localized: "Focus blocks", bundle: .module), value: "\(focus.focusBlocks)")
+            .help(Text("Uninterrupted work on one entry of at least 25 minutes", bundle: .module))
           WorkTimeMarker(check: model.workTimeCheck)
           Spacer()
         }

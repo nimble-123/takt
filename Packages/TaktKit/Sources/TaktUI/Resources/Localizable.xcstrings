@@ -751,6 +751,46 @@
         }
       }
     },
+    "Book %lld entries · %@": {
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Eintrag buchen · %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Einträge buchen · %@"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Book %lld entry · %@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Book %lld entries · %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Book All": {
       "localizations": {
         "de": {
@@ -787,6 +827,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tag buchen"
+          }
+        }
+      }
+    },
+    "Book “%@”": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ buchen"
           }
         }
       }
@@ -2961,6 +3011,16 @@
         }
       }
     },
+    "Parallel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallel"
+          }
+        }
+      }
+    },
     "Parallel time": {
       "localizations": {
         "de": {
@@ -4727,6 +4787,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rückgängig ⌘Z"
+          }
+        }
+      }
+    },
+    "Uninterrupted work on one entry of at least 25 minutes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ununterbrochene Arbeit an einem Eintrag von mindestens 25 Minuten"
           }
         }
       }
