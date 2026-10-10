@@ -431,6 +431,46 @@
         }
       }
     },
+    "Archive folder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivordner"
+          }
+        }
+      }
+    },
+    "Archive the previous month automatically at the start of a month": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vormonat zum Monatsanfang automatisch archivieren"
+          }
+        }
+      }
+    },
+    "Archive …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivieren …"
+          }
+        }
+      }
+    },
+    "Archived: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviert: %@"
+          }
+        }
+      }
+    },
     "Ascension Day": {
       "localizations": {
         "de": {
@@ -1021,12 +1061,32 @@
         }
       }
     },
+    "Choose": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen"
+          }
+        }
+      }
+    },
     "Choose a time within the entry to split it.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wähle eine Zeit innerhalb des Eintrags, um ihn zu teilen."
+          }
+        }
+      }
+    },
+    "Choose …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswählen …"
           }
         }
       }
@@ -2121,6 +2181,16 @@
         }
       }
     },
+    "Keeps the previous month's working time record as PDF with a SHA-256 file. Keep the records for at least two years (§ 16 para. 2 ArbZG).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legt den Arbeitszeitnachweis des Vormonats als PDF mit SHA-256-Datei ab. Bewahre die Nachweise mindestens zwei Jahre auf (§ 16 Abs. 2 ArbZG)."
+          }
+        }
+      }
+    },
     "Kind": {
       "localizations": {
         "de": {
@@ -2267,6 +2337,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Monat"
+          }
+        }
+      }
+    },
+    "Month close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monatsabschluss"
           }
         }
       }
@@ -2547,6 +2627,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nordrhein-Westfalen"
+          }
+        }
+      }
+    },
+    "Not chosen": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gewählt"
           }
         }
       }
@@ -3621,6 +3711,16 @@
         }
       }
     },
+    "Show": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigen"
+          }
+        }
+      }
+    },
     "Show %@": {
       "localizations": {
         "de": {
@@ -3637,6 +3737,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Archivierte anzeigen"
+          }
+        }
+      }
+    },
+    "Show in Finder": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Finder zeigen"
           }
         }
       }
@@ -4181,6 +4291,16 @@
         }
       }
     },
+    "The record could not be archived: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Nachweis konnte nicht archiviert werden: %@"
+          }
+        }
+      }
+    },
     "The times of an entry cannot overlap.": {
       "localizations": {
         "de": {
@@ -4217,6 +4337,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Das Work Item gibt es nicht mehr."
+          }
+        }
+      }
+    },
+    "The working time record of %@ is not archived yet.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Arbeitszeitnachweis für %@ ist noch nicht archiviert."
           }
         }
       }
@@ -4767,6 +4897,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeit an einem Sonn- oder Feiertag: %@ h (§§ 9, 11 ArbZG)"
+          }
+        }
+      }
+    },
+    "Working days without a record for more than 7 days: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitstage seit über 7 Tagen ohne Aufzeichnung: %@"
           }
         }
       }

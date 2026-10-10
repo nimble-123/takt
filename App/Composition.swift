@@ -8,7 +8,7 @@ import TaktSystem
 import TaktUI
 
 /// Builds store, engine and view models and runs the background work (recovery, heartbeat,
-/// backup, idle detection, long-runner warning, reminder without a timer).
+/// backup, idle detection, long-runner warning, reminder without a timer, month close).
 @MainActor
 final class Composition {
 
@@ -63,11 +63,14 @@ final class Composition {
       },
       actions: actions,
     )
+    let analyticsSource = AnalyticsSource(database: database)
+    let analytics = AnalyticsModel(source: analyticsSource, settings: settings, clock: clock)
+    monthClose = MonthCloseModel(source: analyticsSource, analytics: analytics, settings: settings, clock: clock)
     mainWindow = MainWindowModel(
       engine: engine,
       queries: queries,
       catalog: catalog,
-      analytics: AnalyticsModel(source: AnalyticsSource(database: database), settings: settings, clock: clock),
+      analytics: analytics,
       settings: settings,
       azureDevOps: azureDevOps,
       booking: booking,
@@ -76,6 +79,7 @@ final class Composition {
       rules: rules,
       database: database,
       actions: actions,
+      monthClose: monthClose,
       clock: clock,
     )
     idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
@@ -96,6 +100,7 @@ final class Composition {
   let actions: TimerActions
   let menuBar: MenuBarModel
   let mainWindow: MainWindowModel
+  let monthClose: MonthCloseModel
   let idleMonitor: IdleMonitor
   /// Called when inactivity needs the user's decision, e.g. to open the popover.
   var onIdleNeedsDecision: (@MainActor () -> Void)?
@@ -176,6 +181,8 @@ final class Composition {
         logger.error("Timer checks failed: \(String(describing: error), privacy: .private)")
       }
       await remindAboutExpiringTokens()
+      // AZ-10: checks once a day; archives only if the user chose so.
+      await monthClose.archiveAutomatically()
       await menuBar.refresh()
       try? await Task.sleep(for: .seconds(60))
     }

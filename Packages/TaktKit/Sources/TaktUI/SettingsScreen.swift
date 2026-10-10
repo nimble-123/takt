@@ -226,6 +226,38 @@ struct SettingsScreen: View {
           .foregroundStyle(Palette.textSecondary)
       }
 
+      if model.monthClose != nil {
+        Section {
+          LabeledContent(String(localized: "Archive folder", bundle: .module)) {
+            HStack(spacing: 8) {
+              Text(settings.monthCloseFolder ?? String(localized: "Not chosen", bundle: .module))
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .foregroundStyle(Palette.textSecondary)
+              Button(String(localized: "Choose …", bundle: .module)) {
+                if let folder = MonthCloseHints.chooseFolder() { settings.monthCloseFolder = folder.path }
+              }
+            }
+          }
+          .managed(settings.isLocked(.monthCloseFolder))
+          Toggle(
+            String(localized: "Archive the previous month automatically at the start of a month", bundle: .module),
+            isOn: $settings.monthCloseAutomatic,
+          )
+          .managed(settings.isLocked(.monthCloseAutomatic))
+          .disabled(settings.monthCloseFolder == nil)
+        } header: {
+          Text("Month close", bundle: .module)
+        } footer: {
+          Text(
+            "Keeps the previous month's working time record as PDF with a SHA-256 file. Keep the records for at least two years (§ 16 para. 2 ArbZG).",
+            bundle: .module,
+          )
+          .font(.system(size: 11))
+          .foregroundStyle(Palette.textSecondary)
+        }
+      }
+
       Section(String(localized: "Shortcuts", bundle: .module)) {
         LabeledContent(String(localized: "Open the popover", bundle: .module)) {
           ShortcutRecorder(.togglePopover)
