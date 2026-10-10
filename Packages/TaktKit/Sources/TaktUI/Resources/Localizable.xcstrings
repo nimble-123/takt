@@ -2391,6 +2391,16 @@
         }
       }
     },
+    "imported": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "importiert"
+          }
+        }
+      }
+    },
     "In parallel": {
       "localizations": {
         "de": {

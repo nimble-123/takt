@@ -153,7 +153,7 @@ CREATE TABLE segment (
   entry_id TEXT NOT NULL REFERENCES time_entry(id) ON DELETE CASCADE,
   start_at INTEGER NOT NULL,
   end_at INTEGER,                          -- NULL = läuft
-  source TEXT NOT NULL CHECK (source IN ('live', 'manual', 'idle', 'calendar')),
+  source TEXT NOT NULL CHECK (source IN ('live', 'manual', 'idle', 'calendar', 'import')),  -- 'import' ab v10 (#190)
   CHECK (end_at IS NULL OR end_at > start_at)
 );
 CREATE INDEX segment_time ON segment(start_at, end_at);
@@ -483,7 +483,7 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - §§ 9, 11: Arbeitstage, die an einem Sonntag oder Feiertag beginnen, als Hinweis. Arbeit, die erst nach Mitternacht in einen Sonntag läuft, erkennt die Regel nicht.
   - UI: ein Marker neben den Kennzahlen von „Heute“ und im Kopf des Tagesabschlusses, Details und Ruhezeit im Tooltip. Für den angezeigten Tag lädt `MainWindowModel` die 24 Wochen davor.
 - **Feiertage (AZ-03, umgesetzt in `TaktCore.PublicHoliday`):** Feste und von Ostern abhängige Feiertage je Bundesland, offline berechnet (Osterformel nach Gauß, anonymer gregorianischer Algorithmus). Nur landesweite Feiertage: Mariä Himmelfahrt in Teilen Bayerns, Fronleichnam in Teilen Sachsens und Thüringens und das Augsburger Friedensfest fehlen. Ostersonntag und Pfingstsonntag zählen nur in Brandenburg, wo sie gesetzlich sind. Einstellung `federalState` (ISO-Kürzel, leer = keins), MDM-verwaltbar. Feiertage setzen das Soll in `TargetPlan` auf 0; ihr Name steht im Fenstertitel des Tags und im Kopf der Wochenspalte.
-- **Änderungsprotokoll (AZ-04, umgesetzt):** Tabelle `segment_change` mit Segment, Eintrag, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt (`TaktClock`) und optionalem Grund.
+- **Änderungsprotokoll (AZ-04, umgesetzt):** Tabelle `segment_change` mit Segment, Eintrag, Art (angelegt, geändert, gelöscht), altem und neuem Beginn/Ende, Zeitpunkt (`TaktClock`) und optionalem Grund. Übernommene Zeiten (Excel-Import, #190) schreibt `ImportStore` in einer Transaktion mit der Segmentquelle `import` und ohne Protokolleinträge: Sie sind keine Korrektur, sondern die Erfassung von vor Takt.
   - *Was protokolliert wird:* alle Segmentänderungen, die über `TimerEngine.apply(_:reason:)` laufen, also Bearbeitungen in Timeline, Inspektor und Liste, sowie deren Undo/Redo (`undo` ruft `apply`) als Gegeneintrag. Die Timer-Befehle (Start, Pause, Stopp, Inaktivität) schreiben nichts. Ebenfalls nichts schreiben Änderungen, die nur das offene Ende eines laufenden Segments betreffen (Schließen oder Wiederöffnen bei gleichem Beginn), z. B. das Rückgängigmachen eines Stopps.
   - *Eintrag löschen/wiederherstellen:* ein Protokolleintrag „gelöscht“ bzw. „angelegt“ je geschlossenem Segment des Eintrags; ein laufendes Segment mit dem Ende, das es beim Löschen bekommt.
   - *Transaktion:* `TimerUpdate.log` bittet den Store, die Datensätze aus den Änderungen abzuleiten (`SegmentChangeRecord.records`) und im selben `update` zu schreiben; schlägt eine Änderung fehl, bleibt auch das Protokoll leer. Das Protokoll ist nicht Teil von Undo.

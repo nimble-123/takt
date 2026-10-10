@@ -217,4 +217,28 @@ enum Schema {
         """
     )
   }
+
+  /// Segments taken over from another record, e.g. the Excel timesheet (#190), get the source
+  /// `import`. SQLite cannot change a CHECK constraint, so the table is rebuilt with its indexes.
+  static func v10(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE segment_new (
+          id TEXT PRIMARY KEY,
+          entry_id TEXT NOT NULL REFERENCES time_entry(id) ON DELETE CASCADE,
+          start_at INTEGER NOT NULL,
+          end_at INTEGER,
+          source TEXT NOT NULL CHECK (source IN ('live', 'manual', 'idle', 'calendar', 'import')),
+          CHECK (end_at IS NULL OR end_at > start_at)
+        );
+        INSERT INTO segment_new (id, entry_id, start_at, end_at, source)
+          SELECT id, entry_id, start_at, end_at, source FROM segment;
+        DROP TABLE segment;
+        ALTER TABLE segment_new RENAME TO segment;
+        CREATE INDEX segment_time ON segment(start_at, end_at);
+        CREATE UNIQUE INDEX segment_open ON segment(entry_id) WHERE end_at IS NULL;
+        CREATE INDEX segment_entry ON segment(entry_id);
+        """
+    )
+  }
 }
