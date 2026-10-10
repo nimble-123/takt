@@ -24,7 +24,7 @@ jobs:
       - name: Xcode wählen
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
-          xcode-version: latest-stable
+          xcode-version: '27.0' # Swift 6.4, like local development
 
       - name: Werkzeuge anzeigen
         id: tools
@@ -76,7 +76,7 @@ jobs:
     # Hält TaktCore und TaktStore frei von Apple-only-Frameworks (siehe CLAUDE.md).
     # Package.swift deklariert Apple-only-Targets nur unter macOS, damit der Build hier gelingt.
     runs-on: ubuntu-latest
-    container: swift:6.2-noble
+    container: swift:6.4-noble
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -88,8 +88,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: Packages/TaktKit/.build
-          key: spm-linux-swift6.2-${{ hashFiles('Packages/TaktKit/Package.resolved', 'Packages/TaktKit/Package.swift') }}
-          restore-keys: spm-linux-swift6.2-
+          key: spm-linux-swift6.4-${{ hashFiles('Packages/TaktKit/Package.resolved', 'Packages/TaktKit/Package.swift') }}
+          restore-keys: spm-linux-swift6.4-
       - name: Tests (TaktCore, TaktStore, TaktAnalytics)
         if: hashFiles('Packages/TaktKit/Package.swift') != ''
         run: swift test --package-path Packages/TaktKit --filter 'TaktCoreTests|TaktStoreTests|TaktAnalyticsTests'
