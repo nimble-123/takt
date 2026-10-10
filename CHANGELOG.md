@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/nimble-123/takt/compare/v0.6.0...v0.6.1) (2026-10-10)
+
+
+### Fehlerbehebungen
+
+* **cli:** take over all timesheet settings and reload them in the running app ([#208](https://github.com/nimble-123/takt/issues/208)) ([d421b53](https://github.com/nimble-123/takt/commit/d421b53054b1d0f84365af58d77ee94982ec39e3))
+
 ## [0.6.0](https://github.com/nimble-123/takt/compare/v0.5.1...v0.6.0) (2026-10-10)
 
 
