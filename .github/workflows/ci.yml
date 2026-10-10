@@ -16,7 +16,7 @@ concurrency:
 jobs:
   macos:
     name: macOS · Lint, Tests, App-Build
-    runs-on: macos-26
+    runs-on: xcode-27 # GitHub's Xcode 27 image (macOS 27, arm64); macos-26 has Xcode 26 only
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
@@ -24,7 +24,7 @@ jobs:
       - name: Xcode wählen
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
-          xcode-version: '27.0' # Swift 6.4, like local development
+          xcode-version: latest-stable # Xcode 27 with Swift 6.4, like local development
 
       - name: Werkzeuge anzeigen
         id: tools
