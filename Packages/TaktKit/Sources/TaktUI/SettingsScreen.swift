@@ -350,6 +350,8 @@ struct SettingsScreen: View {
         }
       }
 
+      AboutSection()
+
       if let message {
         Text(message).foregroundStyle(Palette.textSecondary)
       }

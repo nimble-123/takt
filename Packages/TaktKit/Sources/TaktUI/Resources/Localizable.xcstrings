@@ -381,6 +381,16 @@
         }
       }
     },
+    "About Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Über Takt"
+          }
+        }
+      }
+    },
     "Absence": {
       "localizations": {
         "de": {
@@ -3691,6 +3701,16 @@
         }
       }
     },
+    "Release Notes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versionshinweise"
+          }
+        }
+      }
+    },
     "Remark": {
       "localizations": {
         "de": {
@@ -3807,6 +3827,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Alle Daten durch die Sicherung ersetzen?"
+          }
+        }
+      }
+    },
+    "Report a Problem": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Problem melden"
           }
         }
       }
@@ -4271,6 +4301,16 @@
         }
       }
     },
+    "Source on GitHub": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quellcode auf GitHub"
+          }
+        }
+      }
+    },
     "Space Preview": {
       "localizations": {
         "de": {
@@ -4617,6 +4657,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Übernommen"
+          }
+        }
+      }
+    },
+    "Takt %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt %@"
           }
         }
       }
@@ -5271,12 +5321,32 @@
         }
       }
     },
+    "Version": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        }
+      }
+    },
     "Waiting to be sent": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wartet auf das Senden"
+          }
+        }
+      }
+    },
+    "Website": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Website"
           }
         }
       }
@@ -5727,6 +5797,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "© 2026 Nils Lutz · MIT License": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "© 2026 Nils Lutz · MIT-Lizenz"
           }
         }
       }
