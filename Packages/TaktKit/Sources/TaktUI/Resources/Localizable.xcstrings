@@ -791,6 +791,16 @@
         }
       }
     },
+    "Balance (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saldo (h)"
+          }
+        }
+      }
+    },
     "Bavaria": {
       "localizations": {
         "de": {
@@ -1037,6 +1047,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pause"
+          }
+        }
+      }
+    },
+    "Break (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause (h)"
           }
         }
       }
@@ -1461,6 +1481,16 @@
         }
       }
     },
+    "Corrected": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korrigiert"
+          }
+        }
+      }
+    },
     "Count a locked screen as a pause without asking": {
       "localizations": {
         "de": {
@@ -1537,6 +1567,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Token in Azure DevOps anlegen …"
+          }
+        }
+      }
+    },
+    "Created": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstellt"
           }
         }
       }
@@ -1711,6 +1751,16 @@
         }
       }
     },
+    "Days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tage"
+          }
+        }
+      }
+    },
     "Default": {
       "localizations": {
         "de": {
@@ -1757,6 +1807,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Löscht alle Einträge, Einstellungen und Verbindungen. Die täglichen Backups bleiben erhalten."
+          }
+        }
+      }
+    },
+    "Detail": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angabe"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angaben"
           }
         }
       }
@@ -1891,6 +1961,26 @@
         }
       }
     },
+    "End after": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ende nachher"
+          }
+        }
+      }
+    },
+    "End before": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ende vorher"
+          }
+        }
+      }
+    },
     "Entered after the fact": {
       "localizations": {
         "de": {
@@ -2011,6 +2101,16 @@
         }
       }
     },
+    "Export Working Time Record as Excel (.xlsx) …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als Excel (.xlsx) exportieren …"
+          }
+        }
+      }
+    },
     "Export Working Time Record as PDF …": {
       "localizations": {
         "de": {
@@ -2081,6 +2181,16 @@
         }
       }
     },
+    "Findings: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befunde: %@"
+          }
+        }
+      }
+    },
     "Finish ⌘↩": {
       "localizations": {
         "de": {
@@ -2097,6 +2207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Flexkonto"
+          }
+        }
+      }
+    },
+    "Flex account (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flexkonto (h)"
           }
         }
       }
@@ -2127,6 +2247,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verfallenes Flexkonto zum Ende von %@"
+          }
+        }
+      }
+    },
+    "Flex account forfeited at the end of %@ (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verfallenes Flexkonto zum Ende von %@ (h)"
           }
         }
       }
@@ -2781,12 +2911,32 @@
         }
       }
     },
+    "Net (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netto (h)"
+          }
+        }
+      }
+    },
     "Net working time": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Netto-Arbeitszeit"
+          }
+        }
+      }
+    },
+    "Net working time (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Netto-Arbeitszeit (h)"
           }
         }
       }
@@ -3041,6 +3191,16 @@
         }
       }
     },
+    "Notice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hinweis"
+          }
+        }
+      }
+    },
     "Ochre": {
       "localizations": {
         "de": {
@@ -3201,12 +3361,32 @@
         }
       }
     },
+    "Overtime %@ (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden %@ (h)"
+          }
+        }
+      }
+    },
     "Overtime %@ / paid out": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Überstunden %@ / vergütet"
+          }
+        }
+      }
+    },
+    "Overtime (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden (h)"
           }
         }
       }
@@ -3237,6 +3417,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vergütet"
+          }
+        }
+      }
+    },
+    "Paid out %@ (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergütet %@ (h)"
+          }
+        }
+      }
+    },
+    "Paid out (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergütet (h)"
           }
         }
       }
@@ -3931,6 +4131,16 @@
         }
       }
     },
+    "Rest (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ruhezeit (h)"
+          }
+        }
+      }
+    },
     "Rest period %@ h, at least 11 h (§ 5 ArbZG)": {
       "localizations": {
         "de": {
@@ -4411,12 +4621,32 @@
         }
       }
     },
+    "Start after": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginn nachher"
+          }
+        }
+      }
+    },
     "Start balance plus net working time minus target and payouts, from the start day through today. Vacation, sick days, days off and public holidays have no target. Click for payouts.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Startsaldo plus Netto-Arbeitszeit minus Soll und Vergütungen, vom Stichtag bis heute. Urlaub, Krankheit, freie Tage und Feiertage haben kein Soll. Klicken für Vergütungen."
+          }
+        }
+      }
+    },
+    "Start before": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginn vorher"
           }
         }
       }
@@ -4777,6 +5007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Soll"
+          }
+        }
+      }
+    },
+    "Target (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Soll (h)"
           }
         }
       }
@@ -5311,6 +5551,46 @@
         }
       }
     },
+    "Vacation %@: available": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@: verfügbar"
+          }
+        }
+      }
+    },
+    "Vacation %@: left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@: übrig"
+          }
+        }
+      }
+    },
+    "Vacation %@: planned": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@: geplant"
+          }
+        }
+      }
+    },
+    "Vacation %@: taken": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@: genommen"
+          }
+        }
+      }
+    },
     "Vacation %@: taken / planned / left": {
       "localizations": {
         "de": {
@@ -5541,6 +5821,16 @@
         }
       }
     },
+    "Work beyond 8 hours a day (§ 16 para. 2 ArbZG) (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeit über 8 Stunden am Tag (§ 16 Abs. 2 ArbZG) (h)"
+          }
+        }
+      }
+    },
     "Work item": {
       "localizations": {
         "de": {
@@ -5601,6 +5891,16 @@
         }
       }
     },
+    "Work on Sundays and public holidays (h)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeit an Sonn- und Feiertagen (h)"
+          }
+        }
+      }
+    },
     "Working days without a record for more than 7 days: %@": {
       "localizations": {
         "de": {
@@ -5627,6 +5927,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeitszeitnachweis als CSV …"
+          }
+        }
+      }
+    },
+    "Working Time Record as Excel (.xlsx) …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arbeitszeitnachweis als Excel (.xlsx) …"
           }
         }
       }
@@ -5697,6 +6007,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Klappt. Takt ist nur einen Tastendruck entfernt."
+          }
+        }
+      }
+    },
+    "yes": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ja"
           }
         }
       }

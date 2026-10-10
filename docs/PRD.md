@@ -173,7 +173,7 @@ Takt unterstützt die Aufzeichnungs- und Nachweispflichten nach ArbZG (§§ 3, 4
 | AZ-06 | Urlaubskonto in ganzen Tagen: Anspruch, Übertrag, genommen, geplant; Hinweis auf Verfall des Vorjahresurlaubs zum 31.3. | Should |
 | AZ-07 | Überstunden = Netto über dem Tagessoll; nicht vergütete bleiben im Flexkonto. Vergütungen werden als Abbuchung erfasst; ein optionales Quartalskontingent begrenzt nur die vergüteten Stunden (Hinweis, keine Sperre) | Should |
 | AZ-08 | Übertragsgrenze des Flexkontos zum Jahreswechsel (Standard 220 h, einstellbar, leer = keine); Hinweis ab 1.10. mit Restkontingent | Should |
-| AZ-09 | Arbeitszeitnachweis als PDF und CSV (XLSX über AN-08): eine Zeile je Tag mit Beginn, Ende, Pause, Netto, Ruhezeit, Befunden, Korrekturmarker; Salden im Gleitzeitmodus; Änderungsprotokoll im Anhang; Prüfsumme; Name optional weglassen (Betriebsrat, § 80 Abs. 2 BetrVG) | Must |
+| AZ-09 | Arbeitszeitnachweis als PDF, CSV und Excel (XLSX, AN-08): eine Zeile je Tag mit Beginn, Ende, Pause, Netto, Ruhezeit, Befunden, Korrekturmarker; Salden im Gleitzeitmodus; Änderungsprotokoll im Anhang; Prüfsumme; Name optional weglassen (Betriebsrat, § 80 Abs. 2 BetrVG) | Must |
 | AZ-10 | Monatsabschluss: Nachweis des Vormonats archivieren (Aufbewahrung ≥ 2 Jahre, § 16 Abs. 2 ArbZG); Hinweis auf Arbeitstage ohne Aufzeichnung nach 7 Tagen (§ 17 MiLoG) | Could |
 
 Neue Funktionen bleiben unaufdringlich: keine neuen Screens, Hinweise als Marker mit Tooltip, Abwesenheiten über Kontextmenü und ⌘K, neue Einstellungen nur für Modell, Bundesland, Startsaldo, Urlaubsanspruch, Kontingent und Übertragsgrenze.

@@ -23,6 +23,10 @@ public enum XLSXWriter {
     case decimal
     /// `0 %`
     case percent
+    /// `h:mm`, for a fraction of a day.
+    case time
+    /// The reader's short date with `h:mm`, for a serial date with a fraction of a day.
+    case dateTime
   }
 
   public struct Sheet: Hashable, Sendable {
@@ -63,15 +67,15 @@ public enum XLSXWriter {
     return zip.data()
   }
 
-  // MARK: Internal
-
   /// Days since 1899-12-30, Excel's serial date (1900 system); `nil` unless `YYYY-MM-DD`.
-  static func serial(ofDay day: String) -> Int? {
+  public static func serial(ofDay day: String) -> Int? {
     let parts = day.split(separator: "-").compactMap { Int($0) }
     guard parts.count == 3, (1900...9999).contains(parts[0]), (1...12).contains(parts[1]), (1...31).contains(parts[2])
     else { return nil }
     return daysFromCivil(year: parts[0], month: parts[1], day: parts[2]) - daysFromCivil(year: 1899, month: 12, day: 30)
   }
+
+  // MARK: Internal
 
   /// `A`, `B`, … `Z`, `AA`, … for a zero-based column index.
   static func columnName(_ index: Int) -> String {
@@ -145,6 +149,8 @@ public enum XLSXWriter {
     case decimal = 3
     case integer = 4
     case percent = 5
+    case time = 6
+    case dateTime = 7
   }
 
   private static let xmlHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
@@ -158,7 +164,8 @@ public enum XLSXWriter {
     </Relationships>
     """
 
-  /// Fonts: regular, bold. Number formats are built in: 14 short date, 1 `0`, 2 `0.00`, 9 `0%`.
+  /// Fonts: regular, bold. Number formats are built in: 14 short date, 1 `0`, 2 `0.00`, 9 `0%`,
+  /// 20 `h:mm`, 22 short date with `h:mm`.
   private static let styles = xmlHeader + """
     <styleSheet xmlns="\(mainNamespace)">\
     <fonts count="2"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font>\
@@ -166,13 +173,15 @@ public enum XLSXWriter {
     <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>\
     <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>\
     <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>\
-    <cellXfs count="6">\
+    <cellXfs count="8">\
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>\
     <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>\
     <xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
     <xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
     <xf numFmtId="1" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
     <xf numFmtId="9" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
+    <xf numFmtId="20" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
+    <xf numFmtId="22" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>\
     </cellXfs>\
     <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>\
     </styleSheet>
@@ -296,6 +305,8 @@ public enum XLSXWriter {
         case .integer: .integer
         case .decimal: .decimal
         case .percent: .percent
+        case .time: .time
+        case .dateTime: .dateTime
         }
       let styleAttribute = style == .plain ? "" : " s=\"\(style.rawValue)\""
       return "<c r=\"\(reference)\"\(styleAttribute)><v>\(number(value))</v></c>"
@@ -321,6 +332,8 @@ public enum XLSXWriter {
       case .integer: String(Int(value.rounded())).count
       case .decimal: String(Int(value.rounded(.towardZero))).count + 3
       case .percent: 5
+      case .time: 5
+      case .dateTime: 16
       }
 
     case .day: 10

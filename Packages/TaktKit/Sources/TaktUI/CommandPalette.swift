@@ -97,7 +97,7 @@ public final class CommandPaletteModel {
   /// Saves an export; provided by the view, which owns the save panel.
   @ObservationIgnored var export: ((AnalyticsModel.ExportFormat) -> Void)?
   /// AZ-09: `true` for CSV, `false` for PDF.
-  @ObservationIgnored var exportTimeRecord: ((Bool) -> Void)?
+  @ObservationIgnored var exportTimeRecord: ((TimeRecordExport.Format) -> Void)?
   /// AZ-07: opens the payout sheet.
   @ObservationIgnored var payOutOvertime: (() -> Void)?
 
@@ -218,7 +218,7 @@ public final class CommandPaletteModel {
           title: String(localized: "Export Working Time Record as PDF …", bundle: .module),
           symbol: "doc.text",
           keywords: ["export", "arbeitszeitnachweis", "nachweis", "arbzg"],
-        ) { [weak self] in self?.exportTimeRecord?(false) }
+        ) { [weak self] in self?.exportTimeRecord?(.pdf) }
       )
       items.append(
         PaletteItem(
@@ -226,7 +226,15 @@ public final class CommandPaletteModel {
           title: String(localized: "Export Working Time Record as CSV …", bundle: .module),
           symbol: "tablecells",
           keywords: ["export", "arbeitszeitnachweis", "nachweis", "arbzg"],
-        ) { [weak self] in self?.exportTimeRecord?(true) }
+        ) { [weak self] in self?.exportTimeRecord?(.csv) }
+      )
+      items.append(
+        PaletteItem(
+          id: "time-record-xlsx",
+          title: String(localized: "Export Working Time Record as Excel (.xlsx) …", bundle: .module),
+          symbol: "tablecells",
+          keywords: ["export", "excel", "xlsx", "arbeitszeitnachweis", "nachweis", "arbzg"],
+        ) { [weak self] in self?.exportTimeRecord?(.xlsx) }
       )
     }
     if window.analytics?.showsTarget == true {

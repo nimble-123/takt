@@ -268,6 +268,28 @@ extension AnalyticsModelTests {
     // One page of days and one with the totals; no change log without changes.
     #expect(pdf.numberOfPages == 2)
   }
+
+  @Test
+  func timeRecordAsExcelHasTypedDaysDetailsAndChangeLog() async throws {
+    try await track("A", hours: 2)
+    model.period = .week
+    await model.reload()
+    let record = try await model.timeRecord()
+    let export = TimeRecordExport(record: record, name: nil, created: .now, version: "1.0", calendar: calendar)
+
+    // Stored without compression: the XML parts are readable in the bytes.
+    let text = String(decoding: export.data(.xlsx), as: UTF8.self)
+
+    #expect(text.hasPrefix("PK"))
+    #expect(text.contains("xl/worksheets/sheet3.xml"))
+    // Wednesday 7 October in row 4: date, start 10:00 as a time, 2 h net, −6 h on the flex account.
+    #expect(text.contains(#"<c r="A4" s="2"><v>46302</v></c>"#))
+    #expect(text.contains(#"<c r="D4" s="6"><v>0.4166666666666667</v></c>"#))
+    #expect(text.contains(#"<c r="G4" s="3"><v>2</v></c>"#))
+    #expect(text.contains(#"<c r="K4" s="3"><v>-6</v></c>"#))
+    #expect(text.contains(export.checksum))
+    #expect(text.contains(#"<autoFilter ref="A1:G1"/>"#)) // empty change log
+  }
 }
 
 // MARK: - Vacation account (AZ-06)

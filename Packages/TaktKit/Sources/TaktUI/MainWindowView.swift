@@ -99,11 +99,11 @@ public struct MainWindowView: View {
           AnalyticsScreen.saveExport(analytics, format)
         }
       }
-      palette.exportTimeRecord = { [model] csv in
+      palette.exportTimeRecord = { [model] format in
         guard let analytics = model.analytics else { return }
         Task {
           await analytics.reload()
-          AnalyticsScreen.saveTimeRecord(analytics, csv: csv)
+          AnalyticsScreen.saveTimeRecord(analytics, format)
         }
       }
       palette.payOutOvertime = { [model] in

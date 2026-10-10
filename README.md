@@ -22,7 +22,7 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 </div>
 
 > [!NOTE]
-> Takt is pre-release. Phases 1–4 are largely implemented, including the working time record under German labor law with flextime, overtime and vacation accounts. Still open are Entra ID sign-in, the Outlook calendar, signed and notarized builds with automatic updates, a desktop widget and an Excel export. Releases ship an unsigned Apple Silicon build; see [Install](#install).
+> Takt is pre-release. Phases 1–4 are largely implemented, including the working time record under German labor law with flextime, overtime and vacation accounts. Still open are Entra ID sign-in, the Outlook calendar, signed and notarized builds with automatic updates and a desktop widget. Releases ship an unsigned Apple Silicon build; see [Install](#install).
 
 <div align="center">
 
@@ -72,7 +72,7 @@ Time tracking usually happens after the fact and from memory, because starting, 
 | **Rules** | Assign category, project and tags automatically, for example "work item type Bug → category Support". |
 | **Azure DevOps** | Search work items with a compact preview (state, iteration, effort), current sprint first, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. The day close lists what to book; uncheck what should wait. |
 | **Analytics** | Stacked bars, distributions, top work items, heatmap, focus blocks and context switches, compared with the previous period and summed up in one sentence. Export CSV, Excel, JSON and a PDF report against your weekly target hours. |
-| **Working time record** | Built for German labor law (ArbZG): start, end, breaks and net time per day with checks for maximum hours, breaks and rest periods, public holidays per state, a change log, flextime, overtime payouts, vacation account and a monthly archive as PDF with a SHA-256 checksum. |
+| **Working time record** | Built for German labor law (ArbZG): start, end, breaks and net time per day with checks for maximum hours, breaks and rest periods, public holidays per state, a change log, flextime, overtime payouts, vacation account, export as PDF, CSV or Excel, and a monthly archive as PDF with a SHA-256 checksum. |
 | **Command line** | `takt status`, `takt start "Code review @Review /Portal"`, `stop`, `pause`, `resume`, `log` and `report`, with `--json` for scripts. Changes show up in the menu bar at once. `takt import` takes over an Excel timesheet once. |
 | **Enterprise ready** | Managed preferences and a sample profile for rollout via Intune or Jamf ([MDM guide](docs/MDM.md)). |
 

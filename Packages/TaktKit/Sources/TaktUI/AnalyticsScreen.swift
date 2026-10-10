@@ -133,10 +133,13 @@ struct AnalyticsScreen: View {
         Divider()
         // AZ-09: the record under the Working Hours Act, of the shown period.
         Button(String(localized: "Working Time Record as PDF …", bundle: .module)) {
-          Self.saveTimeRecord(model, csv: false)
+          Self.saveTimeRecord(model, .pdf)
         }
         Button(String(localized: "Working Time Record as CSV …", bundle: .module)) {
-          Self.saveTimeRecord(model, csv: true)
+          Self.saveTimeRecord(model, .csv)
+        }
+        Button(String(localized: "Working Time Record as Excel (.xlsx) …", bundle: .module)) {
+          Self.saveTimeRecord(model, .xlsx)
         }
       } label: {
         Label(String(localized: "Export", bundle: .module), systemImage: "square.and.arrow.up")
@@ -921,7 +924,7 @@ extension AnalyticsScreen {
     let type: UTType =
       switch format {
       case .csv: .commaSeparatedText
-      case .xlsx: UTType("org.openxmlformats.spreadsheetml.sheet") ?? UTType(filenameExtension: "xlsx") ?? .data
+      case .xlsx: .spreadsheet
       case .json: .json
       case .pdf: .pdf
       }
@@ -937,9 +940,14 @@ extension AnalyticsScreen {
 
   /// AZ-09: asks where to save, with the option to leave out the name, then writes the working
   /// time record of the shown period.
-  static func saveTimeRecord(_ model: AnalyticsModel, csv: Bool) {
+  static func saveTimeRecord(_ model: AnalyticsModel, _ format: TimeRecordExport.Format) {
     let panel = NSSavePanel()
-    panel.allowedContentTypes = [csv ? .commaSeparatedText : .pdf]
+    panel.allowedContentTypes =
+      switch format {
+      case .pdf: [.pdf]
+      case .csv: [.commaSeparatedText]
+      case .xlsx: [.spreadsheet]
+      }
     panel.nameFieldStringValue = String(localized: "Working time record", bundle: .module) + " " + model.exportFileName
       .replacingOccurrences(of: "Takt ", with: "")
     let omitName = NSButton(
@@ -959,7 +967,7 @@ extension AnalyticsScreen {
           version: TimeRecordExport.appVersion,
           calendar: .current,
         )
-        try (csv ? export.csv() : export.pdf()).write(to: url, options: .atomic)
+        try export.data(format).write(to: url, options: .atomic)
       } catch {
         NSAlert(error: error).runModal()
       }
@@ -979,4 +987,12 @@ extension AnalyticsScreen {
     let swatches = CategoryColors.swatches
     return CategoryColors.color(swatches[index % swatches.count].hex)
   }
+}
+
+extension UTType {
+  /// AN-08: Office Open XML workbook (`.xlsx`).
+  fileprivate static let spreadsheet = UTType("org.openxmlformats.spreadsheetml.sheet") ?? UTType(
+    filenameExtension: "xlsx",
+    conformingTo: .data,
+  ) ?? .data
 }
