@@ -193,7 +193,8 @@ extension TimeRecordTests {
 
     let expected: [TimeInterval?] = [15 * 3600, 15 * 3600, 10 * 3600, 10 * 3600]
     #expect(record.rows.map(\.cumulative) == expected)
-    #expect(record.totals.forfeited == [2025: 5 * 3600])
+    let forfeited: [Int: TimeInterval] = [2025: 5 * 3600]
+    #expect(record.totals.forfeited == forfeited)
     #expect(record.csv(calendar: calendar).contains("forfeited_end_of_2025,5:00\r\n"))
   }
 }

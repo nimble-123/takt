@@ -171,7 +171,8 @@ extension FlexAccountTests {
     let days = try [work(day(2024, 12, 2), hours: 12), work(day(2025, 12, 1), hours: 12)]
 
     #expect(account.balance(days, now: try day(2026, 1, 1)) == 10 * 3600)
-    #expect(account.forfeitures(days, now: try day(2026, 1, 1)) == [2024: 2 * 3600, 2025: 12 * 3600])
+    let forfeited: [Int: TimeInterval] = [2024: 2 * 3600, 2025: 12 * 3600]
+    #expect(account.forfeitures(days, now: try day(2026, 1, 1)) == forfeited)
     // On 31 December the year has not ended yet.
     #expect(account.balance(days, now: try day(2025, 12, 31)) == 22 * 3600)
   }
