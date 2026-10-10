@@ -34,18 +34,18 @@ public struct MainWindowView: View {
           .accessibilityLabel(Text("Takt \(AppVersion.full)", bundle: .module))
       }
     } detail: {
-      // Only screens that show entries carry the inspector, bound directly to the user's choice.
-      // A binding that read `showsInspector` but wrote `isInspectorShown` let the closing inspector
-      // overwrite the choice and coincided with a constraint update loop crash.
-      if model.hasInspector {
+      // Only screens that show entries carry the inspector (`showsInspector`). A column of the content instead of `.inspector`: SwiftUI's inspector reaches into the
+      // toolbar, where it collided with the toolbar's buttons; this one starts below it.
+      HStack(spacing: 0) {
         detail
-          .inspector(isPresented: $model.isInspectorShown) {
-            EntryInspector(model: model)
-              .inspectorColumnWidth(min: 260, ideal: 300)
-          }
-      } else {
-        detail
+        if model.showsInspector {
+          Divider()
+          EntryInspector(model: model)
+            .frame(width: Self.inspectorWidth)
+            .transition(.move(edge: .trailing).combined(with: .opacity))
+        }
       }
+      .animation(.snappy(duration: 0.2), value: model.showsInspector)
     }
     .modifier(SearchField(model: model))
     .sheet(isPresented: $palette.isPresented) {
@@ -162,6 +162,8 @@ public struct MainWindowView: View {
   @Bindable var model: MainWindowModel
 
   // MARK: Private
+
+  private static let inspectorWidth: CGFloat = 300
 
   @Environment(\.undoManager) private var undoManager
   @State private var palette: CommandPaletteModel

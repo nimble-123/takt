@@ -52,9 +52,9 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
   // MARK: Private
 
-  /// The inspector's ideal width (`MainWindowView`), less the toolbar's margins, so the search
-  /// field sits within the inspector when it is open.
-  private static let searchFieldWidth: CGFloat = 270
+  /// The inspector's width (300 pt in `MainWindowView`) less the toolbar's margin, so the search
+  /// field sits above the inspector and the buttons stay left of it.
+  private static let searchFieldWidth: CGFloat = 286
 
   private let model: MainWindowModel
   private var window: NSWindow?
