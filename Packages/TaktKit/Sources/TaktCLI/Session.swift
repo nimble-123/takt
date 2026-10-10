@@ -46,8 +46,14 @@ public struct Session: Sendable {
 
   // MARK: Lifecycle
 
-  public init(database: AppDatabase, clock: any TaktClock = SystemClock(), calendar: Calendar = .current) {
+  public init(
+    database: AppDatabase,
+    clock: any TaktClock = SystemClock(),
+    calendar: Calendar = .current,
+    folder: URL? = nil,
+  ) {
     self.database = database
+    self.folder = folder
     self.clock = clock
     self.calendar = calendar
     engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
@@ -65,12 +71,14 @@ public struct Session: Sendable {
   public let database: AppDatabase
   public let clock: any TaktClock
   public let calendar: Calendar
+  /// The data folder, for backups; `nil` for an in-memory database.
+  public let folder: URL?
 
   /// `TAKT_DATA_DIR` or the app's folder, like the app itself.
   public static func open(dataDirectory: String? = nil) throws -> Session {
     let directory = dataDirectory ?? ProcessInfo.processInfo.environment["TAKT_DATA_DIR"]
     let url = try directory.map { URL(filePath: $0).appending(path: "takt.sqlite") } ?? AppDatabase.defaultURL()
-    return Session(database: try AppDatabase.open(at: url))
+    return Session(database: try AppDatabase.open(at: url), folder: url.deletingLastPathComponent())
   }
 
   public func status() async throws -> [ActiveTimer] {

@@ -37,6 +37,11 @@ public struct AppDatabase: Sendable {
       .appending(components: "Takt", "takt.sqlite")
   }
 
+  /// Copies the whole database to a new SQLite file, e.g. before an import (#190).
+  public func backup(to url: URL) throws {
+    try writer.backup(to: DatabaseQueue(path: url.path))
+  }
+
   // MARK: Internal
 
   /// Migrations are append-only: never change an existing one, add a new one instead.
