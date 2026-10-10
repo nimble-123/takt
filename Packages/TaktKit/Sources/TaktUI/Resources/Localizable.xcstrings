@@ -581,16 +581,6 @@
         }
       }
     },
-    "Away from %@ to %@ (%@).": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abwesend von %1$@ bis %2$@ (%3$@)."
-          }
-        }
-      }
-    },
     "Azure DevOps": {
       "localizations": {
         "de": {
@@ -1281,6 +1271,16 @@
         }
       }
     },
+    "Count a screen lock as a pause from now on": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Bildschirmsperre künftig als Pause werten"
+          }
+        }
+      }
+    },
     "Count as Work": {
       "localizations": {
         "de": {
@@ -1941,6 +1941,26 @@
         }
       }
     },
+    "From %@ to %@ %@ ran without input. How should the time count?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von %1$@ bis %2$@ lief %3$@ ohne Eingabe weiter. Wie soll die Zeit zählen?"
+          }
+        }
+      }
+    },
+    "From %@ to %@ there was no input. How should the time count?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Von %1$@ bis %2$@ gab es keine Eingabe. Wie soll die Zeit zählen?"
+          }
+        }
+      }
+    },
     "From branch %@": {
       "localizations": {
         "de": {
@@ -2131,6 +2151,16 @@
         }
       }
     },
+    "I worked on it anyway, e.g. at the whiteboard": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe trotzdem daran gearbeitet, z. B. am Whiteboard"
+          }
+        }
+      }
+    },
     "ID or title": {
       "localizations": {
         "de": {
@@ -2191,16 +2221,6 @@
         }
       }
     },
-    "Inactivity detected": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inaktivität erkannt"
-          }
-        }
-      }
-    },
     "Inspector": {
       "localizations": {
         "de": {
@@ -2257,6 +2277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tag der Arbeit"
+          }
+        }
+      }
+    },
+    "Later": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später"
           }
         }
       }
@@ -4281,6 +4311,36 @@
         }
       }
     },
+    "The %@ do not count, the timer continues from %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die %1$@ zählen nicht, der Timer läuft ab %2$@ weiter"
+          }
+        }
+      }
+    },
+    "The %@ do not count, the timer stays paused": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die %@ zählen nicht, der Timer bleibt pausiert"
+          }
+        }
+      }
+    },
+    "The %@ go to another task, the timer continues": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die %@ gehen an einen anderen Task, der Timer läuft weiter"
+          }
+        }
+      }
+    },
     "The action failed.": {
       "localizations": {
         "de": {
@@ -5101,6 +5161,16 @@
         }
       }
     },
+    "You were away for %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du warst %@ weg"
+          }
+        }
+      }
+    },
     "Your shortcut": {
       "localizations": {
         "de": {
@@ -5217,6 +5287,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "· recommended": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "· empfohlen"
           }
         }
       }
