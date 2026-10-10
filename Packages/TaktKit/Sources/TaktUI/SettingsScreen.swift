@@ -286,6 +286,8 @@ struct SettingsScreen: View {
         }
       }
 
+      CommandLineSection()
+
       Section(String(localized: "Export and Azure DevOps", bundle: .module)) {
         Picker(String(localized: "Rounding", bundle: .module), selection: $settings.roundingMinutes) {
           ForEach(AppSettings.roundingChoices, id: \.self) { minutes in
@@ -524,4 +526,67 @@ extension View {
       }
     }
   }
+}
+
+// MARK: - CommandLineSection
+
+/// #189: links `takt` into the PATH, so Takt works from the terminal.
+private struct CommandLineSection: View {
+
+  // MARK: Internal
+
+  var body: some View {
+    Section {
+      LabeledContent {
+        HStack(spacing: 8) {
+          switch state {
+          case .installed:
+            Label(String(localized: "Installed", bundle: .module), systemImage: "checkmark.circle.fill")
+              .foregroundStyle(Palette.accentText)
+
+          case .other(let path):
+            Text("Points to \(path)", bundle: .module)
+              .foregroundStyle(Palette.warning)
+              .lineLimit(1)
+              .truncationMode(.middle)
+
+          case .notInstalled, .unavailable:
+            EmptyView()
+          }
+          Button(state == .installed ? Self.reinstall : Self.install) {
+            message = tool.install()
+            state = tool.state
+          }
+          .disabled(state == .unavailable)
+        }
+      } label: {
+        Text(verbatim: "takt")
+          .font(.system(.body, design: .monospaced))
+      }
+      if let message {
+        Text(message).foregroundStyle(Palette.danger)
+      }
+    } header: {
+      Text("Command line", bundle: .module)
+    } footer: {
+      Text(
+        "Links the command line tool to /usr/local/bin/takt; macOS asks for an administrator password. Then try takt status or takt --help in the terminal.",
+        bundle: .module,
+      )
+      .font(.system(size: 11))
+      .foregroundStyle(Palette.textSecondary)
+    }
+    .onAppear { state = tool.state }
+  }
+
+  // MARK: Private
+
+  private static let install = String(localized: "Install …", bundle: .module)
+  private static let reinstall = String(localized: "Link Again …", bundle: .module)
+
+  @State private var state = CommandLineTool.State.unavailable
+  @State private var message: String?
+
+  private let tool = CommandLineTool()
+
 }

@@ -1331,6 +1331,16 @@
         }
       }
     },
+    "Command line": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kommandozeile"
+          }
+        }
+      }
+    },
     "Command palette": {
       "localizations": {
         "de": {
@@ -2411,6 +2421,26 @@
         }
       }
     },
+    "Install …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installieren …"
+          }
+        }
+      }
+    },
+    "Installed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installiert"
+          }
+        }
+      }
+    },
     "Iteration": {
       "localizations": {
         "de": {
@@ -2501,6 +2531,16 @@
         }
       }
     },
+    "Link Again …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut verlinken …"
+          }
+        }
+      }
+    },
     "Link Work Item": {
       "localizations": {
         "de": {
@@ -2527,6 +2567,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verknüpfen …"
+          }
+        }
+      }
+    },
+    "Links the command line tool to /usr/local/bin/takt; macOS asks for an administrator password. Then try takt status or takt --help in the terminal.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlinkt das Kommandozeilen-Tool nach /usr/local/bin/takt; macOS fragt nach einem Administrator-Passwort. Danach im Terminal takt status oder takt --help ausprobieren."
           }
         }
       }
@@ -3407,6 +3457,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pink"
+          }
+        }
+      }
+    },
+    "Points to %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeigt auf %@"
           }
         }
       }

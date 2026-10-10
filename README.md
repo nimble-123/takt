@@ -73,6 +73,7 @@ Time tracking usually happens after the fact and from memory, because starting, 
 | **Azure DevOps** | Search work items with a compact preview (state, iteration, effort), current sprint first, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. The day close lists what to book; uncheck what should wait. |
 | **Analytics** | Stacked bars, distributions, top work items, heatmap, focus blocks and context switches, compared with the previous period and summed up in one sentence. Export CSV, JSON and a PDF report against your weekly target hours. |
 | **Working time record** | Built for German labor law (ArbZG): start, end, breaks and net time per day with checks for maximum hours, breaks and rest periods, public holidays per state, a change log, flextime, overtime payouts, vacation account and a monthly archive as PDF with a SHA-256 checksum. |
+| **Command line** | `takt status`, `takt start "Code review @Review /Portal"`, `stop`, `pause`, `resume`, `log` and `report`, with `--json` for scripts. Changes show up in the menu bar at once. |
 | **Enterprise ready** | Managed preferences and a sample profile for rollout via Intune or Jamf ([MDM guide](docs/MDM.md)). |
 
 ## Architecture
@@ -108,6 +109,8 @@ brew install --cask takt
 Update with `brew upgrade --cask takt`. Every release updates the cask automatically, usually within minutes.
 
 Or download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
+
+To use Takt from the terminal, open **Settings → Command line → Install …**. It links `takt` to `/usr/local/bin`, then try `takt --help`. For zsh completion, run `takt --generate-completion-script zsh > ~/.zfunc/_takt` and add `~/.zfunc` to your `fpath`.
 
 > [!IMPORTANT]
 > These builds are not signed or notarized yet, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Takt.app`. After each update macOS asks again for access to the Keychain.

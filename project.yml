@@ -39,6 +39,13 @@ targets:
         product: TaktAnalytics
       - package: TaktKit
         product: TaktADO
+      # The command line tool (#189), signed with the app and linked into the PATH from the settings.
+      - target: takt-cli
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
     settings:
       base:
         PRODUCT_NAME: Takt
@@ -56,3 +63,22 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_IDENTITY: "-"
+
+  takt-cli:
+    type: tool
+    platform: macOS
+    sources:
+      - path: CLI
+    dependencies:
+      - package: TaktKit
+        product: TaktCLI
+    settings:
+      base:
+        PRODUCT_NAME: takt
+        # One file with `@main`; without the flag Swift treats it as a script.
+        OTHER_SWIFT_FLAGS: -parse-as-library
+        PRODUCT_BUNDLE_IDENTIFIER: de.nilslutz.takt.cli
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        SKIP_INSTALL: YES
