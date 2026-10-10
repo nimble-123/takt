@@ -206,6 +206,12 @@
       "w": 240,
       "x": 0,
       "y": 760
+    },
+    "note-keyboard": {
+      "text": "Timeline per Tastatur (#171), Heute und Woche:\n↑/↓ vorheriger/nächster Block (wählt ihn aus), ⇧↑/⇧↓ Auswahl erweitern, ←/→ Nachbartag (Woche), ⌥↑/⌥↓ um 5 min verschieben, ↩/Leertaste Inspektor, ⌫ löschen.\nFokusring 2,5 pt in der Akzentfarbe außerhalb der Auswahl; der Block bleibt im sichtbaren Bereich, VoiceOver sagt Titel und Zeit an. Beispiel: Code-Review am Mittwoch.",
+      "w": 360,
+      "x": 5440,
+      "y": 1980
     }
   },
   "order": [

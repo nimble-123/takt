@@ -90,10 +90,17 @@ public final class MainWindowModel {
     fileprivate let answer: (String?) -> Void
   }
 
+  /// The block the keyboard is on in a timeline, with its day (#171).
+  public struct TimelineFocus: Hashable, Sendable {
+    public var item: TimelineLayout.Item.ID
+    public var day: Range<Timestamp>
+  }
+
   /// AZ-05: absences of the shown range by `YYYY-MM-DD`.
   public private(set) var absences = [String: AbsenceKind]()
 
   public var selection = Set<EntryID>()
+  public var timelineFocus: TimelineFocus?
   /// The user's choice from the toolbar; `showsInspector` decides where it actually appears.
   public var isInspectorShown = true
   public private(set) var errorMessage: String?
@@ -213,6 +220,12 @@ public final class MainWindowModel {
 
   public var showsInspector: Bool {
     isInspectorShown && hasInspector
+  }
+
+  /// The focused block, if it is still in its day's layout.
+  public var focusedTimelineItem: TimelineLayout.Item? {
+    guard let timelineFocus else { return nil }
+    return layout(for: timelineFocus.day, now: now).items.first { $0.id == timelineFocus.item }
   }
 
   /// AZ-05: the absence on the local day of `day`, if any.
@@ -484,6 +497,59 @@ public final class MainWindowModel {
     searchText = ""
   }
 
+  /// ↑/↓: focuses and selects the previous or next block; with ⇧ (`extend`) the selection grows.
+  /// Without a focused block it starts in the first of `days`, e.g. the shown day.
+  @discardableResult
+  public func moveTimelineFocus(_ step: TimelineLayout.Step, extend: Bool, days: [Range<Timestamp>]) -> Bool {
+    let focusedDay = timelineFocus.map(\.day).flatMap { days.contains($0) ? $0 : nil }
+    let day = focusedDay ?? days.first { candidate in
+      !layout(for: candidate, now: now).keyboardOrder.isEmpty
+    }
+    let dayLayout = layout(for: day ?? dayRange, now: now)
+    // Without a focused block the arrows start at a clicked entry, if it is in this day.
+    if
+      timelineFocus == nil, let selected = selection.first, selection.count == 1, let day,
+      let start = dayLayout.keyboardOrder.first(where: { $0.entryID == selected })
+    {
+      let next = dayLayout.item(from: start.id, step)
+      focus(next ?? start, in: day, extend: extend)
+      return true
+    }
+    guard let day, let item = dayLayout.item(from: focusedTimelineItem?.id, step) else { return false }
+    focus(item, in: day, extend: extend)
+    return true
+  }
+
+  /// ←/→ in the week: the block of the neighbouring day nearest to the focused one's time.
+  @discardableResult
+  public func moveTimelineFocus(days offset: Int, in days: [Range<Timestamp>]) -> Bool {
+    let current = timelineFocus.map(\.day) ?? days.first
+    guard let current, let index = days.firstIndex(of: current) else { return false }
+    let seconds = focusedTimelineItem.map { $0.start.seconds(since: current.lowerBound) } ?? 8 * 3600
+    var target = index + offset
+    while days.indices.contains(target) {
+      if let item = layout(for: days[target], now: now).item(nearest: seconds, in: days[target]) {
+        focus(item, in: days[target], extend: false)
+        return true
+      }
+      target += offset
+    }
+    return false
+  }
+
+  /// ⌥↑/⌥↓: moves the focused block by `seconds`, one undo step each. A running block keeps its place.
+  public func moveFocusedBlock(by seconds: TimeInterval) async {
+    guard case .segment(let segment)? = focusedTimelineItem?.kind, segment.end != nil else { return }
+    await move(segment, by: seconds)
+    // The segment keeps its ID, so the focus follows it.
+  }
+
+  /// ↩ or Space: the focused block's entry in the inspector.
+  public func openFocusedInInspector() {
+    guard let item = focusedTimelineItem else { return }
+    openInspector(for: item.entryID)
+  }
+
   /// Double-click on an entry: select only it and show the inspector (#79).
   public func openInspector(for id: EntryID) {
     selection = [id]
@@ -617,6 +683,11 @@ public final class MainWindowModel {
   @ObservationIgnored private var lastEdit: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
+
+  private func focus(_ item: TimelineLayout.Item, in day: Range<Timestamp>, extend: Bool) {
+    timelineFocus = TimelineFocus(item: item.id, day: day)
+    if extend { selection.insert(item.entryID) } else { selection = [item.entryID] }
+  }
 
   private func command(_ name: String, _ body: (TimerEngine) async throws -> TimerUndo) async {
     do {

@@ -101,7 +101,7 @@ input.sw:disabled{opacity:.55;cursor:default}
 <div style="position: absolute; left: 0; right: 0; top: {{h.top}}px; border-top: 1px solid #F0F0F3"></div>
 </sc-for>
 <sc-for list="{{d.blocks}}" as="b" hint-placeholder-count="5">
-<div title="{{b.title}} · {{b.time}}" style="position: absolute; top: {{b.top}}px; height: {{b.h}}px; left: {{b.left}}; right: {{b.right}}; box-sizing: border-box; margin: 1px 2px; padding: 2px 5px; border-radius: 5px; background: {{b.bg}}; color: {{b.ink}}; border: {{b.border}}; overflow: hidden; font-size: 11px; line-height: 14px">
+<div title="{{b.title}} · {{b.time}}" style="position: absolute; top: {{b.top}}px; height: {{b.h}}px; left: {{b.left}}; right: {{b.right}}; box-sizing: border-box; margin: 1px 2px; padding: 2px 5px; border-radius: 5px; background: {{b.bg}}; color: {{b.ink}}; border: {{b.border}}; outline: {{b.outline}}; outline-offset: 2px; overflow: hidden; font-size: 11px; line-height: 14px">
 <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{b.title}}</div>
 <div style="opacity: 0.8; white-space: nowrap; overflow: hidden">{{b.time}}</div>
 </div>
@@ -140,7 +140,8 @@ class Component extends DCLogic {
       run: { bg: '#E8F4F2', ink: '#134E4A', border: '2px solid #0F766E' }
     };
     const t = (s) => { const p = s.split(':'); return (+p[0]) * 60 + (+p[1]); };
-    const b = (cat, from, to, title, left, right) => Object.assign({}, C[cat], {
+    const b = (cat, from, to, title, left, right, focused) => Object.assign({}, C[cat], {
+      outline: focused ? '2.5px solid #0F766E' : 'none',
       top: t(from) * H / 60, h: (t(to) - t(from)) * H / 60, title: title, time: from + '–' + to, left: left || '0', right: right || '0'
     });
     const day = (label, total, blocks, opts) => Object.assign({
@@ -163,7 +164,7 @@ class Component extends DCLogic {
         ]),
         day('Mi., 7.', '8:10', [
           b('dev', '08:00', '09:45', '#4702 Passwort-Reset'), b('meet', '09:45', '10:00', 'Daily'),
-          b('rev', '10:00', '11:30', 'Code-Review'), b('dev', '11:30', '12:30', 'SSO-Fix verifizieren'),
+          b('rev', '10:00', '11:30', 'Code-Review', '0', '0', true), b('dev', '11:30', '12:30', 'SSO-Fix verifizieren'),
           b('dev', '13:15', '15:00', '#4702 Passwort-Reset'), b('meet', '15:00', '16:00', 'Kunden-Call'),
           b('sup', '16:00', '17:30', 'Support')
         ]),

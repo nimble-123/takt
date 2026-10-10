@@ -53,6 +53,57 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func keyboardMovesThroughBlocksInReadingOrderAndExtendsTheSelection() async throws {
+    let late = try #require(await model.createEntry(from: at(9), to: at(9.5)))
+    let early = try #require(await model.createEntry(from: at(8), to: at(8.5)))
+    let days = [model.dayRange]
+    // A clicked entry is where the arrows start.
+    #expect(model.selection == [early])
+    #expect(model.moveTimelineFocus(.next, extend: false, days: days))
+    #expect(model.selection == [late])
+    model.timelineFocus = nil
+    model.selection = []
+
+    #expect(model.moveTimelineFocus(.next, extend: false, days: days))
+    #expect(model.selection == [early])
+    #expect(model.moveTimelineFocus(.next, extend: true, days: days))
+    #expect(model.selection == [early, late])
+    // At the end nothing moves, so the arrow can scroll instead.
+    #expect(!model.moveTimelineFocus(.next, extend: false, days: days))
+    #expect(model.moveTimelineFocus(.previous, extend: false, days: days))
+    #expect(model.selection == [early])
+
+    await model.moveFocusedBlock(by: DayTimeline.snap)
+    #expect(model.focusedTimelineItem?.start == at(8 + 5.0 / 60))
+    model.isInspectorShown = false
+    model.openFocusedInInspector()
+    #expect(model.isInspectorShown)
+  }
+
+  @Test
+  func leftAndRightFindTheNearestBlockOfANeighbouringDay() async throws {
+    model.section = .week
+    // Today it is 10:00, so the block is before that.
+    let today = try #require(await model.createEntry(from: at(9.5), to: at(10)))
+    let todayStart = model.day
+    model.day = todayStart.adding(seconds: -86_400)
+    let yesterday = model.dayRange
+    let morning = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let later = try #require(await model.createEntry(from: at(10), to: at(11)))
+    model.day = todayStart
+    await model.reload()
+    let days = model.weekDays
+
+    #expect(model.moveTimelineFocus(.next, extend: false, days: [model.dayRange]))
+    #expect(model.selection == [today])
+    #expect(model.moveTimelineFocus(days: -1, in: days))
+    #expect(model.selection == [later])
+    #expect(model.timelineFocus?.day == yesterday)
+    #expect(model.moveTimelineFocus(.previous, extend: false, days: days))
+    #expect(model.selection == [morning])
+  }
+
+  @Test
   func theShownDayIsCheckedAgainstTheWorkingHoursAct() async throws {
     // Yesterday, 7:00–18:00 without a break.
     model.step(by: -1)

@@ -231,6 +231,7 @@ struct DayTimeline: View {
         running: running,
         selected: selected,
         compact: !interactive,
+        focused: model.timelineFocus == MainWindowModel.TimelineFocus(item: item.id, day: day),
       )
       .frame(width: frame.width, height: frame.height)
       .opacity(isDragging(segment) ? 0.35 : 1)
@@ -358,6 +359,8 @@ struct BlockView: View {
   let running: Bool
   let selected: Bool
   var compact = false
+  /// The keyboard is on this block (#171).
+  var focused = false
 
   var body: some View {
     let tall = end.seconds(since: start) >= 25 * 60
@@ -389,6 +392,14 @@ struct BlockView: View {
       RoundedRectangle(cornerRadius: 5)
         .strokeBorder(selected ? tint : Palette.separator, lineWidth: selected ? 2 : 0.5)
     )
+    // The keyboard focus ring, outside the selection border, like macOS draws it.
+    .overlay {
+      if focused {
+        RoundedRectangle(cornerRadius: 7)
+          .strokeBorder(Palette.accent, lineWidth: 2.5)
+          .padding(-3)
+      }
+    }
     .contentShape(Rectangle())
     // One element with the time, also when the block is too small or compact to show it (#110).
     .accessibilityElement(children: .ignore)
