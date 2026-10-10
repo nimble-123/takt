@@ -4,6 +4,8 @@ import Testing
 
 @testable import TaktAnalytics
 
+// MARK: - TimeRecordTests
+
 struct TimeRecordTests {
 
   // MARK: Lifecycle
@@ -165,5 +167,34 @@ struct TimeRecordTests {
       now: monday.adding(seconds: 3 * 86400 + 20 * 3600),
       calendar: calendar,
     )
+  }
+}
+
+// MARK: - Carryover limit (AZ-08)
+
+extension TimeRecordTests {
+  @Test
+  func flexAccountIsCappedAtTheYearChangeAndTheForfeitIsListed() throws {
+    let plan = TargetPlan(weeklyHours: 0)
+    let opening: TimeInterval = 15 * 3600
+    let range = try day(2025, 12, 30)..<day(2026, 1, 3)
+    let record = TimeRecord.make(
+      range: range,
+      checks: [],
+      segments: [],
+      changes: [],
+      absences: [:],
+      federalState: nil,
+      flex: (plan, opening, try day(2025, 12, 1)),
+      carryoverLimit: 10 * 3600,
+      now: try day(2026, 1, 5),
+      calendar: calendar,
+    )
+
+    let expected: [TimeInterval?] = [15 * 3600, 15 * 3600, 10 * 3600, 10 * 3600]
+    #expect(record.rows.map(\.cumulative) == expected)
+    let forfeited: [Int: TimeInterval] = [2025: 5 * 3600]
+    #expect(record.totals.forfeited == forfeited)
+    #expect(record.csv(calendar: calendar).contains("forfeited_end_of_2025,5:00\r\n"))
   }
 }

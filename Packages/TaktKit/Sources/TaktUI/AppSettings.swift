@@ -53,6 +53,7 @@ public final class AppSettings {
     vacationDaysPerYear = stored.vacationDaysPerYear
     vacationCarryoverDays = stored.vacationCarryoverDays
     overtimeQuarterQuotaHours = stored.overtimeQuarterQuotaHours
+    flexCarryoverLimitHours = stored.flexCarryoverLimitHours
   }
 
   // MARK: Public
@@ -84,6 +85,7 @@ public final class AppSettings {
     case vacationDaysPerYear
     case vacationCarryoverDays
     case overtimeQuarterQuotaHours
+    case flexCarryoverLimitHours
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -130,6 +132,7 @@ public final class AppSettings {
   public static let vacationDaysRange = 0...60
   public static let vacationCarryoverRange = 0...99
   public static let overtimeQuotaRange: ClosedRange<Double> = 0...999
+  public static let flexCarryoverLimitRange: ClosedRange<Double> = 0...999
 
   /// Enter starts with this mode; ⌥↩ with the other (TM-05).
   public var startMode: TimerEngine.StartMode {
@@ -257,6 +260,16 @@ public final class AppSettings {
     }
   }
 
+  /// AZ-08: at most this many hours of a positive flex balance carry over into the next year;
+  /// 0 = no limit.
+  public var flexCarryoverLimitHours: Double {
+    didSet {
+      let hours = Self.hours(flexCarryoverLimitHours, in: Self.flexCarryoverLimitRange)
+      if hours != flexCarryoverLimitHours, !isLocked(.flexCarryoverLimitHours) { flexCarryoverLimitHours = hours }
+      write(.flexCarryoverLimitHours, flexCarryoverLimitHours)
+    }
+  }
+
   /// Folders whose Git repositories suggest work items by branch name.
   public var gitFolders: [String] {
     didSet { write(.gitFolders, gitFolders) }
@@ -275,6 +288,11 @@ public final class AppSettings {
   /// Readable from any isolation, e.g. from the `@Sendable` closures of the services.
   public nonisolated var snapshot: Snapshot {
     snapshotLock.withLock { $0 }
+  }
+
+  /// AZ-08: the carryover limit in seconds; `nil` without a limit.
+  public var flexCarryoverLimit: TimeInterval? {
+    flexCarryoverLimitHours > 0 ? flexCarryoverLimitHours * 3600 : nil
   }
 
   /// AN-07: the weekly hours spread over the working days.
@@ -418,6 +436,11 @@ public final class AppSettings {
       if overtimeQuarterQuotaHours != stored.overtimeQuarterQuotaHours {
         overtimeQuarterQuotaHours = stored.overtimeQuarterQuotaHours
       }
+
+    case .flexCarryoverLimitHours:
+      if flexCarryoverLimitHours != stored.flexCarryoverLimitHours {
+        flexCarryoverLimitHours = stored.flexCarryoverLimitHours
+      }
     }
   }
 }
@@ -461,6 +484,8 @@ private struct Stored {
     vacationDaysPerYear = max(0, vacationDays)
     vacationCarryoverDays = defaults.integer(forKey: AppSettings.Key.vacationCarryoverDays.rawValue)
     overtimeQuarterQuotaHours = max(0, defaults.double(forKey: AppSettings.Key.overtimeQuarterQuotaHours.rawValue))
+    let carryoverLimit = defaults.object(forKey: AppSettings.Key.flexCarryoverLimitHours.rawValue) as? Double ?? 220
+    flexCarryoverLimitHours = max(0, carryoverLimit)
   }
 
   // MARK: Internal
@@ -491,6 +516,7 @@ private struct Stored {
   let vacationDaysPerYear: Int
   let vacationCarryoverDays: Int
   let overtimeQuarterQuotaHours: Double
+  let flexCarryoverLimitHours: Double
 
   // MARK: Private
 

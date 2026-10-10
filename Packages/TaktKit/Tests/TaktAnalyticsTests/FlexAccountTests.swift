@@ -138,3 +138,62 @@ extension FlexAccountTests {
     #expect(OvertimeQuota(quota: 5 * 3600, paid: 6 * 3600).remaining == -3600)
   }
 }
+
+// MARK: - Carryover limit (AZ-08)
+
+extension FlexAccountTests {
+
+  // MARK: Internal
+
+  @Test(arguments: [(12.0, 10.0, 2.0), (10.0, 10.0, 0.0), (8.0, 8.0, 0.0)])
+  func positiveBalanceIsCappedAtTheYearChange(hours: Double, balance: Double, forfeited: Double) throws {
+    let account = capped(startBalance: 0, startDay: try day(2025, 12, 1))
+    let days = try [work(day(2025, 12, 1), hours: hours)]
+    let now = try day(2026, 1, 5)
+
+    #expect(account.balance(days, now: now) == balance * 3600)
+    #expect(account.forfeitures(days, now: now)[2025, default: 0] == forfeited * 3600)
+  }
+
+  @Test
+  func negativeBalanceAndNoLimitAreNotCapped() throws {
+    let now = try day(2026, 1, 5)
+    #expect(capped(startBalance: -5 * 3600, startDay: try day(2025, 12, 1)).balance([], now: now) == -5 * 3600)
+
+    var account = capped(startBalance: 0, startDay: try day(2025, 12, 1))
+    account.carryoverLimit = nil
+    #expect(account.balance(try [work(day(2025, 12, 1), hours: 12)], now: now) == 12 * 3600)
+  }
+
+  @Test
+  func everyYearIsCappedOnItsOwnAndNotBeforeItEnds() throws {
+    let account = capped(startBalance: 0, startDay: try day(2024, 12, 1))
+    let days = try [work(day(2024, 12, 2), hours: 12), work(day(2025, 12, 1), hours: 12)]
+
+    #expect(account.balance(days, now: try day(2026, 1, 1)) == 10 * 3600)
+    let forfeited: [Int: TimeInterval] = [2024: 2 * 3600, 2025: 12 * 3600]
+    #expect(account.forfeitures(days, now: try day(2026, 1, 1)) == forfeited)
+    // On 31 December the year has not ended yet.
+    #expect(account.balance(days, now: try day(2025, 12, 31)) == 22 * 3600)
+  }
+
+  @Test
+  func startBalanceIsTheCarryoverAndNotCappedItself() throws {
+    let account = capped(startBalance: 300 * 3600, startDay: try day(2026, 1, 1))
+
+    #expect(account.balance([], now: try day(2026, 1, 5)) == 300 * 3600)
+  }
+
+  // MARK: Private
+
+  private func capped(startBalance: TimeInterval, startDay: Timestamp) -> FlexAccount {
+    // No target, so only the work counts.
+    FlexAccount(
+      plan: TargetPlan(weeklyHours: 0),
+      startBalance: startBalance,
+      startDay: startDay,
+      carryoverLimit: 10 * 3600,
+      calendar: calendar,
+    )
+  }
+}

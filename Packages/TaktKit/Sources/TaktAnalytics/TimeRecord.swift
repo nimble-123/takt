@@ -56,6 +56,9 @@ public struct TimeRecord: Hashable, Sendable {
     public var findings: [WorkTimeFinding.Rule: Int]
     /// Flex time only, oldest first.
     public var quarters: [QuarterTotal]
+    /// AZ-08: flex time above the carryover limit that forfeited when a year ended within the
+    /// period, by that year.
+    public var forfeited: [Int: TimeInterval]
   }
 
   /// AZ-06: vacation days in the period and the vacation account as of its last day.
@@ -86,6 +89,7 @@ public struct TimeRecord: Hashable, Sendable {
   ///   - flex: the plan, the flex account's balance at the start of `range` and the account's start
   ///     day (days before it get no balance); `nil` for trust-based working time.
   ///   - payouts: overtime payouts (AZ-07); they reduce the flex account on their day.
+  ///   - carryoverLimit: the flex account's limit at a year change (AZ-08); `nil` = none.
   ///   - vacation: vacation days in `range` and the vacation account as of its last day (AZ-06).
   public static func make(
     range: Range<Timestamp>,
@@ -96,6 +100,7 @@ public struct TimeRecord: Hashable, Sendable {
     federalState: FederalState?,
     flex: (plan: TargetPlan, openingBalance: TimeInterval, startDay: Timestamp)?,
     payouts: [OvertimePayout] = [],
+    carryoverLimit: TimeInterval? = nil,
     vacation: Vacation? = nil,
     now: Timestamp,
     calendar: Calendar,
@@ -105,6 +110,7 @@ public struct TimeRecord: Hashable, Sendable {
     let today = now.localDay(in: calendar).lowerBound
     let paidByDay = payouts.reduce(into: [String: TimeInterval]()) { $0[$1.day, default: 0] += $1.seconds }
     var cumulative = flex?.openingBalance ?? 0
+    var forfeited = [Int: TimeInterval]()
     var rows = [Row]()
     var day = range.lowerBound.localDay(in: calendar).lowerBound
     while day < range.upperBound {
@@ -125,6 +131,12 @@ public struct TimeRecord: Hashable, Sendable {
         corrected: correctedDays.contains(day),
       )
       if let flex, day <= today, day >= flex.startDay {
+        // AZ-08: the year before ends; the start balance itself is never capped.
+        let parts = calendar.dateComponents([.year, .month, .day], from: day.date)
+        if day > flex.startDay, parts.month == 1, parts.day == 1, let carryoverLimit, cumulative > carryoverLimit {
+          forfeited[(parts.year ?? 1) - 1] = cumulative - carryoverLimit
+          cumulative = carryoverLimit
+        }
         let target = flex.plan.target(on: day, calendar: calendar)
         let paid = paidByDay[date] ?? 0
         cumulative += row.net - target - paid
@@ -145,6 +157,7 @@ public struct TimeRecord: Hashable, Sendable {
       sundayOrHoliday: rows.filter { $0.weekday == 7 || $0.holiday != nil }.reduce(0) { $0 + $1.net },
       findings: findings,
       quarters: quarters(rows, calendar: calendar),
+      forfeited: forfeited,
     )
     return TimeRecord(
       range: range,
@@ -220,6 +233,9 @@ public struct TimeRecord: Hashable, Sendable {
     for quarter in totals.quarters {
       lines.append(["overtime_\(quarter.quarter)", Self.duration(quarter.overtime)])
       lines.append(["paid_out_\(quarter.quarter)", Self.duration(quarter.paidOut)])
+    }
+    for (year, seconds) in totals.forfeited.sorted(by: { $0.key < $1.key }) {
+      lines.append(["forfeited_end_of_\(year)", Self.duration(seconds)])
     }
     if let vacation {
       lines.append(["vacation_days", String(vacation.days)])

@@ -11,6 +11,26 @@
         }
       }
     },
+    "%@ forfeit at the year change": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ verfallen zum Jahreswechsel"
+          }
+        }
+      }
+    },
+    "%@ forfeit at the year change · %@ payable": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ verfallen zum Jahreswechsel · noch %2$@ vergütbar"
+          }
+        }
+      }
+    },
     "%@ h done · %@ h left": {
       "localizations": {
         "de": {
@@ -217,6 +237,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld warten auf das Netz"
+          }
+        }
+      }
+    },
+    "0 = no limit. Hours above it forfeit at the year change.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 = keine Grenze. Stunden darüber verfallen zum Jahreswechsel."
           }
         }
       }
@@ -1731,12 +1761,32 @@
         }
       }
     },
+    "Flex account carried into the next year at most": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höchstens ins Folgejahr übertragenes Flexkonto"
+          }
+        }
+      }
+    },
     "Flex account counts from": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Flexkonto zählt ab"
+          }
+        }
+      }
+    },
+    "Flex account forfeited at the end of %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verfallenes Flexkonto zum Ende von %@"
           }
         }
       }

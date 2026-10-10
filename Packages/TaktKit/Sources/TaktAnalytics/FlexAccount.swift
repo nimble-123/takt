@@ -4,17 +4,25 @@ import TaktCore
 // MARK: - FlexAccount
 
 /// The flex-time account (AZ-05): start balance + Σ (net − target) − Σ payouts (AZ-07) from the
-/// start day through today. Computed from working days, absences and payouts at query time.
+/// start day through today, capped at each year change (AZ-08). Computed from working days,
+/// absences and payouts at query time.
 public struct FlexAccount: Sendable {
 
   // MARK: Lifecycle
 
   /// `startDay` is any time on the first day that counts; `startBalance` is the balance before it,
-  /// e.g. carried over from last year.
-  public init(plan: TargetPlan, startBalance: TimeInterval, startDay: Timestamp, calendar: Calendar = .current) {
+  /// e.g. carried over from last year, so it is not capped itself.
+  public init(
+    plan: TargetPlan,
+    startBalance: TimeInterval,
+    startDay: Timestamp,
+    carryoverLimit: TimeInterval? = nil,
+    calendar: Calendar = .current,
+  ) {
     self.plan = plan
     self.startBalance = startBalance
     self.startDay = startDay.localDay(in: calendar).lowerBound
+    self.carryoverLimit = carryoverLimit
     self.calendar = calendar
   }
 
@@ -24,6 +32,8 @@ public struct FlexAccount: Sendable {
   public var startBalance: TimeInterval
   /// Local midnight of the first day that counts.
   public var startDay: Timestamp
+  /// AZ-08: at most this positive balance carries over into a new year; `nil` = no limit.
+  public var carryoverLimit: TimeInterval?
   public var calendar: Calendar
 
   /// The calendar quarter that holds `time`, from local midnight to local midnight.
@@ -51,17 +61,13 @@ public struct FlexAccount: Sendable {
   /// are ignored, like payouts outside the start day through today. `plan.absences` must cover
   /// the days from the start day through today.
   public func balance(_ days: [WorkDay], payouts: [OvertimePayout] = [], now: Timestamp) -> TimeInterval {
-    let end = now.localDay(in: calendar).upperBound
-    let net = days.filter { $0.day >= startDay && $0.day < end }.reduce(0) { $0 + $1.net }
-    var target: TimeInterval = 0
-    var day = startDay
-    while day < end {
-      target += plan.target(on: day, calendar: calendar)
-      guard let next = calendar.date(byAdding: .day, value: 1, to: day.date) else { break }
-      day = Timestamp(next)
-    }
-    let paid = Self.paidOut(payouts, in: startDay..<end, calendar: calendar)
-    return startBalance + net - target - paid
+    ledger(days, payouts: payouts, now: now).balance
+  }
+
+  /// AZ-08: the hours forfeited at each year change from the start day through `now`, by the year
+  /// that ended. Only a positive balance above the limit forfeits; nothing is stored.
+  public func forfeitures(_ days: [WorkDay], payouts: [OvertimePayout] = [], now: Timestamp) -> [Int: TimeInterval] {
+    ledger(days, payouts: payouts, now: now).forfeited
   }
 
   /// Overtime of a working day (AZ-07): net time beyond the day's target; on a day without a
@@ -70,6 +76,45 @@ public struct FlexAccount: Sendable {
     max(0, day.net - plan.target(on: day.day, calendar: calendar))
   }
 
+  // MARK: Private
+
+  /// Year by year from the start day through `now`'s day; the limit applies when a year ends and
+  /// a day of the next one counts.
+  private func ledger(
+    _ days: [WorkDay],
+    payouts: [OvertimePayout],
+    now: Timestamp,
+  ) -> (balance: TimeInterval, forfeited: [Int: TimeInterval]) {
+    let end = now.localDay(in: calendar).upperBound
+    var balance = startBalance
+    var forfeited = [Int: TimeInterval]()
+    var from = startDay
+    while from < end {
+      let year = calendar.component(.year, from: from.date)
+      let nextYear = calendar.date(from: DateComponents(year: year + 1, month: 1, day: 1)).map(Timestamp.init) ?? end
+      let to = min(nextYear, end)
+      balance += change(days, payouts: payouts, in: from..<to)
+      if to < end, let carryoverLimit, balance > carryoverLimit {
+        forfeited[year] = balance - carryoverLimit
+        balance = carryoverLimit
+      }
+      from = to
+    }
+    return (balance, forfeited)
+  }
+
+  /// Net − target − payouts of the days in `range`.
+  private func change(_ days: [WorkDay], payouts: [OvertimePayout], in range: Range<Timestamp>) -> TimeInterval {
+    let net = days.filter { range.contains($0.day) }.reduce(0) { $0 + $1.net }
+    var target: TimeInterval = 0
+    var day = range.lowerBound
+    while day < range.upperBound {
+      target += plan.target(on: day, calendar: calendar)
+      guard let next = calendar.date(byAdding: .day, value: 1, to: day.date) else { break }
+      day = Timestamp(next)
+    }
+    return net - target - Self.paidOut(payouts, in: range, calendar: calendar)
+  }
 }
 
 // MARK: - OvertimeQuota

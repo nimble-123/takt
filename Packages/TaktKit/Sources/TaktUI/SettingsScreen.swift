@@ -111,6 +111,13 @@ struct SettingsScreen: View {
           )
           .managed(settings.isLocked(.flexStartDay))
           HoursField(
+            title: String(localized: "Flex account carried into the next year at most", bundle: .module),
+            value: $settings.flexCarryoverLimitHours,
+            range: AppSettings.flexCarryoverLimitRange,
+          )
+          .managed(settings.isLocked(.flexCarryoverLimitHours))
+          .help(String(localized: "0 = no limit. Hours above it forfeit at the year change.", bundle: .module))
+          HoursField(
             title: String(localized: "Overtime paid out per quarter at most", bundle: .module),
             value: $settings.overtimeQuarterQuotaHours,
             range: AppSettings.overtimeQuotaRange,
