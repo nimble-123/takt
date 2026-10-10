@@ -269,15 +269,23 @@ struct TypeBadge: View {
       .accessibilityLabel(Text(type ?? ""))
   }
 
-  // MARK: Private
-
-  private var hex: String {
+  /// The colours Azure DevOps uses for its work item types: task yellow, bug red, story or backlog
+  /// item blue, feature purple, epic orange; others grey.
+  static func hex(for type: String?) -> String {
     switch type?.lowercased() {
     case "task", "aufgabe": "#A16207"
     case "bug", "fehler": "#B91C1C"
-    case "user story", "product backlog item", "requirement": "#0369A1"
+    case "user story", "product backlog item", "requirement", "anforderung": "#0369A1"
+    case "feature", "funktion": "#7E22CE"
+    case "epic", "epos": "#EA580C"
     default: "#475569"
     }
+  }
+
+  // MARK: Private
+
+  private var hex: String {
+    Self.hex(for: type)
   }
 }
 
