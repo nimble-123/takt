@@ -44,6 +44,8 @@ flowchart TD
     Store --> Core
 ```
 
+Die Kommandozeile `takt` (#189) ist ein eigenes Executable im Package: `TaktCLI` nutzt nur `TaktCore`, `TaktStore` und `TaktAnalytics` (Schicht der Dienste) und [swift-argument-parser](https://github.com/apple/swift-argument-parser) als einzige zusätzliche Abhängigkeit; das Target `takt` ruft nur `TaktCommand.main()` auf.
+
 Dienste und Oberfläche sprechen über Protokolle aus `TaktCore` miteinander. Das App-Target setzt die konkreten Implementierungen zusammen, Tests ersetzen sie durch Fälschungen.
 
 ## Projektstruktur
@@ -453,6 +455,16 @@ ORDER BY s.start_at;
 - **Soll/Ist (AN-07):** Wochenstunden (`weeklyHours`, Default 40) verteilen sich gleichmäßig auf die Arbeitstage (`workDays`, Default Mo–Fr). Der Saldo zählt nur Tage bis heute, damit eine laufende Woche kein künstliches Minus zeigt; gesetzliche Feiertage des gewählten Bundeslands (`federalState`) haben kein Soll (AZ-03). Die Tagesbalken zeigen das Soll als gestrichelte Linie.
 - **PDF-Bericht (AN-07):** A4, immer hell, gerendert mit `ImageRenderer` aus SwiftUI und Swift Charts: Seite 1 mit Kennzahlen, Soll/Ist, Tagesbalken und Verteilung, danach die Tabelle je Eintrag und Tag (34 Zeilen pro Seite) – dieselben Zeilen wie im CSV-Export.
 - Diagramme zeichnet Swift Charts; Export als CSV (RFC 4180, Dezimalpunkt) und JSON nutzt dieselbe Verteilung wie die Ansicht: eine Zeile je Eintrag und lokalem Tag mit Rohsekunden, Stunden und gerundeten Stunden (Rundung aus `roundingMinutes`).
+
+## Kommandozeile
+
+`takt` (CL-01–CL-06) öffnet dieselbe Datenbank wie die App (`TAKT_DATA_DIR` oder `~/Library/Application Support/Takt`) und schreibt über eine eigene `TimerEngine`. Das ist sicher, weil die Engine keinen Zustand im Speicher hält: Jeder Befehl liest den Stand in seiner Transaktion, und SQLite im WAL-Modus serialisiert die Schreiber beider Prozesse.
+
+- **Benachrichtigung:** Nach jedem Schreiben sendet die CLI die Darwin-Benachrichtigung `de.nilslutz.takt.data-changed` (`DataChangeSignal`). Die App beobachtet sie im Composition Root und ruft `MainWindowModel.dataWasReplaced()` auf; damit laden Menüleiste, Hauptfenster, Katalog und Analysen neu. Läuft die App nicht, sieht sie die Änderung beim nächsten Start.
+- **Gleiche Logik:** Kürzel löst `TaktStore.StartTokens` auf wie im Popover, eine Work-Item-Nummer den Cache (`WorkItemCache`), danach wirken die Regeln (`Rules.apply`). Anders als das Popover bricht die CLI bei unbekannten oder mehrdeutigen Namen ab (Exit-Code 4 bzw. 5), statt den Namen zu ignorieren.
+- **Keine Netzwerkaufrufe:** Die CLI ruft Azure DevOps nicht auf und bucht nicht. Eine nach dem Stopp fällige automatische Buchung (DO-21) holt die App beim nächsten Abgleich nach; ein Work Item muss im Cache sein, also einmal in der App gesucht oder verknüpft worden sein.
+- **Bekannte Grenze:** Startet die CLI einen Timer, während die App nicht läuft, und liegt der Start beim nächsten App-Start länger als die Inaktivitätsschwelle zurück, fragt die App wie nach einem Absturz nach der Zeit dazwischen.
+- **Ausgabe:** Englisch wie übliche Kommandozeilenwerkzeuge; Datum und Uhrzeit im Format der Systemsprache. `--json` liefert stabile Schlüssel in camelCase und ISO-8601-Zeiten.
 
 ## Arbeitszeit & Konten (Phase 4, geplant)
 

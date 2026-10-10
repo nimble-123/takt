@@ -177,6 +177,19 @@ Takt unterstützt die Aufzeichnungs- und Nachweispflichten nach ArbZG (§§ 3, 4
 
 Neue Funktionen bleiben unaufdringlich: keine neuen Screens, Hinweise als Marker mit Tooltip, Abwesenheiten über Kontextmenü und ⌘K, neue Einstellungen nur für Modell, Bundesland, Startsaldo, Urlaubsanspruch, Kontingent und Übertragsgrenze.
 
+### Kommandozeile
+
+Takt lässt sich auch aus dem Terminal bedienen, ohne die Menüleiste zu öffnen, und damit in Skripte, Git-Hooks oder Raycast einbinden (#189).
+
+| ID | Anforderung | Prio |
+| --- | --- | --- |
+| CL-01 | `takt status`: laufende und pausierte Einträge mit Work Item, Projekt, Kategorie und Laufzeit | Should |
+| CL-02 | `takt start <Text>` mit denselben Kürzeln wie die Menüleiste (`@Kategorie`, `/Projekt/Task`, `#Tag`) oder einer Work-Item-Nummer; Startverhalten „Wechseln“, `--parallel` lässt laufende Timer laufen; Regeln wirken wie in der App | Should |
+| CL-03 | `takt stop`, `takt pause`, `takt resume`: für alle oder einen Eintrag, gewählt über den Anfang der ID oder den Titel | Should |
+| CL-04 | `takt log` und `takt report` für Tag, Woche oder Monat (`--date`), Report nach Projekt oder Kategorie | Should |
+| CL-05 | Ausgabe als Text oder mit `--json`; Exit-Codes 0 Erfolg, 1 ungültige Eingabe, 3 nichts aktiv, 4 nicht gefunden, 5 mehrdeutig; `--help` je Befehl und zsh-Completion | Should |
+| CL-06 | Schreibende Befehle laufen über die Timer-Engine; eine laufende App zeigt die Änderung sofort, ohne dass sie laufen muss | Should |
+
 ## Azure DevOps Integration
 
 Work Items werden per Suche oder Vorschlag mit Einträgen verknüpft; die erfasste Zeit wird nach einem Review als Completed Work ins Work Item zurückgeschrieben, ohne Doppelbuchungen.
