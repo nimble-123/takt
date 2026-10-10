@@ -15,6 +15,8 @@ struct WorkItemRow: View {
   var compact = false
   /// The popover shows the effort in the preview below the hits instead.
   var showsProgress = true
+  /// The Azure DevOps project in the details, e.g. in the window's search results (#220).
+  var showsProject = false
 
   var body: some View {
     HStack(alignment: .top, spacing: 8) {
@@ -73,7 +75,9 @@ struct WorkItemRow: View {
   private var details: String {
     var parts = [String]()
     if let assignee = item.assignedTo { parts.append(assignee) }
-    if let iteration = item.iterationName { parts.append(iteration) }
+    if showsProject { parts.append(item.project) }
+    // A work item in the project's root iteration would repeat the project's name.
+    if let iteration = item.iterationName, !parts.contains(iteration) { parts.append(iteration) }
     if let parent = item.parentID { parts.append("↑ #\(parent)") }
     return parts.joined(separator: " · ")
   }
