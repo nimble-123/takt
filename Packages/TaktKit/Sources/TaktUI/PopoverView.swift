@@ -138,6 +138,15 @@ public struct PopoverView: View {
           return .handled
         }
         .accessibilityLabel(Text("Search or start a timer", bundle: .module))
+      if model.query.isEmpty {
+        // Work items are found by their number, too (DO-10).
+        KeyCap(text: "#ID")
+          .accessibilityHidden(true)
+      } else if !model.suggestions.isEmpty {
+        Text("\(model.suggestions.count) hits", bundle: .module)
+          .font(.system(size: 11))
+          .foregroundStyle(Palette.textSecondary)
+      }
     }
     .padding(.horizontal, 10)
     .frame(height: 32)
@@ -159,7 +168,7 @@ public struct PopoverView: View {
         .contentShape(Rectangle())
       }
       .disabled(model.snapshot.running.isEmpty && !model.canResumeAll)
-      Text(verbatim: "⌥⇧P").foregroundStyle(Palette.textSecondary)
+      KeyCap(text: "⌥⇧P")
       Spacer()
       Button {
         Task { await model.stopAll() }
@@ -172,16 +181,41 @@ public struct PopoverView: View {
       Button {
         model.openMainWindow?()
       } label: {
-        Image(systemName: "macwindow")
-          .frame(width: 28, height: 28)
+        Text("Open Takt", bundle: .module)
+          .frame(minHeight: 28)
+          .contentShape(Rectangle())
       }
       .keyboardShortcut("0", modifiers: .command)
-      .accessibilityLabel(Text("Open main window", bundle: .module))
-      .help(Text("Open main window", bundle: .module))
+      Button {
+        model.openSettings?()
+      } label: {
+        Image(systemName: "gearshape")
+          .frame(width: 28, height: 28)
+          .contentShape(Rectangle())
+      }
+      .keyboardShortcut(",", modifiers: .command)
+      .accessibilityLabel(Text("Settings", bundle: .module))
+      .help(Text("Settings", bundle: .module))
     }
     .buttonStyle(.borderless)
     .font(.system(size: 12))
     .frame(minHeight: 28)
+  }
+}
+
+// MARK: - KeyCap
+
+/// A shortcut or hint in a key cap, e.g. "⌥⇧P".
+struct KeyCap: View {
+  let text: String
+
+  var body: some View {
+    Text(verbatim: text)
+      .font(.system(size: 11))
+      .foregroundStyle(Palette.textSecondary)
+      .padding(.horizontal, 5)
+      .padding(.vertical, 1)
+      .overlay(RoundedRectangle(cornerRadius: 5).strokeBorder(Palette.separator))
   }
 }
 
@@ -213,15 +247,23 @@ struct SuggestionList: View {
     VStack(alignment: .leading, spacing: 2) {
       ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
         if index == 0 || suggestions[index - 1].group != suggestion.group {
-          SectionTitle(text: suggestion.group.title)
-            .padding(.horizontal, 10)
-            .padding(.top, index == 0 ? 0 : 6)
+          HStack {
+            SectionTitle(text: suggestion.group.title)
+            Spacer()
+            if suggestion.group == .azureDevOps, let iteration = currentIteration(suggestions) {
+              Text("\(iteration) first", bundle: .module)
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+            }
+          }
+          .padding(.horizontal, 10)
+          .padding(.top, index == 0 ? 0 : 6)
         }
         Button {
           Task { await model.start(suggestion: suggestion, parallel: model.settings.startMode == .parallel) }
         } label: {
           if let item = suggestion.workItem {
-            WorkItemRow(item: item, query: model.query, selected: model.selection == suggestion.id)
+            WorkItemRow(item: item, query: model.query, selected: model.selection == suggestion.id, showsProgress: false)
           } else {
             textRow(suggestion, selected: model.selection == suggestion.id)
           }
@@ -231,6 +273,10 @@ struct SuggestionList: View {
         if let item = suggestion.workItem, model.previewedItem?.id == item.id {
           WorkItemDetail(item: item)
         }
+      }
+      if let item = model.previewWorkItem {
+        WorkItemPreview(item: item)
+          .padding(.top, 6)
       }
       if model.isSearchingWorkItems {
         HStack(spacing: 6) {
@@ -259,6 +305,16 @@ struct SuggestionList: View {
   }
 
   // MARK: Private
+
+  /// The current iteration's name if a hit is in it, e.g. "Sprint 42".
+  private func currentIteration(_ suggestions: [MenuBarModel.Suggestion]) -> String? {
+    guard
+      let path = model.currentIterations.first(where: { path in
+        suggestions.contains { $0.workItem?.iterationPath == path }
+      })
+    else { return nil }
+    return path.split(separator: "\\").last.map(String.init)
+  }
 
   private func textRow(_ suggestion: MenuBarModel.Suggestion, selected: Bool) -> some View {
     HStack {
@@ -475,15 +531,18 @@ struct TimerRow: View {
         Text(active.entry.title)
           .font(.system(size: 13, weight: .semibold))
           .lineLimit(1)
-        Text(isRunning ? "Running" : "Paused", bundle: .module)
+        subtitle
           .font(.system(size: 12))
-          .foregroundStyle(isRunning ? Palette.textSecondary : Palette.warning)
+          .lineLimit(1)
       }
-      Spacer()
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .layoutPriority(1)
       Text(DurationText.clock(active.elapsed(at: now)))
-        .font(.system(size: 19, weight: .semibold, design: .monospaced))
+        // Smaller while paused, so the running timer stands out (docs/DESIGN.md "Popover").
+        .font(.system(size: isRunning ? 19 : 15, weight: .semibold, design: .monospaced))
         .monospacedDigit()
         .foregroundStyle(isRunning ? Palette.accentText : Palette.textSecondary)
+        .fixedSize()
       iconButton(
         isRunning ? "pause.fill" : "play.fill",
         label: isRunning
@@ -510,6 +569,38 @@ struct TimerRow: View {
     active.entry.state == .running
   }
 
+  /// Work item · project · category; "paused" in amber. Only the state if nothing is assigned.
+  private var subtitle: some View {
+    let catalog = model.catalog.catalog
+    let entry = active.entry
+    let parts = [
+      catalog.project(entry.projectID)?.name,
+      catalog.category(entry.categoryID)?.name,
+    ].compactMap(\.self)
+    let workItem = entry.workItemLinkID.flatMap { model.linkedWorkItems[$0] }
+    return HStack(spacing: 6) {
+      if let workItem {
+        Text(verbatim: "#\(workItem.workItemID)")
+          .font(.system(size: 11, design: .monospaced))
+          .foregroundStyle(Palette.accentText)
+          .fixedSize()
+      }
+      if parts.isEmpty, workItem == nil || !isRunning {
+        Text(isRunning ? "Running" : "Paused", bundle: .module)
+          .foregroundStyle(isRunning ? Palette.textSecondary : Palette.warning)
+      } else {
+        Text(parts.joined(separator: " · "))
+          .foregroundStyle(Palette.textSecondary)
+        if !isRunning {
+          Text("paused", bundle: .module)
+            .fontWeight(.semibold)
+            .foregroundStyle(Palette.warning)
+            .fixedSize()
+        }
+      }
+    }
+  }
+
   private func iconButton(
     _ symbol: String,
     label: String,
@@ -530,6 +621,9 @@ struct TimerRow: View {
 // MARK: - RecentList
 
 struct RecentList: View {
+
+  // MARK: Internal
+
   let model: MenuBarModel
 
   var body: some View {
@@ -541,8 +635,10 @@ struct RecentList: View {
           Task { await model.startRecent(at: index) }
         } label: {
           HStack {
-            Image(systemName: "play.circle")
-              .foregroundStyle(Palette.accent)
+            Circle()
+              .fill(categoryColor(suggestion.draft.categoryID))
+              .frame(width: 8, height: 8)
+              .padding(.horizontal, 2)
               .accessibilityHidden(true)
             Text(suggestion.draft.title).lineLimit(1)
             if let subtitle = suggestion.subtitle {
@@ -571,6 +667,12 @@ struct RecentList: View {
         .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
       }
     }
+  }
+
+  // MARK: Private
+
+  private func categoryColor(_ id: CategoryID?) -> Color {
+    model.catalog.catalog.category(id).map { CategoryColors.color($0.color) } ?? Palette.separator
   }
 }
 

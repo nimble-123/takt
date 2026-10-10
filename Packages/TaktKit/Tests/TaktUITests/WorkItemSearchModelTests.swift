@@ -177,6 +177,38 @@ struct WorkItemSearchModelTests {
     #expect(model.suggestedWorkItems.map(\.workItemID) == [7])
   }
 
+  @Test
+  func hitsOfTheCurrentIterationComeFirstAndArePreviewed() async {
+    var current = item(7, "Login neu")
+    current.iterationPath = "Portal\\Sprint 42"
+    var old = item(3, "Login alt")
+    old.iterationPath = "Portal\\Sprint 40"
+    let model = model(FakeWorkItems(remote: [old, current], suggested: [current]))
+    await model.loadSuggestedWorkItems()
+    model.query = "login"
+    await settle(model)
+
+    #expect(model.currentIterations == ["Portal\\Sprint 42"])
+    #expect(model.suggestions.compactMap(\.workItem?.workItemID) == [7, 3])
+    // Without a highlight the first hit is previewed, otherwise the highlighted one.
+    #expect(model.previewWorkItem?.workItemID == 7)
+    model.moveSelection(by: 1)
+    model.moveSelection(by: 1)
+    #expect(model.previewWorkItem?.workItemID == 3)
+  }
+
+  @Test
+  func activeTimersKnowTheirWorkItem() async throws {
+    let stored = try #require(try await WorkItemCache(database: database).store([item(4821, "Login")]).first)
+    let model = model(FakeWorkItems(local: [stored]))
+    let engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+    _ = try await engine.start(EntryDraft(title: "Login", workItemLinkID: stored.id), mode: .switchTo)
+
+    await model.receive(try await engine.snapshot())
+
+    #expect(model.linkedWorkItems[stored.id]?.workItemID == 4821)
+  }
+
   // MARK: Private
 
   private let clock = ManualClock()

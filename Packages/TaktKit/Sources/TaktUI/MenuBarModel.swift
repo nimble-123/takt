@@ -107,6 +107,8 @@ public final class MenuBarModel {
   public private(set) var errorMessage: String?
   /// Opens the main window; set by the app.
   @ObservationIgnored public var openMainWindow: (() -> Void)?
+  /// Opens the settings in the main window; set by the app.
+  @ObservationIgnored public var openSettings: (() -> Void)?
   /// Start and stop, shared with the main window; books after stopping (DO-21).
   @ObservationIgnored public let actions: TimerActions
   /// Increments whenever the popover opens, so the view can focus the search field.
@@ -120,6 +122,11 @@ public final class MenuBarModel {
   public private(set) var suggestedWorkItems = [WorkItemLink]()
   /// Why a suggested work item is shown, e.g. the branch it came from.
   public private(set) var suggestionReasons = [WorkItemLinkID: String]()
+  /// Iteration paths of the current iterations of my teams, from the suggestions; search hits in
+  /// them come first.
+  public private(set) var currentIterations = [String]()
+  /// Work items linked to the active timers, for the row below their title.
+  public private(set) var linkedWorkItems = [WorkItemLinkID: WorkItemLink]()
   /// The work item whose detail preview is open (Space, DO-13).
   public private(set) var previewedItem: WorkItemLink?
   /// ID of the highlighted suggestion; `nil` means Enter starts the typed text. An ID, not an
@@ -162,7 +169,7 @@ public final class MenuBarModel {
         Suggestion(draft: $0, group: .recent, subtitle: subtitle($0))
       }
     }
-    let azure = workItemResults.prefix(6).map { item in
+    let azure = sortedWorkItemResults.prefix(6).map { item in
       Suggestion(draft: draft(for: item), group: .azureDevOps, subtitle: nil, workItem: item)
     }
     let recent = recents.filter { $0.title.localizedStandardContains(text) }.prefix(5)
@@ -183,6 +190,11 @@ public final class MenuBarModel {
     }
     .prefix(5)
     return Array(azure) + Array(recent) + Array(tasks)
+  }
+
+  /// The work item whose compact preview shows below the hits: the highlighted one, else the first.
+  public var previewWorkItem: WorkItemLink? {
+    selectedWorkItem ?? (selection == nil ? sortedWorkItemResults.first : nil)
   }
 
   /// Whether "Pause all" would resume instead (MB-06).
@@ -287,6 +299,9 @@ public final class MenuBarModel {
     }
     do {
       let suggested = try await workItems.suggestions(projects: projects)
+      // The suggestions are mostly items of the current iteration; their paths stand for it.
+      var seen = Set<String>()
+      currentIterations = suggested.compactMap(\.iterationPath).filter { seen.insert($0).inserted }
       // The branch just checked out first, then the current iteration and recently used items.
       suggestedWorkItems = Array(Self.merge(fromBranches, suggested, recentlyUsed).prefix(5))
     } catch {
@@ -498,6 +513,11 @@ public final class MenuBarModel {
 
   func receive(_ snapshot: TimerSnapshot) async {
     self.snapshot = snapshot
+    if let workItems {
+      for id in Set(snapshot.entries.compactMap(\.entry.workItemLinkID)) where linkedWorkItems[id] == nil {
+        linkedWorkItems[id] = try? await workItems.link(id)
+      }
+    }
     await refresh()
   }
 
@@ -523,6 +543,19 @@ public final class MenuBarModel {
 
   private var selectedWorkItem: WorkItemLink? {
     selectedSuggestion?.workItem
+  }
+
+  /// Hits of the current iteration first, otherwise in the order of the search.
+  private var sortedWorkItemResults: [WorkItemLink] {
+    let current = Set(currentIterations)
+    let (inIteration, other) = workItemResults.reduce(into: ([WorkItemLink](), [WorkItemLink]())) { result, item in
+      if let path = item.iterationPath, current.contains(path) {
+        result.0.append(item)
+      } else {
+        result.1.append(item)
+      }
+    }
+    return inIteration + other
   }
 
   private func searchWorkItems() {

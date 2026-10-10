@@ -11,6 +11,16 @@
         }
       }
     },
+    "%@ first": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ zuerst"
+          }
+        }
+      }
+    },
     "%@ forfeit at the year change": {
       "localizations": {
         "de": {
@@ -207,6 +217,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$lld aus %2$@ bis 31.3. nehmen"
+          }
+        }
+      }
+    },
+    "%lld hits": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Treffer"
           }
         }
       }
@@ -507,6 +527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Anderem Task zuordnen"
+          }
+        }
+      }
+    },
+    "Assigned to": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugewiesen"
           }
         }
       }
@@ -1611,6 +1641,16 @@
         }
       }
     },
+    "Effort": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufwand"
+          }
+        }
+      }
+    },
     "Enabled": {
       "localizations": {
         "de": {
@@ -2167,6 +2207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Inspektor"
+          }
+        }
+      }
+    },
+    "Iteration": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iteration"
           }
         }
       }
@@ -2901,6 +2951,16 @@
         }
       }
     },
+    "Parent: #%@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parent: #%@"
+          }
+        }
+      }
+    },
     "Pause": {
       "localizations": {
         "de": {
@@ -2977,6 +3037,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pausiert"
+          }
+        }
+      }
+    },
+    "paused": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pausiert"
           }
         }
       }
@@ -3897,6 +3967,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Timer starten"
+          }
+        }
+      }
+    },
+    "Status": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
           }
         }
       }

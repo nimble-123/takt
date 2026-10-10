@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     statusItem = makeStatusItem()
     mainWindow = MainWindowController(model: composition.mainWindow)
     composition.menuBar.openMainWindow = { [weak self] in self?.showMainWindow() }
+    composition.menuBar.openSettings = { [weak self] in self?.openSettingsFromMenu() }
     composition.onIdleNeedsDecision = { [weak self] in self?.showPanel() }
     composition.launch()
 
