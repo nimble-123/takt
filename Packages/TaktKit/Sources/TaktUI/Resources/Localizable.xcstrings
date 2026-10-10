@@ -151,6 +151,16 @@
         }
       }
     },
+    "%lld days": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld Tage"
+          }
+        }
+      }
+    },
     "%lld entries selected": {
       "localizations": {
         "de": {
@@ -161,12 +171,42 @@
         }
       }
     },
+    "%lld from %@ not taken by 31 Mar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld aus %2$@ nicht bis 31.3. genommen"
+          }
+        }
+      }
+    },
+    "%lld from %@ to take by 31 Mar": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld aus %2$@ bis 31.3. nehmen"
+          }
+        }
+      }
+    },
     "%lld min": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "%lld min"
+          }
+        }
+      }
+    },
+    "%lld of %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld von %2$lld"
           }
         }
       }
@@ -2041,6 +2081,16 @@
         }
       }
     },
+    "left · %lld planned": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "übrig · %lld geplant"
+          }
+        }
+      }
+    },
     "Lifebuoy": {
       "localizations": {
         "de": {
@@ -2447,6 +2497,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ocker"
+          }
+        }
+      }
+    },
+    "of %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "von %lld"
+          }
+        }
+      }
+    },
+    "Only for the first year Takt counts; later years carry over what is left.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt nur für das erste Jahr, das Takt zählt; Folgejahre übernehmen den Rest."
           }
         }
       }
@@ -4197,6 +4267,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "Urlaub"
+          }
+        }
+      }
+    },
+    "Vacation %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@"
+          }
+        }
+      }
+    },
+    "Vacation %@: taken / planned / left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaub %@: genommen / geplant / übrig"
+          }
+        }
+      }
+    },
+    "Vacation days in the period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaubstage im Zeitraum"
+          }
+        }
+      }
+    },
+    "Vacation days left this year: carryover plus entitlement minus days taken and planned. Only working days without a public holiday count.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übrige Urlaubstage in diesem Jahr: Übertrag plus Anspruch minus genommene und geplante Tage. Es zählen nur Arbeitstage ohne Feiertag."
+          }
+        }
+      }
+    },
+    "Vacation days per year": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urlaubstage pro Jahr"
+          }
+        }
+      }
+    },
+    "Vacation left from last year": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resturlaub aus dem Vorjahr"
           }
         }
       }

@@ -249,3 +249,54 @@ extension AnalyticsModelTests {
     #expect(pdf.numberOfPages == 2)
   }
 }
+
+// MARK: - Vacation account (AZ-06)
+
+extension AnalyticsModelTests {
+
+  // MARK: Internal
+
+  @Test
+  func vacationAccountOfTheCurrentYear() async throws {
+    settings.flexStartDay = "2026-01-01"
+    settings.vacationDaysPerYear = 28
+    settings.vacationCarryoverDays = 3
+    try await setVacation(on: ["2026-03-02", "2026-10-05", "2026-10-09", "2026-10-10"])
+    await model.reload()
+
+    let vacation = try #require(model.vacation)
+    // Today is Wednesday 7 October; Saturday 10 October is no working day.
+    #expect(vacation.taken == 2)
+    #expect(vacation.planned == 1)
+    #expect(vacation.left == 28)
+    let open = try #require(model.openCarryover)
+    #expect(open.days == 2)
+    #expect(open.deadlinePassed)
+  }
+
+  @Test
+  func timeRecordListsTheVacationOfThePeriod() async throws {
+    try await track("A", hours: 2)
+    try await setVacation(on: ["2026-10-05", "2026-10-09"])
+    model.period = .week
+    await model.reload()
+
+    let vacation = try #require(try await model.timeRecord().vacation)
+
+    #expect(vacation.days == 2)
+    #expect(vacation.account.taken == 1)
+    #expect(vacation.account.planned == 1)
+    #expect(vacation.account.left == 28)
+    let csv = try await model.timeRecord().csv(calendar: calendar)
+    #expect(csv.contains("vacation_days,2\r\n"))
+  }
+
+  // MARK: Private
+
+  private func setVacation(on days: [String]) async throws {
+    let store = AbsenceStore(database: database)
+    for day in days {
+      try await store.set(.vacation, on: day)
+    }
+  }
+}

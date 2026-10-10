@@ -44,9 +44,22 @@ public struct TimeRecord: Hashable, Sendable {
     public var findings: [WorkTimeFinding.Rule: Int]
   }
 
+  /// AZ-06: vacation days in the period and the vacation account as of its last day.
+  public struct Vacation: Hashable, Sendable {
+    public init(days: Int, account: VacationAccount.Year) {
+      self.days = days
+      self.account = account
+    }
+
+    public var days: Int
+    public var account: VacationAccount.Year
+
+  }
+
   public var range: Range<Timestamp>
   public var rows: [Row]
   public var totals: Totals
+  public var vacation: Vacation?
   /// Changes to times within the period, oldest first.
   public var changes: [SegmentChangeRecord]
 
@@ -58,6 +71,7 @@ public struct TimeRecord: Hashable, Sendable {
   ///   - changes: change records whose old or new times lie in the period.
   ///   - flex: the plan, the flex account's balance at the start of `range` and the account's start
   ///     day (days before it get no balance); `nil` for trust-based working time.
+  ///   - vacation: vacation days in `range` and the vacation account as of its last day (AZ-06).
   public static func make(
     range: Range<Timestamp>,
     checks: [WorkDayCheck],
@@ -66,6 +80,7 @@ public struct TimeRecord: Hashable, Sendable {
     absences: [String: AbsenceKind],
     federalState: FederalState?,
     flex: (plan: TargetPlan, openingBalance: TimeInterval, startDay: Timestamp)?,
+    vacation: Vacation? = nil,
     now: Timestamp,
     calendar: Calendar,
   ) -> TimeRecord {
@@ -110,7 +125,13 @@ public struct TimeRecord: Hashable, Sendable {
       sundayOrHoliday: rows.filter { $0.weekday == 7 || $0.holiday != nil }.reduce(0) { $0 + $1.net },
       findings: findings,
     )
-    return TimeRecord(range: range, rows: rows, totals: totals, changes: changes.sorted { $0.changedAt < $1.changedAt })
+    return TimeRecord(
+      range: range,
+      rows: rows,
+      totals: totals,
+      vacation: vacation,
+      changes: changes.sorted { $0.changedAt < $1.changedAt },
+    )
   }
 
   /// `HH:mm` in local time.
@@ -170,6 +191,14 @@ public struct TimeRecord: Hashable, Sendable {
     lines.append(["total_sunday_or_holiday", Self.duration(totals.sundayOrHoliday)])
     for rule in WorkTimeFinding.Rule.allCases {
       lines.append(["findings_\(rule.rawValue)", String(totals.findings[rule] ?? 0)])
+    }
+    if let vacation {
+      lines.append(["vacation_days", String(vacation.days)])
+      lines.append(["vacation_year", String(vacation.account.year)])
+      lines.append(["vacation_available", String(vacation.account.available)])
+      lines.append(["vacation_taken", String(vacation.account.taken)])
+      lines.append(["vacation_planned", String(vacation.account.planned)])
+      lines.append(["vacation_left", String(vacation.account.left)])
     }
     lines.append([])
     lines.append(["changed_at", "kind", "entry", "segment", "old_start", "old_end", "new_start", "new_end", "reason"])

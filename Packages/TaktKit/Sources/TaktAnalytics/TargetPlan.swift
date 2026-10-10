@@ -36,10 +36,16 @@ public struct TargetPlan: Hashable, Sendable {
   /// Target seconds of a local day: the weekly hours spread evenly over the working days; 0 on a
   /// public holiday and on a day off.
   public func target(on day: Timestamp, calendar: Calendar) -> TimeInterval {
-    guard !workDays.isEmpty, workDays.contains(day.mondayBasedWeekday(in: calendar)) else { return 0 }
-    if let federalState, PublicHoliday.on(day, state: federalState, calendar: calendar) != nil { return 0 }
+    guard isWorkingDay(day, calendar: calendar) else { return 0 }
     if absences[day.localDayString(in: calendar)] != nil { return 0 }
     return weeklyHours * 3600 / Double(workDays.count)
+  }
+
+  /// A working day that is no public holiday; absences do not matter here (AZ-06).
+  public func isWorkingDay(_ day: Timestamp, calendar: Calendar) -> Bool {
+    guard workDays.contains(day.mondayBasedWeekday(in: calendar)) else { return false }
+    if let federalState, PublicHoliday.on(day, state: federalState, calendar: calendar) != nil { return false }
+    return true
   }
 
   /// Target and tracked time of the report's days up to and including `now`'s day; later days

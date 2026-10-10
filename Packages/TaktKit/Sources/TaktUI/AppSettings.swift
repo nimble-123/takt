@@ -50,6 +50,8 @@ public final class AppSettings {
     workTimeModel = stored.workTimeModel
     flexStartBalanceHours = stored.flexStartBalanceHours
     flexStartDay = stored.flexStartDay
+    vacationDaysPerYear = stored.vacationDaysPerYear
+    vacationCarryoverDays = stored.vacationCarryoverDays
   }
 
   // MARK: Public
@@ -78,6 +80,8 @@ public final class AppSettings {
     case workTimeModel
     case flexStartBalanceHours
     case flexStartDay
+    case vacationDaysPerYear
+    case vacationCarryoverDays
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -121,6 +125,8 @@ public final class AppSettings {
   public static let weeklyHoursRange: ClosedRange<Double> = 0...60
   public static let noTimerReminderRange = 5...120
   public static let flexStartBalanceRange: ClosedRange<Double> = -999...999
+  public static let vacationDaysRange = 0...60
+  public static let vacationCarryoverRange = 0...99
 
   /// Enter starts with this mode; ⌥↩ with the other (TM-05).
   public var startMode: TimerEngine.StartMode {
@@ -227,6 +233,16 @@ public final class AppSettings {
   /// AZ-05: the first day the flex account counts, `YYYY-MM-DD`; `nil` = the first tracked day.
   public var flexStartDay: String? {
     didSet { write(.flexStartDay, flexStartDay ?? "") }
+  }
+
+  /// AZ-06: vacation days per year.
+  public var vacationDaysPerYear: Int {
+    didSet { write(.vacationDaysPerYear, vacationDaysPerYear) }
+  }
+
+  /// AZ-06: vacation days left from the year before the account starts; later years are computed.
+  public var vacationCarryoverDays: Int {
+    didSet { write(.vacationCarryoverDays, vacationCarryoverDays) }
   }
 
   /// Folders whose Git repositories suggest work items by branch name.
@@ -379,6 +395,12 @@ public final class AppSettings {
       if flexStartBalanceHours != stored.flexStartBalanceHours { flexStartBalanceHours = stored.flexStartBalanceHours }
 
     case .flexStartDay: if flexStartDay != stored.flexStartDay { flexStartDay = stored.flexStartDay }
+
+    case .vacationDaysPerYear:
+      if vacationDaysPerYear != stored.vacationDaysPerYear { vacationDaysPerYear = stored.vacationDaysPerYear }
+
+    case .vacationCarryoverDays:
+      if vacationCarryoverDays != stored.vacationCarryoverDays { vacationCarryoverDays = stored.vacationCarryoverDays }
     }
   }
 }
@@ -418,6 +440,9 @@ private struct Stored {
     flexStartBalanceHours = defaults.object(forKey: AppSettings.Key.flexStartBalanceHours.rawValue) as? Double ?? 0
     flexStartDay = defaults.string(forKey: AppSettings.Key.flexStartDay.rawValue)
       .flatMap { Timestamp.localDayParts($0) != nil ? $0 : nil }
+    let vacationDays = defaults.object(forKey: AppSettings.Key.vacationDaysPerYear.rawValue) as? Int ?? 30
+    vacationDaysPerYear = max(0, vacationDays)
+    vacationCarryoverDays = defaults.integer(forKey: AppSettings.Key.vacationCarryoverDays.rawValue)
   }
 
   // MARK: Internal
@@ -445,6 +470,8 @@ private struct Stored {
   let workTimeModel: AppSettings.WorkTimeModel
   let flexStartBalanceHours: Double
   let flexStartDay: String?
+  let vacationDaysPerYear: Int
+  let vacationCarryoverDays: Int
 
   // MARK: Private
 
