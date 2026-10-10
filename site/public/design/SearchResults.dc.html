@@ -61,7 +61,7 @@ input.sw:disabled{opacity:.55;cursor:default}
 
 <label style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border-radius: 8px; background: #F1F1F4; color: #6E6E73; width: 300px; box-sizing: border-box; border: 1px solid #0F766E">
 <svg class="i" width="13" height="13" aria-hidden="true" style="color: #6E6E73; stroke-width: 1.6"><use href="#i-search"></use></svg>
-<input type="search" aria-label="Suchen" placeholder="Einträge, Notizen, Projekte, Work Items" value="Login" style="border: 0; background: transparent; font: inherit; color: #1C1C1E; outline: none; min-width: 0; flex: 1">
+<input type="search" aria-label="Suchen" placeholder="Einträge, Projekte, Work Items" value="Login" style="border: 0; background: transparent; font: inherit; color: #1C1C1E; outline: none; min-width: 0; flex: 1">
 <button type="button" class="tb" aria-label="Suche löschen" style="width: 18px; height: 18px"><svg class="i" width="13" height="13" aria-hidden="true"><use href="#i-xc"></use></svg></button>
 </label>
 <button type="button" class="tb" aria-label="Neuer Eintrag" title="Neuer Eintrag (⌘N)"><svg class="i" width="16" height="16" aria-hidden="true"><use href="#i-plus"></use></svg></button>
@@ -90,6 +90,16 @@ input.sw:disabled{opacity:.55;cursor:default}
 <span style="font-variant-numeric: tabular-nums">{{e.dur}}</span>
 </a>
 </sc-for>
+<h2 style="margin: 14px 10px 4px; font-size: 11px; font-weight: 600; color: #55555A">Work Items</h2>
+<sc-for list="{{workItems}}" as="w" hint-placeholder-count="3">
+<a href="#" title="In Azure DevOps öffnen" style="display: flex; align-items: flex-start; gap: 8px; padding: 6px 10px; border-radius: 7px; color: #1C1C1E; text-decoration: none">
+<span aria-label="{{w.type}}" style="width: 18px; height: 18px; border-radius: 4px; background: {{w.badge}}; color: #FFFFFF; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">{{w.letter}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span style="display: flex; align-items: baseline; gap: 6px"><span class="mono" style="font-size: 11px; color: #55555A">#{{w.id}}</span><span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{w.pre}}<strong>{{w.hit}}</strong>{{w.post}}</span><span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #55555A; flex: none"><span style="width: 7px; height: 7px; border-radius: 50%; background: {{w.dot}}"></span>{{w.state}}</span></span>
+<span style="font-size: 11px; color: #55555A">{{w.meta}}</span>
+</span>
+</a>
+</sc-for>
 <sc-for list="{{groups}}" as="g" hint-placeholder-count="3">
 <h2 style="margin: 14px 10px 4px; font-size: 11px; font-weight: 600; color: #55555A">{{g.title}}</h2>
 <sc-for list="{{g.hits}}" as="h" hint-placeholder-count="2">
@@ -115,7 +125,16 @@ class Component extends DCLogic {
     const s = (text) => { const p = text.split('**'); return { pre: p[0] || '', hit: p[1] || '', post: p[2] || '', hasSnippet: !!text }; };
     const entry = (date, title, snippet, dur, hover) => Object.assign({ date: date, title: title, dur: dur, bg: hover ? '#F1F1F4' : 'transparent' }, s(snippet));
     const hit = (title, snippet) => Object.assign({ title: title }, s(snippet || ''));
+    const types = { Task: ['#A16207', 'T'], Bug: ['#B91C1C', 'B'], 'User Story': ['#0369A1', 'U'], Feature: ['#7E22CE', 'F'], Epic: ['#EA580C', 'E'] };
+    const dots = { Active: '#1D4ED8', Testing: '#CA8A04', New: '#8E8E93', Done: '#15803D' };
+    const wi = (id, type, title, state, meta) => Object.assign({ id: id, type: type, badge: types[type][0], letter: types[type][1], state: state, dot: dots[state], meta: meta }, s(title));
     return {
+      workItems: [
+        wi('4821', 'Task', '**Login**-Flow refaktorieren', 'Active', 'Nils Lutz · Kundenportal · Sprint 42 · ↑ #4702'),
+        wi('4790', 'Bug', 'SSO-**Login** schlägt bei Token-Ablauf fehl', 'Testing', 'Jana Becker · Kundenportal · Sprint 42'),
+        wi('4702', 'Feature', '**Login** mit Passkeys', 'New', 'Kundenportal · Sprint 43 · ↑ #4600'),
+        wi('4600', 'Epic', 'Sicherer **Login**', 'Done', 'Kundenportal')
+      ],
       entries: [
         entry('Di., 6. Okt. 2026', '#4821 Login-Flow refaktorieren', 'Token-Refresh aus dem **Login**-Controller herausgelöst', '3:40', true),
         entry('Mo., 5. Okt. 2026', '#4821 Login-Flow refaktorieren', '**Login**-Formular auf die neue Validierung umgestellt', '3:45'),
@@ -123,10 +142,6 @@ class Component extends DCLogic {
         entry('Do., 1. Okt. 2026', 'Pairing mit Jana', 'Flaky **Login**-Tests stabilisiert', '1:10')
       ],
       groups: [
-        { title: 'Work Items', icon: 'link', hits: [
-          hit('#4821 Login-Flow refaktorieren', 'Refactoring des **Login**-Flows im Kundenportal'),
-          hit('#4790 SSO-Login schlägt bei Token-Ablauf fehl', 'Nach Ablauf des Tokens landet der **Login** in einer Schleife')
-        ] },
         { title: 'Tasks', icon: 'checklist', hits: [hit('Login')] },
         { title: 'Tags', icon: 'hash', hits: [hit('login')] }
       ]

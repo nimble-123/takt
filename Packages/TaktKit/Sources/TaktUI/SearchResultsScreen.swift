@@ -16,48 +16,74 @@ struct SearchResultsScreen: View {
 
   var body: some View {
     let results = model.searchResults
-    List {
-      if results.isEmpty {
-        ContentUnavailableView.search(text: model.searchText)
-      }
-      if !results.entries.isEmpty {
-        Section(String(localized: "Entries", bundle: .module)) {
-          ForEach(results.entries) { hit in
-            Button {
-              model.reveal(hit.entry)
-            } label: {
-              EntryHitRow(hit: hit, now: model.now)
-            }
-            .buttonStyle(.plain)
-          }
+    // A plain stack instead of `List`: the list measured the two-line work item rows as one
+    // line and clipped their details (as in the day close, #78).
+    ScrollView {
+      VStack(alignment: .leading, spacing: 20) {
+        if results.isEmpty {
+          ContentUnavailableView.search(text: model.searchText)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 60)
         }
-      }
-      ForEach(groups, id: \.kind) { group in
-        Section(group.kind.title) {
-          ForEach(group.hits) { hit in
-            Button {
-              open(hit)
-            } label: {
-              HStack {
-                Image(systemName: group.kind.symbol)
-                  .foregroundStyle(Palette.textSecondary)
-                  .frame(width: 18)
-                VStack(alignment: .leading, spacing: 2) {
-                  Text(hit.title)
-                  if let snippet = hit.snippet {
-                    Text(Self.highlighted(snippet))
-                      .font(.system(size: 11))
-                      .foregroundStyle(Palette.textSecondary)
-                      .lineLimit(1)
-                  }
-                }
+        if !results.entries.isEmpty {
+          ResultSection(title: String(localized: "Entries", bundle: .module)) {
+            ForEach(results.entries) { hit in
+              Button {
+                model.reveal(hit.entry)
+              } label: {
+                EntryHitRow(hit: hit, now: model.now)
               }
-              .contentShape(Rectangle())
+              .buttonStyle(.plain)
+              Divider()
             }
-            .buttonStyle(.plain)
+          }
+        }
+        if !results.workItems.isEmpty {
+          ResultSection(title: SearchHit.Kind.workItem.title) {
+            ForEach(results.workItems) { item in
+              Button {
+                NSWorkspace.shared.open(ADOClient.webURL(of: item))
+              } label: {
+                WorkItemRow(item: item, query: model.searchText, selected: false, showsProgress: false, showsProject: true)
+              }
+              .buttonStyle(.plain)
+              .help(Text("Open in Azure DevOps", bundle: .module))
+              Divider()
+            }
+          }
+        }
+        ForEach(groups, id: \.kind) { group in
+          ResultSection(title: group.kind.title) {
+            ForEach(group.hits) { hit in
+              Button {
+                open(hit)
+              } label: {
+                HStack {
+                  Image(systemName: group.kind.symbol)
+                    .foregroundStyle(Palette.textSecondary)
+                    .frame(width: 18)
+                  VStack(alignment: .leading, spacing: 2) {
+                    Text(hit.title)
+                    if let snippet = hit.snippet {
+                      Text(Self.highlighted(snippet))
+                        .font(.system(size: 11))
+                        .foregroundStyle(Palette.textSecondary)
+                        .lineLimit(1)
+                    }
+                  }
+                  Spacer(minLength: 0)
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+              }
+              .buttonStyle(.plain)
+              Divider()
+            }
           }
         }
       }
+      .padding(16)
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
   }
 
@@ -77,24 +103,33 @@ struct SearchResultsScreen: View {
   // MARK: Private
 
   private var groups: [(kind: SearchHit.Kind, hits: [SearchHit])] {
-    let order: [SearchHit.Kind] = [.workItem, .project, .task, .category, .tag]
+    let order: [SearchHit.Kind] = [.project, .task, .category, .tag]
     let grouped = Dictionary(grouping: model.searchResults.others, by: \.kind)
     return order.compactMap { kind in grouped[kind].map { (kind, $0) } }
   }
 
-  private func open(_ hit: SearchHit) {
-    switch hit.kind {
-    case .workItem:
-      Task {
-        guard let id = WorkItemLinkID(uuidString: hit.ref) else { return }
-        var link = model.workItemLinks[id]
-        if link == nil { link = try? await model.queries.workItemLinks()[id] }
-        if let link { NSWorkspace.shared.open(ADOClient.webURL(of: link)) }
-      }
+  private func open(_: SearchHit) {
+    // Work items have their own section with the full row.
+    model.searchText = ""
+    model.section = .projects
+  }
+}
 
-    case .entry, .project, .task, .category, .tag:
-      model.searchText = ""
-      model.section = .projects
+// MARK: - ResultSection
+
+/// A group of hits with a small header, like a list section.
+private struct ResultSection<Rows: View>: View {
+  let title: String
+  @ViewBuilder let rows: Rows
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(title)
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(Palette.textSecondary)
+        .padding(.bottom, 6)
+      Divider()
+      rows
     }
   }
 }
@@ -127,6 +162,7 @@ private struct EntryHitRow: View {
       Text(DurationText.hoursMinutes(hit.entry.duration(at: now)))
         .monospacedDigit()
     }
+    .padding(.vertical, 6)
     .contentShape(Rectangle())
   }
 }
