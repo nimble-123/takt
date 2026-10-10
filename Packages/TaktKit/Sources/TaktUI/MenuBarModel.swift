@@ -637,16 +637,19 @@ public final class MenuBarModel {
   }
 
   /// Hits of the current iteration first, otherwise in the order of the search.
+  /// Removed and cancelled work items are left out. The rest by state: in progress, testing, new,
+  /// done; within a state the current iteration first, otherwise in the order of the search.
   private var sortedWorkItemResults: [WorkItemLink] {
     let current = Set(currentIterations)
-    let (inIteration, other) = workItemResults.reduce(into: ([WorkItemLink](), [WorkItemLink]())) { result, item in
-      if let path = item.iterationPath, current.contains(path) {
-        result.0.append(item)
-      } else {
-        result.1.append(item)
+    return workItemResults.enumerated()
+      .filter { $0.element.stateGroup != .removed }
+      .sorted { a, b in
+        let aCurrent = a.element.iterationPath.map(current.contains) ?? false
+        let bCurrent = b.element.iterationPath.map(current.contains) ?? false
+        return (a.element.stateGroup.rawValue, aCurrent ? 0 : 1, a.offset)
+          < (b.element.stateGroup.rawValue, bCurrent ? 0 : 1, b.offset)
       }
-    }
-    return inIteration + other
+      .map(\.element)
   }
 
   private func searchWorkItems() {
