@@ -121,6 +121,7 @@ final class Composition {
         await catalog.seedDefaults()
         await rules.reload()
         actions.onStopped = { [weak self] ids in self?.bookAutomatically(ids) }
+        observeOtherProcesses()
         // Bookings left pending by a crash or while offline (TECHNICAL_CONCEPT step 6); network
         // calls, so they must not hold back the menu bar and the window.
         tasks.append(Task { await booking.processPending(force: true) })
@@ -197,6 +198,23 @@ final class Composition {
       try? await Task.sleep(for: .seconds(60))
       if booking.pendingCount > 0 { await booking.processPending() }
     }
+  }
+
+  /// #189: the command line tool writes to the same database and signals it; everything shown
+  /// is reloaded then. The composition lives as long as the app, so the observer is never removed.
+  private func observeOtherProcesses() {
+    CFNotificationCenterAddObserver(
+      CFNotificationCenterGetDarwinNotifyCenter(),
+      Unmanaged.passUnretained(self).toOpaque(),
+      { _, observer, _, _, _ in
+        guard let observer else { return }
+        let composition = Unmanaged<Composition>.fromOpaque(observer).takeUnretainedValue()
+        Task { @MainActor in await composition.mainWindow.dataWasReplaced() }
+      },
+      DataChangeSignal.name as CFString,
+      nil,
+      .deliverImmediately,
+    )
   }
 
   /// DO-21: book right after stopping, if the user chose so.

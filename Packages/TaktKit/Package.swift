@@ -18,6 +18,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/groue/GRDB.swift", from: "7.11.1"),
     .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "3.1.0"),
+    .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
   ],
   targets: [
     .target(name: "TaktCore"),
@@ -44,6 +45,8 @@ package.products += [
   .library(name: "TaktADO", targets: ["TaktADO"]),
   .library(name: "TaktCalendar", targets: ["TaktCalendar"]),
   .library(name: "TaktUI", targets: ["TaktUI"]),
+  .library(name: "TaktCLI", targets: ["TaktCLI"]),
+  .executable(name: "takt", targets: ["takt"]),
 ]
 package.targets += [
   .target(
@@ -70,6 +73,18 @@ package.targets += [
     // Views and view models live on the main actor; work elsewhere opts out with `nonisolated`.
     swiftSettings: [.defaultIsolation(MainActor.self)],
   ),
+  // The command line tool (#189): Core, Store and Analytics only, like a service.
+  .target(
+    name: "TaktCLI",
+    dependencies: [
+      "TaktCore",
+      "TaktStore",
+      "TaktAnalytics",
+      .product(name: "ArgumentParser", package: "swift-argument-parser"),
+    ],
+  ),
+  .executableTarget(name: "takt", dependencies: ["TaktCLI"]),
+  .testTarget(name: "TaktCLITests", dependencies: ["TaktCLI"]),
   .testTarget(name: "TaktSystemTests", dependencies: ["TaktSystem"]),
   .testTarget(name: "TaktADOTests", dependencies: ["TaktADO"], resources: [.copy("Fixtures")]),
   .testTarget(name: "TaktUITests", dependencies: ["TaktUI"]),
