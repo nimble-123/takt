@@ -502,6 +502,11 @@ Umsetzung der Anforderungen AZ-01 bis AZ-10. Grundsatz wie überall: gespeichert
   - *Kopf:* Name (`NSFullUserName`, im Speichern-Dialog weglassbar, § 80 Abs. 2 BetrVG), Zeitraum, Erstellzeitpunkt, Takt-Version, Prüfsumme.
   - *Formate:* PDF (A4 quer, immer hell, `ImageRenderer`: Tagestabelle, Summen, Änderungsprotokoll) und CSV (Kopfzeilen, Tagestabelle, Summen, Protokoll). XLSX kommt mit AN-08 (#62).
   - *Aufruf:* Export-Menü der Analysen und ⌘K. Der Nachweis unterstützt die Nachweispflichten, sichert aber keine Rechtssicherheit zu; der Hinweis steht im PDF.
+- **Monatsabschluss (AZ-10, umgesetzt in `TaktAnalytics.MonthClose` und `TaktUI.MonthCloseModel`):** Legt den Nachweis (AZ-09) des Vormonats als PDF im Ordner `monthCloseFolder` ab, Dateiname „Arbeitszeitnachweis JJJJ-MM.pdf“, daneben `….pdf.sha256` im Format von `shasum -a 256` (Prüfsumme der Datei, zusätzlich zur Datenprüfsumme im PDF). Ob ein Monat archiviert ist, ergibt sich aus dem Ordner; in der Datenbank wird nichts gespeichert. Eine vorhandene Datei wird nie überschrieben.
+  - *Offen* ist der Vormonat, wenn vor seinem Ende schon etwas erfasst war und seine Datei im Ordner fehlt.
+  - *Tage ohne Aufzeichnung* (§ 17 Abs. 1 MiLoG): Arbeitstage ohne Feiertag ab dem ersten erfassten Tag, frühestens ab dem Vormonat, die älter als 7 Tage sind und weder Arbeitszeit noch eine Abwesenheit haben.
+  - *UI:* dezente Hinweiszeilen unter dem Kopf des Tagesabschlusses („Archivieren“, ohne Ordner „Archivieren …“ mit Ordnerwahl; „Zeigen“ springt zum ersten offenen Tag); Einstellungen „Monatsabschluss“ mit Archivordner und Schalter.
+  - *Automatisch* (`monthCloseAutomatic`, Standard aus): Die Hintergrundaufgaben prüfen einmal am Tag und archivieren den offenen Vormonat ohne Rückfrage, sobald ein Ordner gewählt ist. Schlägt das fehl, bleibt der Hinweis mit Fehlermeldung stehen.
 - **Grenze:** Gegen Änderungen durch den Nutzer selbst schützt das nicht; Ziel ist Nachvollziehbarkeit gegenüber Prüforganen.
 
 ## Sicherheit, Verteilung und Updates

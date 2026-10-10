@@ -54,6 +54,8 @@ public final class AppSettings {
     vacationCarryoverDays = stored.vacationCarryoverDays
     overtimeQuarterQuotaHours = stored.overtimeQuarterQuotaHours
     flexCarryoverLimitHours = stored.flexCarryoverLimitHours
+    monthCloseFolder = stored.monthCloseFolder
+    monthCloseAutomatic = stored.monthCloseAutomatic
   }
 
   // MARK: Public
@@ -86,6 +88,8 @@ public final class AppSettings {
     case vacationCarryoverDays
     case overtimeQuarterQuotaHours
     case flexCarryoverLimitHours
+    case monthCloseFolder
+    case monthCloseAutomatic
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -285,6 +289,16 @@ public final class AppSettings {
     didSet { write(.bookingIncludesNote, bookingIncludesNote) }
   }
 
+  /// AZ-10: the folder the month close archives the working time records in; `nil` = not chosen.
+  public var monthCloseFolder: String? {
+    didSet { write(.monthCloseFolder, monthCloseFolder ?? "") }
+  }
+
+  /// AZ-10: archive the previous month's record at the start of a month without asking.
+  public var monthCloseAutomatic: Bool {
+    didSet { write(.monthCloseAutomatic, monthCloseAutomatic) }
+  }
+
   /// Readable from any isolation, e.g. from the `@Sendable` closures of the services.
   public nonisolated var snapshot: Snapshot {
     snapshotLock.withLock { $0 }
@@ -441,6 +455,11 @@ public final class AppSettings {
       if flexCarryoverLimitHours != stored.flexCarryoverLimitHours {
         flexCarryoverLimitHours = stored.flexCarryoverLimitHours
       }
+
+    case .monthCloseFolder: if monthCloseFolder != stored.monthCloseFolder { monthCloseFolder = stored.monthCloseFolder }
+
+    case .monthCloseAutomatic:
+      if monthCloseAutomatic != stored.monthCloseAutomatic { monthCloseAutomatic = stored.monthCloseAutomatic }
     }
   }
 }
@@ -486,6 +505,9 @@ private struct Stored {
     overtimeQuarterQuotaHours = max(0, defaults.double(forKey: AppSettings.Key.overtimeQuarterQuotaHours.rawValue))
     let carryoverLimit = defaults.object(forKey: AppSettings.Key.flexCarryoverLimitHours.rawValue) as? Double ?? 220
     flexCarryoverLimitHours = max(0, carryoverLimit)
+    let folder = defaults.string(forKey: AppSettings.Key.monthCloseFolder.rawValue) ?? ""
+    monthCloseFolder = folder.isEmpty ? nil : folder
+    monthCloseAutomatic = defaults.bool(forKey: AppSettings.Key.monthCloseAutomatic.rawValue)
   }
 
   // MARK: Internal
@@ -517,6 +539,8 @@ private struct Stored {
   let vacationCarryoverDays: Int
   let overtimeQuarterQuotaHours: Double
   let flexCarryoverLimitHours: Double
+  let monthCloseFolder: String?
+  let monthCloseAutomatic: Bool
 
   // MARK: Private
 

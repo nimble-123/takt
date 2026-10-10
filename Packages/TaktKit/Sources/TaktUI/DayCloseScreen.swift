@@ -28,6 +28,14 @@ struct DayCloseScreen: View {
     VStack(alignment: .leading, spacing: 0) {
       header
         .padding(16)
+      if let monthClose = model.monthClose {
+        let hints = MonthCloseHints(monthClose: monthClose, window: model)
+        if !hints.isEmpty {
+          hints
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
+        }
+      }
       Divider()
       // A plain stack instead of `List`: on macOS the table does not re-measure rows that arrive after
       // the first layout pass, so the two-line booking rows were clipped and overlapped (#78).
@@ -102,6 +110,9 @@ struct DayCloseScreen: View {
     }
     .task(id: model.dayRange.lowerBound) {
       await dayClose.load(model.dayRange)
+    }
+    .task {
+      await model.monthClose?.refresh()
     }
     // Entries edited here (inspector) change the amounts to book.
     .onChange(of: model.data) {

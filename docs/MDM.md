@@ -29,6 +29,8 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `overtimeQuarterQuotaHours` | Real | Default 0 = kein Kontingent, 0–999 | Überstunden, die pro Quartal vergütet werden dürfen; Überschreiten ergibt nur einen Hinweis (AZ-07) |
 | `vacationCarryoverDays` | Integer | Default 0, 0–99 | Resturlaub aus dem Vorjahr beim Start des Urlaubskontos; Folgejahre berechnet Takt |
 | `federalState` | String | `BW`, `BY`, `BE`, `BB`, `HB`, `HH`, `HE`, `MV`, `NI`, `NW`, `RP`, `SL`, `SN`, `ST`, `SH`, `TH`; leer = keins (Default) | Gesetzliche Feiertage dieses Bundeslands haben kein Soll (AZ-03) |
+| `monthCloseFolder` | String | Pfad, `~` erlaubt; leer = nicht gewählt (Default) | Ordner, in dem der Monatsabschluss den Arbeitszeitnachweis des Vormonats als PDF mit `.sha256`-Datei ablegt (AZ-10) |
+| `monthCloseAutomatic` | Boolean | Default `false` | Vormonat zum Monatsanfang ohne Rückfrage archivieren; braucht `monthCloseFolder` |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
 | `noTimerReminderMinutes` | Integer | 5–120, Default 15 | Nach wie vielen Minuten ohne Timer erinnert wird, danach im selben Abstand |

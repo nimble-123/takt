@@ -299,7 +299,11 @@ public final class AnalyticsModel {
   /// AZ-09: the working time record of the shown period, with the 24 weeks before it for the rest
   /// period and the average, and the flex account from its start day.
   public func timeRecord() async throws -> TimeRecord {
-    let range = reportRange
+    try await timeRecord(in: reportRange)
+  }
+
+  /// The working time record of any period, e.g. the previous month for the month close (AZ-10).
+  public func timeRecord(in range: Range<Timestamp>) async throws -> TimeRecord {
     let now = clock.now()
     let flexStart = showsTarget ? try await flexStartDay() : nil
     let lookBack = calendar.date(byAdding: .day, value: -7 * WorkTimeRules.compensationWeeks - 1, to: range.lowerBound.date)

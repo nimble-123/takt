@@ -24,6 +24,7 @@ public final class MainWindowModel {
     rules: RulesModel? = nil,
     database: AppDatabase? = nil,
     actions: TimerActions? = nil,
+    monthClose: MonthCloseModel? = nil,
     clock: any TaktClock,
     calendar: Calendar = .current,
   ) {
@@ -32,6 +33,7 @@ public final class MainWindowModel {
     self.queries = queries
     self.catalog = catalog
     self.analytics = analytics
+    self.monthClose = monthClose
     self.settings = settings
     self.azureDevOps = azureDevOps
     self.booking = booking
@@ -101,6 +103,8 @@ public final class MainWindowModel {
   public let catalog: CatalogModel
   /// The analysis screen; `nil` hides it (tests, previews).
   public let analytics: AnalyticsModel?
+  /// The month close's hints in the day close and its settings (AZ-10); `nil` hides them.
+  public let monthClose: MonthCloseModel?
   /// The settings screen; `nil` hides it.
   public let settings: AppSettings?
   /// Azure DevOps connections in the settings; `nil` hides them.

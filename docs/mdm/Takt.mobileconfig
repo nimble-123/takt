@@ -69,6 +69,10 @@
       <real>0</real>
       <key>flexCarryoverLimitHours</key>
       <real>220</real>
+      <key>monthCloseFolder</key>
+      <string></string>
+      <key>monthCloseAutomatic</key>
+      <false/>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>
