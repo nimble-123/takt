@@ -550,7 +550,18 @@ public final class MainWindowModel {
     openInspector(for: item.entryID)
   }
 
-  /// Double-click on an entry: select only it and show the inspector (#79).
+  /// A click on an entry in Today, the day close, the week or the entry list: selects it and
+  /// shows the inspector. ⌘-click (`toggle`) adds it to the selection or removes it.
+  public func click(_ id: EntryID, toggle: Bool = false) {
+    if toggle {
+      selection.formSymmetricDifference([id])
+    } else {
+      selection = [id]
+    }
+    if !selection.isEmpty { isInspectorShown = true }
+  }
+
+  /// Selects only `id` and shows the inspector, e.g. with ↩ in the timeline (#79).
   public func openInspector(for id: EntryID) {
     selection = [id]
     isInspectorShown = true
