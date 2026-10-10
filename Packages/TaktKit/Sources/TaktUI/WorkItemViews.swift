@@ -29,9 +29,7 @@ struct WorkItemRow: View {
             .lineLimit(1)
           Spacer(minLength: 4)
           if let state = item.cachedState {
-            Text(state)
-              .font(.system(size: 11))
-              .foregroundStyle(Palette.textSecondary)
+            StateLabel(state: state)
           }
         }
         if !compact, !details.isEmpty {
@@ -133,7 +131,16 @@ struct WorkItemPreview: View {
       }
       Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
         GridRow {
-          field(String(localized: "Status", bundle: .module), item.cachedState)
+          VStack(alignment: .leading, spacing: 1) {
+            Text("Status", bundle: .module).foregroundStyle(Palette.textSecondary)
+            if let state = item.cachedState {
+              StateLabel(state: state, size: 12)
+            } else {
+              Text(verbatim: "–")
+            }
+          }
+          .font(.system(size: 12))
+          .frame(maxWidth: .infinity, alignment: .leading)
           field(String(localized: "Assigned to", bundle: .module), item.assignedTo)
         }
         GridRow {
@@ -204,6 +211,42 @@ struct WorkItemDetail: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 6))
     .padding(.leading, 34)
+  }
+}
+
+// MARK: - StateLabel
+
+/// A work item's state with a dot in the colours Azure DevOps uses: in progress blue, testing
+/// yellow, new grey, done green.
+struct StateLabel: View {
+
+  // MARK: Internal
+
+  let state: String
+  var size: CGFloat = 11
+
+  var body: some View {
+    HStack(spacing: 4) {
+      Circle()
+        .fill(color)
+        .frame(width: 7, height: 7)
+        .accessibilityHidden(true)
+      Text(state)
+        .font(.system(size: size, weight: size > 11 ? .medium : .regular))
+        .foregroundStyle(size > 11 ? Palette.textPrimary : Palette.textSecondary)
+    }
+    .fixedSize()
+  }
+
+  // MARK: Private
+
+  private var color: Color {
+    switch WorkItemStateGroup(state: state) {
+    case .inProgress: CategoryColors.color("#1D4ED8")
+    case .testing: CategoryColors.color("#CA8A04")
+    case .completed: CategoryColors.color("#15803D")
+    case .proposed, .other, .removed: Color.gray
+    }
   }
 }
 
