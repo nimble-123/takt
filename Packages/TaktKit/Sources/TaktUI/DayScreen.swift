@@ -41,9 +41,12 @@ struct DayScreen: View {
             .padding(.vertical, 12)
             .padding(.trailing, 12)
         }
-        // A task starts after the first layout pass, when the rows have a position, and again
-        // whenever the day changes.
-        .task(id: model.dayRange) { scrollToNow(proxy) }
+        // Runs again whenever the day changes. When the window opens, the task starts before the
+        // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
+        .task(id: model.dayRange) {
+          await Task.yield()
+          scrollToNow(proxy)
+        }
       }
     }
   }
