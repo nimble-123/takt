@@ -70,6 +70,32 @@ nonisolated enum AnalyticsHover {
     (seconds < 0 ? "−" : "+") + DurationText.hoursMinutes(abs(seconds))
   }
 
+  /// The hover label of a heatmap cell (#215): "Tue 10:00–11:00" and "0:45 h" or "No tracked time".
+  static func heatmapCell(weekday: String, hour: Int, seconds: TimeInterval, hourLabel: (Int) -> String) -> [String] {
+    [
+      "\(weekday) \(hourLabel(hour))–\(hourLabel((hour + 1) % 24))",
+      seconds > 0
+        ? "\(DurationText.hoursMinutes(seconds)) h"
+        : String(localized: "No tracked time", bundle: .module),
+    ]
+  }
+
+  /// Where a hover label goes: centred above `anchor` with `gap`, kept inside `bounds` horizontally;
+  /// below it if it would end above `minY`. Returns the label's centre.
+  static func labelCenter(
+    size: CGSize,
+    above anchor: CGRect,
+    in bounds: CGSize,
+    minY: CGFloat = 0,
+    gap: CGFloat = 6,
+  ) -> CGPoint {
+    let halfWidth = size.width / 2
+    let x = min(max(anchor.midX, halfWidth), max(halfWidth, bounds.width - halfWidth))
+    let aboveY = anchor.minY - gap - size.height / 2
+    let y = aboveY - size.height / 2 >= minY ? aboveY : anchor.maxY + gap + size.height / 2
+    return CGPoint(x: x, y: y)
+  }
+
   /// One weekday of the heatmap for VoiceOver: the hours with time and their minutes.
   static func heatmapRow(_ row: [TimeInterval], hours: [Int], hourLabel: (Int) -> String) -> String {
     let parts = hours.filter { row.indices.contains($0) && row[$0] > 0 }

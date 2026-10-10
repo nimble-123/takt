@@ -406,23 +406,7 @@ private struct DayBars: View {
       Chart {
         ForEach(report.days, id: \.start) { day in
           ForEach(AnalyticsHover.parts(of: day, top: top), id: \.self) { part in
-            // The hovered part carries a small label with its values (#129).
-            if hovered == Hovered(day: day, part: part) {
-              bar(day, part)
-                .annotation(
-                  position: .top,
-                  spacing: 4,
-                  overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart)),
-                ) {
-                  HoverLabel(lines: [
-                    model.label(.day(day.start)),
-                    "\(name(part.key)): \(DurationText.hoursMinutes(part.seconds))",
-                    dayTotal(day),
-                  ])
-                }
-            } else {
-              bar(day, part)
-            }
+            bar(day, part)
           }
           let target = model.targetHours(on: day.start)
           if target > 0 {
@@ -450,6 +434,19 @@ private struct DayBars: View {
             .onContinuousHover { phase in
               hover(phase, at: proxy, in: geometry, top: top)
             }
+          // The label of the hovered part (#129), drawn over the whole chart: as an annotation of
+          // the bar it lay below the bars of the following days (#215).
+          if let hovered, let anchor = anchor(of: hovered, proxy: proxy, geometry: geometry) {
+            FloatingLabel(
+              lines: [
+                model.label(.day(hovered.day.start)),
+                "\(name(hovered.part.key)): \(DurationText.hoursMinutes(hovered.part.seconds))",
+                dayTotal(hovered.day),
+              ],
+              anchor: anchor,
+              bounds: geometry.size,
+            )
+          }
         }
       }
       .frame(height: 240)
@@ -467,6 +464,17 @@ private struct DayBars: View {
 
   private var other: String {
     String(localized: "Other", bundle: .module)
+  }
+
+  /// The top of the hovered part in the overlay's coordinates.
+  private func anchor(of hovered: Hovered, proxy: ChartProxy, geometry: GeometryProxy) -> CGRect? {
+    guard
+      let plotFrame = proxy.plotFrame,
+      let x = proxy.position(forX: hovered.day.start.date.addingTimeInterval(12 * 3600)),
+      let top = proxy.position(forY: hovered.part.end)
+    else { return nil }
+    let origin = geometry[plotFrame].origin
+    return CGRect(x: origin.x + x, y: origin.y + top, width: 0, height: 0)
   }
 
   private func name(_ key: GroupKey?) -> String {
@@ -692,6 +700,42 @@ private struct TopWorkItems: View {
   }
 }
 
+// MARK: - HoveredCellBounds
+
+/// The bounds of the hovered heatmap cell, for the label drawn over the grid.
+private struct HoveredCellBounds: PreferenceKey {
+  static let defaultValue: Anchor<CGRect>? = nil
+
+  static func reduce(value: inout Anchor<CGRect>?, nextValue: () -> Anchor<CGRect>?) {
+    value = value ?? nextValue()
+  }
+}
+
+// MARK: - FloatingLabel
+
+/// A `HoverLabel` above `anchor`, kept inside `bounds`; it measures itself to place itself.
+private struct FloatingLabel: View {
+
+  // MARK: Internal
+
+  let lines: [String]
+  let anchor: CGRect
+  let bounds: CGSize
+  /// How far above the bounds the label may go, e.g. over the heatmap's title.
+  var minY: CGFloat = 0
+
+  var body: some View {
+    HoverLabel(lines: lines)
+      .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+      .position(AnalyticsHover.labelCenter(size: size, above: anchor, in: bounds, minY: minY))
+      .allowsHitTesting(false)
+  }
+
+  // MARK: Private
+
+  @State private var size = CGSize.zero
+}
+
 // MARK: - HoverLabel
 
 /// Small label next to the hovered part of a chart (#129).
@@ -771,15 +815,24 @@ private struct Heatmap: View {
               .gridColumnAlignment(.leading)
             ForEach(Self.hours, id: \.self) { hour in
               let seconds = report.heatmap[day][hour]
+              let cell = Cell(day: day, hour: hour)
               RoundedRectangle(cornerRadius: 3)
                 .fill(Palette.accent.opacity(0.08 + 0.92 * seconds / maximum))
                 .frame(height: 18)
-                .help(
-                  Text(
-                    verbatim:
-                    "\(weekdays[(day + 1) % 7]) \(calendar.hourLabel(hour)) · \(DurationText.span(seconds))"
-                  )
-                )
+                .overlay {
+                  if hoveredCell == cell {
+                    RoundedRectangle(cornerRadius: 3).strokeBorder(Palette.textPrimary.opacity(0.6), lineWidth: 1.5)
+                  }
+                }
+                .contentShape(Rectangle())
+                .onHover { inside in
+                  if inside {
+                    hoveredCell = cell
+                  } else if hoveredCell == cell {
+                    hoveredCell = nil
+                  }
+                }
+                .anchorPreference(key: HoveredCellBounds.self, value: .bounds) { hoveredCell == cell ? $0 : nil }
             }
           }
         }
@@ -790,6 +843,24 @@ private struct Heatmap: View {
               .font(.system(size: 10))
               .monospacedDigit()
               .foregroundStyle(Palette.textSecondary)
+          }
+        }
+      }
+      // The hover label over the whole grid, so neighbouring cells cannot cover it (#215).
+      .overlayPreferenceValue(HoveredCellBounds.self) { bounds in
+        GeometryReader { proxy in
+          if let bounds, let cell = hoveredCell {
+            FloatingLabel(
+              lines: AnalyticsHover.heatmapCell(
+                weekday: weekdays[(cell.day + 1) % 7],
+                hour: cell.hour,
+                seconds: report.heatmap[cell.day][cell.hour],
+              ) { calendar.hourLabel($0) },
+              anchor: proxy[bounds],
+              bounds: proxy.size,
+              // Room above the first row: the section title and the gap to the chart.
+              minY: -64,
+            )
           }
         }
       }
@@ -809,7 +880,14 @@ private struct Heatmap: View {
 
   // MARK: Private
 
+  private struct Cell: Equatable {
+    var day: Int
+    var hour: Int
+  }
+
   private static let hours = Array(6..<22)
+
+  @State private var hoveredCell: Cell?
 
   private let calendar = Calendar.current
 
