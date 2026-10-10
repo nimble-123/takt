@@ -172,14 +172,28 @@ public struct OnboardingView: View {
         Text("How Takt counts", bundle: .module),
         Text("You can change this at any time, also per entry.", bundle: .module),
       )
-      Picker(String(localized: "Starting a timer", bundle: .module), selection: $settings.startMode) {
-        Text("Switch: the new timer pauses the running one", bundle: .module).tag(
-          TimerEngine.StartMode.switchTo
-        )
-        Text("In parallel: both keep running", bundle: .module).tag(TimerEngine.StartMode.parallel)
+      VStack(alignment: .leading, spacing: 6) {
+        Text("Starting a timer", bundle: .module)
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(Palette.textSecondary)
+        HStack(spacing: 8) {
+          StartModeCard(
+            title: Text("Switch", bundle: .module),
+            detail: Text("The running timer pauses. In parallel with ⌥↩", bundle: .module),
+            mode: .switchTo,
+            selection: $settings.startMode,
+          )
+          StartModeCard(
+            title: Text("In parallel", bundle: .module),
+            detail: Text("Both keep running. Switch with ⌥↩", bundle: .module),
+            mode: .parallel,
+            selection: $settings.startMode,
+          )
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("Starting a timer", bundle: .module))
+        .managed(settings.isLocked(.startMode))
       }
-      .pickerStyle(.radioGroup)
-      .managed(settings.isLocked(.startMode))
       Picker(String(localized: "Parallel time", bundle: .module), selection: $settings.countingMode) {
         Text("Full", bundle: .module).tag(CountingMode.full)
         Text("Shared", bundle: .module).tag(CountingMode.split)
@@ -198,6 +212,47 @@ public struct OnboardingView: View {
     }
   }
 
+}
+
+// MARK: - StartModeCard
+
+/// A selectable card for the start mode, with what it does (docs/DESIGN.md "Onboarding").
+private struct StartModeCard: View {
+  let title: Text
+  let detail: Text
+  let mode: TimerEngine.StartMode
+  @Binding var selection: TimerEngine.StartMode
+
+  var body: some View {
+    let selected = selection == mode
+    Button {
+      selection = mode
+    } label: {
+      HStack(alignment: .firstTextBaseline, spacing: 8) {
+        Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+          .foregroundStyle(selected ? Palette.accent : Palette.textSecondary)
+          .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 2) {
+          title.fontWeight(.semibold)
+          detail
+            .font(.system(size: 12))
+            .foregroundStyle(Palette.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        Spacer(minLength: 0)
+      }
+      .padding(10)
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .background(selected ? Palette.accentSurface : .clear, in: RoundedRectangle(cornerRadius: 10))
+      .overlay {
+        RoundedRectangle(cornerRadius: 10)
+          .strokeBorder(selected ? Palette.accent : Palette.separator, lineWidth: selected ? 2 : 1)
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(selected ? [.isSelected] : [])
+  }
 }
 
 // MARK: - CountingExample

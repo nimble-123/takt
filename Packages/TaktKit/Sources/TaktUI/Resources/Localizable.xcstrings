@@ -951,6 +951,16 @@
         }
       }
     },
+    "Both keep running. Switch with ⌥↩": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beide laufen weiter. Wechseln mit ⌥↩"
+          }
+        }
+      }
+    },
     "Boxing Day": {
       "localizations": {
         "de": {
@@ -2337,16 +2347,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Parallel"
-          }
-        }
-      }
-    },
-    "In parallel: both keep running": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parallel: beide laufen weiter"
           }
         }
       }
@@ -4291,22 +4291,22 @@
         }
       }
     },
+    "Switch": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wechseln"
+          }
+        }
+      }
+    },
     "Switch (pauses running timers)": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Wechseln (pausiert laufende Timer)"
-          }
-        }
-      }
-    },
-    "Switch: the new timer pauses the running one": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wechseln: der neue Timer pausiert den laufenden"
           }
         }
       }
@@ -4627,6 +4627,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Der Nachweis konnte nicht archiviert werden: %@"
+          }
+        }
+      }
+    },
+    "The running timer pauses. In parallel with ⌥↩": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der laufende Timer pausiert. Parallel mit ⌥↩"
           }
         }
       }
