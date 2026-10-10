@@ -73,6 +73,12 @@
       <string></string>
       <key>monthCloseAutomatic</key>
       <false/>
+      <key>stopRequiresCategory</key>
+      <false/>
+      <key>stopRequiresProject</key>
+      <false/>
+      <key>stopRequiresWorkItem</key>
+      <false/>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

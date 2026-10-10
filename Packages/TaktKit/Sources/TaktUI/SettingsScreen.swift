@@ -188,6 +188,25 @@ struct SettingsScreen: View {
       }
 
       Section {
+        Toggle(String(localized: "Project", bundle: .module), isOn: $settings.stopRequiresProject)
+          .managed(settings.isLocked(.stopRequiresProject))
+        Toggle(String(localized: "Category", bundle: .module), isOn: $settings.stopRequiresCategory)
+          .managed(settings.isLocked(.stopRequiresCategory))
+        // A work item can only be required with a connection to link one from.
+        Toggle(String(localized: "Work item", bundle: .module), isOn: $settings.stopRequiresWorkItem)
+          .managed(settings.isLocked(.stopRequiresWorkItem))
+          .disabled(model.azureDevOps?.connections.isEmpty ?? true)
+      } header: {
+        Text("Required when stopping", bundle: .module)
+      } footer: {
+        Text(
+          "Stopping an entry without these opens the stop panel first. ⌥-click on stop always opens it.",
+          bundle: .module,
+        )
+        .foregroundStyle(Palette.textSecondary)
+      }
+
+      Section {
         Toggle(String(localized: "Remind me when no timer runs", bundle: .module), isOn: $settings.remindWhenNoTimer)
           .managed(settings.isLocked(.remindWhenNoTimer))
         LabeledContent(String(localized: "Working hours", bundle: .module)) {

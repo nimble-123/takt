@@ -31,6 +31,9 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `federalState` | String | `BW`, `BY`, `BE`, `BB`, `HB`, `HH`, `HE`, `MV`, `NI`, `NW`, `RP`, `SL`, `SN`, `ST`, `SH`, `TH`; leer = keins (Default) | Gesetzliche Feiertage dieses Bundeslands haben kein Soll (AZ-03) |
 | `monthCloseFolder` | String | Pfad, `~` erlaubt; leer = nicht gewählt (Default) | Ordner, in dem der Monatsabschluss den Arbeitszeitnachweis des Vormonats als PDF mit `.sha256`-Datei ablegt (AZ-10) |
 | `monthCloseAutomatic` | Boolean | Default `false` | Vormonat zum Monatsanfang ohne Rückfrage archivieren; braucht `monthCloseFolder` |
+| `stopRequiresCategory` | Boolean | Default `false` | Kategorie ist Pflicht: Beenden ohne Kategorie öffnet das Beenden-Panel (TM-11) |
+| `stopRequiresProject` | Boolean | Default `false` | Projekt ist Pflicht: Beenden ohne Projekt öffnet das Beenden-Panel (TM-11) |
+| `stopRequiresWorkItem` | Boolean | Default `false` | Work Item ist Pflicht: Beenden ohne Work Item öffnet das Beenden-Panel; wirkt nur mit einer Azure-DevOps-Verbindung (TM-11) |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
 | `noTimerReminderMinutes` | Integer | 5–120, Default 15 | Nach wie vielen Minuten ohne Timer erinnert wird, danach im selben Abstand |

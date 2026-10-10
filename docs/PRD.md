@@ -106,7 +106,7 @@ Die Menüleiste ist das Cockpit für das Erfassen, das Hauptfenster der Ort für
 | TM-08 | Warnung bei Timer, der länger als 10 h läuft | Should |
 | TM-09 | Erinnerung, wenn während der Arbeitszeit kein Timer läuft | Should |
 | TM-10 | Rundung (z. B. auf 15 min) nur für Export und ADO; Rohdaten bleiben sekundengenau | Should |
-| TM-11 | Stopp beendet sofort und zeigt einen Toast mit „Notiz“ und „Rückgängig ⌘Z“; ein Beenden-Panel (Notiz, Kategorie, Buchungswahl) erscheint nur, wenn Pflichtangaben fehlen oder es bewusst geöffnet wird | Must |
+| TM-11 | Stopp beendet sofort und zeigt einen Toast mit „Notiz“ und „Rückgängig ⌘Z“; ein Beenden-Panel (Notiz, Projekt, Kategorie, Work Item, Tags, Buchungswahl) erscheint nur, wenn Pflichtangaben fehlen oder es bewusst geöffnet wird (⌥-Klick); Pflicht sind per Einstellung Projekt, Kategorie und, mit Azure-DevOps-Verbindung, Work Item | Must |
 
 ```mermaid
 stateDiagram-v2

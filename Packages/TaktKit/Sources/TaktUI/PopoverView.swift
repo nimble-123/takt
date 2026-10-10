@@ -16,6 +16,28 @@ public struct PopoverView: View {
   // MARK: Public
 
   public var body: some View {
+    Group {
+      if let id = model.stopPanelEntry, let active = model.snapshot.entry(id) {
+        StopPanel(model: model, active: active)
+          .id(id)
+          .padding(12)
+          .frame(width: 360)
+          .foregroundStyle(Palette.textPrimary)
+      } else {
+        content
+      }
+    }
+  }
+
+  // MARK: Internal
+
+  @Bindable var model: MenuBarModel
+
+  // MARK: Private
+
+  @FocusState private var searchFocused: Bool
+
+  private var content: some View {
     VStack(alignment: .leading, spacing: 0) {
       searchField
         .padding(12)
@@ -89,14 +111,6 @@ public struct PopoverView: View {
         .hidden()
     }
   }
-
-  // MARK: Internal
-
-  @Bindable var model: MenuBarModel
-
-  // MARK: Private
-
-  @FocusState private var searchFocused: Bool
 
   private var searchField: some View {
     HStack(spacing: 8) {
@@ -552,8 +566,10 @@ struct TimerRow: View {
         if isRunning { await model.pause(active.id) } else { await model.resume(active.id) }
       }
       iconButton("stop.fill", label: String(localized: "Stop “\(active.entry.title)”", bundle: .module)) {
-        await model.stop(active.id)
+        // ⌥-click opens the stop panel; so does a missing required field (TM-11).
+        await model.requestStop(active.id, panel: NSEvent.modifierFlags.contains(.option))
       }
+      .help(Text("Stop · ⌥-click for note, assignment and booking", bundle: .module))
     }
     .padding(8)
     .background(
@@ -769,7 +785,7 @@ struct StopToast: View {
         Image(systemName: "checkmark.circle.fill")
           .foregroundStyle(Palette.accent)
           .accessibilityHidden(true)
-        Text("Stopped: \(toast.title)", bundle: .module)
+        Text("\(toast.title) stopped · \(DurationText.hoursMinutes(toast.duration)) h", bundle: .module)
           .font(.system(size: 12))
           .lineLimit(1)
         Spacer()
