@@ -14,11 +14,6 @@ struct DayTimeline: View {
 
   static let snap: TimeInterval = 5 * 60
 
-  /// A second `onTapGesture(count: 2)` would delay every single click; the click count of the event does not.
-  static var isDoubleClick: Bool {
-    NSApp.currentEvent?.clickCount == 2
-  }
-
   let model: MainWindowModel
   let day: Range<Timestamp>
   var interactive = true
@@ -204,13 +199,7 @@ struct DayTimeline: View {
         .clipShape(RoundedRectangle(cornerRadius: 4))
         .frame(width: frame.width, height: frame.height)
         .offset(x: frame.minX, y: frame.minY)
-        .onTapGesture {
-          if Self.isDoubleClick {
-            model.openInspector(for: item.entryID)
-          } else {
-            model.selection = [item.entryID]
-          }
-        }
+        .onTapGesture { model.click(item.entryID) }
         // Right-click as on the entry's blocks, plus what the inspector offers for a pause.
         .contextMenu {
           Button(String(localized: "Count as Work", bundle: .module)) {
@@ -266,13 +255,7 @@ struct DayTimeline: View {
   }
 
   private func select(_ id: EntryID) {
-    if Self.isDoubleClick {
-      model.openInspector(for: id)
-    } else if NSEvent.modifierFlags.contains(.command) {
-      model.selection.formSymmetricDifference([id])
-    } else {
-      model.selection = [id]
-    }
+    model.click(id, toggle: NSEvent.modifierFlags.contains(.command))
   }
 
   private func isDragging(_ segment: Segment) -> Bool {

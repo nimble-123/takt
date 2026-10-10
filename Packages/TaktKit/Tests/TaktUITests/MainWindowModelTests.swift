@@ -104,6 +104,22 @@ struct MainWindowModelTests {
   }
 
   @Test
+  func aClickSelectsAndShowsTheInspectorAndCommandClickToggles() async throws {
+    let first = try #require(await model.createEntry(from: at(8), to: at(9)))
+    let second = try #require(await model.createEntry(from: at(9), to: at(9.5)))
+    model.isInspectorShown = false
+
+    model.click(first)
+    #expect(model.selection == [first])
+    #expect(model.isInspectorShown)
+
+    model.click(second, toggle: true)
+    #expect(model.selection == [first, second])
+    model.click(first, toggle: true)
+    #expect(model.selection == [second])
+  }
+
+  @Test
   func theShownDayIsCheckedAgainstTheWorkingHoursAct() async throws {
     // Yesterday, 7:00–18:00 without a break.
     model.step(by: -1)
