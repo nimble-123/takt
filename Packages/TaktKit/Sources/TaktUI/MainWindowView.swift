@@ -22,6 +22,17 @@ public struct MainWindowView: View {
         Label(section.title, systemImage: section.symbol)
       }
       .navigationSplitViewColumnWidth(min: 160, ideal: 180)
+      .safeAreaInset(edge: .bottom, alignment: .leading) {
+        // The release tag, so a screenshot or a bug report shows which version it was.
+        Text(verbatim: AppVersion.tag)
+          .font(.system(size: 11))
+          .monospacedDigit()
+          .foregroundStyle(Palette.textSecondary)
+          .padding(.horizontal, 16)
+          .padding(.bottom, 10)
+          .help(Text("Takt \(AppVersion.full)", bundle: .module))
+          .accessibilityLabel(Text("Takt \(AppVersion.full)", bundle: .module))
+      }
     } detail: {
       // Only screens that show entries carry the inspector, bound directly to the user's choice.
       // A binding that read `showsInspector` but wrote `isInspectorShown` let the closing inspector

@@ -14,7 +14,7 @@ struct TimeRecordExport {
 
   /// The app's version from the bundle, e.g. `0.5.1`.
   static var appVersion: String {
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "–"
+    AppVersion.version
   }
 
   let record: TimeRecord
