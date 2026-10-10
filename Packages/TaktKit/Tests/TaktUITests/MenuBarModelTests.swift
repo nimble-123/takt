@@ -366,6 +366,22 @@ extension MenuBarModelTests {
     #expect(model.pendingIdle == nil)
     #expect(model.snapshot.running.map(\.entry.title) == ["A"])
   }
+
+  @Test
+  func laterHidesTheInactivityUntilThePopoverOpensAgain() async throws {
+    await model.start(EntryDraft(title: "A"), parallel: false)
+    let start = clock.now().adding(seconds: 600)
+    clock.advance(seconds: 3000)
+    _ = try await engine.recordIdle(from: start, to: clock.now())
+    try await sync()
+
+    model.postponeIdle()
+    #expect(model.pendingIdle == nil)
+    #expect(model.snapshot.paused.map(\.entry.title) == ["A"])
+
+    model.popoverDidOpen()
+    #expect(model.pendingIdle?.start == start)
+  }
 }
 
 extension MenuBarModelTests {

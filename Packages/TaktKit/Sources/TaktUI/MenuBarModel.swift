@@ -209,7 +209,7 @@ public final class MenuBarModel {
 
   /// The oldest inactivity the user has not decided on (TM-06).
   public var pendingIdle: IdleEvent? {
-    snapshot.pendingIdleEvents.first
+    snapshot.pendingIdleEvents.first { !postponedIdle.contains($0.id) }
   }
 
   public var canUndo: Bool {
@@ -254,6 +254,7 @@ public final class MenuBarModel {
   public func popoverDidOpen() {
     openCount += 1
     query = ""
+    postponedIdle = []
     selection = nil
     // ⌘Z reverts what was done in this opening, plus the stop the toast still offers to undo;
     // never an action from hours ago.
@@ -441,6 +442,12 @@ public final class MenuBarModel {
     }
   }
 
+  /// "Later": hides the inactivity until the popover opens again; the timers stay paused.
+  public func postponeIdle() {
+    guard let event = pendingIdle else { return }
+    postponedIdle.insert(event.id)
+  }
+
   public func resolveIdle(_ decision: IdleDecision) async {
     guard let event = pendingIdle else { return }
     await perform { try await $0.resolveIdle(event.id, decision).undo }
@@ -524,6 +531,7 @@ public final class MenuBarModel {
   // MARK: Private
 
   private var completionsDismissed = false
+  private var postponedIdle = Set<IdleEventID>()
 
   private let engine: TimerEngine
   private let clock: any TaktClock
