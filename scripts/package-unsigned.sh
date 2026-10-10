@@ -46,6 +46,7 @@ xcodebuild \
 
 codesign --verify --deep --strict --verbose=2 "${APP}"
 lipo -archs "${APP}/Contents/MacOS/Takt" | grep -qx arm64 || { echo "Expected an arm64-only binary." >&2; exit 1; }
+lipo -archs "${APP}/Contents/Helpers/takt" | grep -qx arm64 || { echo "Expected the arm64-only command line tool." >&2; exit 1; }
 
 echo "==> Packaging"
 ditto -c -k --keepParent "${APP}" "${DIST}/${NAME}.zip"

@@ -170,7 +170,7 @@
       "y": 0
     },
     "note-window": {
-      "text": "Stand: App v0.4.x, abgeglichen in #92.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nEntworfen, aber noch nicht gebaut: #101.\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md).",
+      "text": "Stand: App v0.5.x; die UI-Lücken aus #101 sind umgesetzt.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md).",
       "w": 360,
       "x": 5440,
       "y": 1060
