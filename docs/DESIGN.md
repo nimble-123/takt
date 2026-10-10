@@ -13,8 +13,8 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 
 | Bereich | Screen | Kernpunkte |
 | --- | --- | --- |
-| Menüleiste | Popover | Suchfeld mit Sofortfokus, laufender und pausierter Timer, „Zuletzt“ mit ⌘1–⌘4, Tagesfortschritt nach Kategorie, „Alle pausieren ⌥⇧P“ |
-| Menüleiste | Suche & ADO-Vorschau | Treffer gruppiert (Azure DevOps, Lokale Tasks), Suchtreffer fett, Kompaktvorschau mit Status, Iteration, Aufwand, Fortschrittsbalken; „Starten ↩“, „Parallel ⌥↩“ |
+| Menüleiste | Popover | Suchfeld mit Sofortfokus und Hinweis `#ID`, laufender und pausierter Timer mit Unterzeile Work Item · Projekt · Kategorie, „Zuletzt“ mit Farbpunkt der Kategorie und ⌘1–⌘4, Tagesfortschritt nach Kategorie; Fußzeile „Alle pausieren ⌥⇧P“, „Alle stoppen“, „Takt öffnen“ und Zahnrad für die Einstellungen |
+| Menüleiste | Suche & ADO-Vorschau | Trefferzahl im Suchfeld, Treffer gruppiert (Azure DevOps, Lokale Tasks), Treffer der aktuellen Iteration zuerst („Sprint 42 zuerst“), Suchtreffer fett; unter den Treffern Kompaktvorschau des markierten (sonst ersten) Work Items mit Status, Zugewiesen, Iteration, Aufwand und Fortschrittsbalken. Gestartet wird per ↩ / ⌥↩ aus der Liste, die Vorschau hat keine eigenen Buttons |
 | Menüleiste | Inaktivität erkannt | Im Popover eingebettet; Mini-Timeline mit schraffierter Inaktivität, vier Optionen als Radiogruppe, „Als Pause werten“ vorausgewählt |
 | Menüleiste | Timer beenden | Stopp beendet sofort mit Toast („Notiz“, „Rückgängig ⌘Z“); Panel mit Notiz, Kategorie, Tags, Buchungswahl nur bei Bedarf |
 | Menüleiste | Suche mit Outlook-Terminen (Phase 3) | Gruppe „Kalender“ vor ADO; Zuordnung pro Serie; „Ab 09:45 starten“ |

@@ -13,6 +13,8 @@ struct WorkItemRow: View {
   let query: String
   let selected: Bool
   var compact = false
+  /// The popover shows the effort in the preview below the hits instead.
+  var showsProgress = true
 
   var body: some View {
     HStack(alignment: .top, spacing: 8) {
@@ -38,7 +40,7 @@ struct WorkItemRow: View {
             .foregroundStyle(Palette.textSecondary)
             .lineLimit(1)
         }
-        if !compact, let progress {
+        if !compact, showsProgress, let progress {
           HStack(spacing: 6) {
             ProgressBar(value: progress.fraction)
               .frame(width: 80, height: 4)
@@ -73,15 +75,21 @@ struct WorkItemRow: View {
   private var details: String {
     var parts = [String]()
     if let assignee = item.assignedTo { parts.append(assignee) }
-    if let iteration = item.iterationPath?.split(separator: "\\").last { parts.append(String(iteration)) }
+    if let iteration = item.iterationName { parts.append(iteration) }
     if let parent = item.parentID { parts.append("↑ #\(parent)") }
     return parts.joined(separator: " · ")
   }
 
-  /// Completed share of completed plus remaining work, in hours.
   private var progress: (fraction: Double, label: String)? {
-    let completed = item.completedWork ?? 0
-    let remaining = item.remainingWork ?? 0
+    item.effort
+  }
+}
+
+extension WorkItemLink {
+  /// Completed share of completed plus remaining work, in hours.
+  var effort: (fraction: Double, label: String)? {
+    let completed = completedWork ?? 0
+    let remaining = remainingWork ?? 0
     guard completed + remaining > 0 else { return nil }
     let format = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(0...2))
     return (
@@ -91,6 +99,77 @@ struct WorkItemRow: View {
         bundle: .module,
       ),
     )
+  }
+
+  /// The last component of the iteration path, e.g. "Sprint 42".
+  var iterationName: String? {
+    iterationPath?.split(separator: "\\").last.map(String.init)
+  }
+}
+
+// MARK: - WorkItemPreview
+
+/// Compact preview below the search hits (DO-12): status, assignee, iteration and effort of the
+/// highlighted work item.
+struct WorkItemPreview: View {
+
+  // MARK: Internal
+
+  let item: WorkItemLink
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .top, spacing: 10) {
+        TypeBadge(type: item.cachedType)
+        VStack(alignment: .leading, spacing: 1) {
+          Text(item.cachedTitle ?? "")
+            .font(.system(size: 14, weight: .semibold))
+            .lineLimit(2)
+          Text(subtitle)
+            .font(.system(size: 12))
+            .foregroundStyle(Palette.textSecondary)
+            .lineLimit(1)
+        }
+      }
+      Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
+        GridRow {
+          field(String(localized: "Status", bundle: .module), item.cachedState)
+          field(String(localized: "Assigned to", bundle: .module), item.assignedTo)
+        }
+        GridRow {
+          field(String(localized: "Iteration", bundle: .module), item.iterationName)
+          field(String(localized: "Effort", bundle: .module), item.effort?.label)
+        }
+      }
+      if let effort = item.effort {
+        ProgressBar(value: effort.fraction)
+          .frame(height: 6)
+          .accessibilityHidden(true)
+      }
+    }
+    .padding(12)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 10))
+    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Palette.separator))
+    .accessibilityElement(children: .combine)
+  }
+
+  // MARK: Private
+
+  /// E.g. "Task #4821 · Parent: #4702".
+  private var subtitle: String {
+    var parts = ["\(item.cachedType ?? "") #\(item.workItemID)".trimmingCharacters(in: .whitespaces)]
+    if let parent = item.parentID { parts.append(String(localized: "Parent: #\(String(parent))", bundle: .module)) }
+    return parts.joined(separator: " · ")
+  }
+
+  private func field(_ title: String, _ value: String?) -> some View {
+    VStack(alignment: .leading, spacing: 1) {
+      Text(title).foregroundStyle(Palette.textSecondary)
+      Text(value ?? "–").fontWeight(.medium).lineLimit(1)
+    }
+    .font(.system(size: 12))
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 
