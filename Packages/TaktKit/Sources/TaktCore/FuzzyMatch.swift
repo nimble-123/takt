@@ -2,13 +2,13 @@ import Foundation
 
 /// Fuzzy matching for the command palette: the query's characters must appear in order.
 /// Matches at word starts and runs of consecutive characters score higher (HW-05).
-nonisolated enum FuzzyMatch {
+public enum FuzzyMatch {
 
-  // MARK: Internal
+  // MARK: Public
 
   /// `nil` if `text` does not contain the query's characters in order; otherwise a score,
   /// higher is better. Case and diacritics are ignored.
-  static func score(_ query: String, in text: String) -> Int? {
+  public static func score(_ query: String, in text: String) -> Int? {
     let needle = Array(normalized(query).filter { !$0.isWhitespace })
     guard !needle.isEmpty else { return 0 }
     let haystack = Array(normalized(text))

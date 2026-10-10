@@ -23,6 +23,14 @@ public struct Catalog: Hashable, Sendable {
   public var categories = [EntryCategory]()
   public var tags = [Tag]()
 
+  public var activeProjects: [Project] {
+    projects.filter { !$0.archived }
+  }
+
+  public var activeCategories: [EntryCategory] {
+    categories.filter { !$0.archived }
+  }
+
   public func project(_ id: ProjectID?) -> Project? {
     id.flatMap { id in projects.first { $0.id == id } }
   }
@@ -33,6 +41,24 @@ public struct Catalog: Hashable, Sendable {
 
   public func category(_ id: CategoryID?) -> EntryCategory? {
     id.flatMap { id in categories.first { $0.id == id } }
+  }
+
+  /// A timer for a work item: its title, linked, in the taken-over project (DO-10). A project
+  /// without an area path wins over one limited to an area.
+  public func draft(for item: WorkItemLink) -> EntryDraft {
+    let projects = activeProjects.filter {
+      $0.source == .ado && $0.adoOrganization == item.organization && $0.adoProject == item.project
+    }
+    let project = projects.first { $0.areaPath == nil } ?? projects.first
+    return EntryDraft(
+      title: item.cachedTitle ?? "#\(item.workItemID)",
+      projectID: project?.id,
+      workItemLinkID: item.id,
+    )
+  }
+
+  public func activeTasks(of project: ProjectID) -> [ProjectTask] {
+    tasks(of: project).filter { !$0.archived }
   }
 
   public func tasks(of project: ProjectID) -> [ProjectTask] {
