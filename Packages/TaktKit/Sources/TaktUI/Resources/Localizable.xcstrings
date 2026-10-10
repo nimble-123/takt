@@ -1911,22 +1911,22 @@
         }
       }
     },
-    "Entries, notes, projects, work items": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Einträge, Notizen, Projekte, Work Items"
-          }
-        }
-      }
-    },
     "Entries, projects and settings stored in Takt are replaced. This cannot be undone.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Einträge, Projekte und in Takt gespeicherte Einstellungen werden ersetzt. Das lässt sich nicht rückgängig machen."
+          }
+        }
+      }
+    },
+    "Entries, projects, work items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einträge, Projekte, Work Items"
           }
         }
       }
