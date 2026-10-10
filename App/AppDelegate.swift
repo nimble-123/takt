@@ -44,7 +44,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     #if DEBUG
     // For screenshots and UI tests: `-openPopover YES` / `-openMainWindow YES` show the popover or
-    // main window at launch, `-appearance dark|light` forces an appearance and
+    // main window at launch (`-mainSection`, `-mainDay`), `-appearance dark|light` forces an appearance and
     // `-onboardingCompleted YES` skips the onboarding.
     if let appearance = UserDefaults.standard.string(forKey: "appearance") {
       NSApp.appearance = NSAppearance(named: appearance == "dark" ? .darkAqua : .aqua)
@@ -55,6 +55,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
           .flatMap(MainWindowModel.Section.init(rawValue:))
       {
         composition.mainWindow.section = section
+      }
+      // `-mainDay 2026-10-01`: shows that day (and its week) instead of today.
+      if
+        let day = UserDefaults.standard.string(forKey: "mainDay"),
+        let date = try? Date(day, strategy: Date.ISO8601FormatStyle(timeZone: .current).year().month().day())
+      {
+        composition.mainWindow.day = Timestamp(date)
       }
       showMainWindow()
       if let text = UserDefaults.standard.string(forKey: "searchText") {

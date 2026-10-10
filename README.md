@@ -22,13 +22,13 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 </div>
 
 > [!NOTE]
-> Takt is pre-release: phases 1–3 are largely implemented; still open are Entra ID sign-in, the Outlook calendar, signed and notarized builds with automatic updates, and a desktop widget. Phase 4 (a working time record under German labor law, with flextime, overtime and vacation accounts) is planned. Releases ship an unsigned Apple Silicon build; see [Install](#install).
+> Takt is pre-release. Phases 1–4 are largely implemented, including the working time record under German labor law with flextime, overtime and vacation accounts. Still open are Entra ID sign-in, the Outlook calendar, signed and notarized builds with automatic updates, a desktop widget and an Excel export. Releases ship an unsigned Apple Silicon build; see [Install](#install).
 
 <div align="center">
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/week-dark.png">
-  <img alt="Takt main window showing the week view with entries as colored blocks on a calendar grid" src="docs/assets/screenshots/week-light.png" width="860">
+  <img alt="Takt main window: the week view with entries as colored blocks, pauses hatched, and the inspector of the selected entry on the right" src="docs/assets/screenshots/week-light.png" width="860">
 </picture>
 
 <table>
@@ -36,13 +36,13 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
     <td align="center" valign="top">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/popover-dark.png">
-  <img alt="Takt menu bar popover with search field, inactivity prompt, running timers, recent tasks and a daily progress bar" src="docs/assets/screenshots/popover-light.png" width="280">
+  <img alt="Takt menu bar popover with search field, a running and a paused timer with work item, project and category, suggested work items, recent tasks and a daily progress bar" src="docs/assets/screenshots/popover-light.png" width="280">
 </picture>
     </td>
     <td align="center" valign="top">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/analytics-dark.png">
-  <img alt="Takt analytics view with totals, a bar chart per day, a project donut and a weekday by hour heatmap" src="docs/assets/screenshots/analytics-light.png" width="560">
+  <img alt="Takt analytics view with key figures compared to the previous week, flex and vacation accounts, a one-line insight, stacked bars per day, a project donut, top work items and a weekday by hour heatmap" src="docs/assets/screenshots/analytics-light.png" width="560">
 </picture>
     </td>
   </tr>
@@ -64,13 +64,15 @@ Time tracking usually happens after the fact and from memory, because starting, 
 
 | | |
 | --- | --- |
-| **Menu bar first** | Start, switch, pause and stop from a popover. Open it with a global shortcut (default `⌥⇧T`), search, press Enter. |
+| **Menu bar first** | Start, switch, pause and stop from a popover. Open it with a global shortcut (default `⌥⇧T`), search, press Enter. Type `@category`, `/project` or `#tag` while starting, or `#4821` to find a work item. |
 | **Main window** | Day timeline and week grid: draw, drag and resize entries, move them to another day, delete by right-click, undo with `⌘Z`. Plus an editable entry list, full-text search and a `⌘K` command palette. |
 | **Parallel timers** | Run several timers at once and count overlapping time as *full* or *split* by weight (e.g. 70/30), globally or per entry. |
-| **Pauses and idle detection** | Per-timer and global pauses. When you come back from an idle period, keep, discard, count as pause or reassign the time. |
+| **Pauses and idle detection** | Per-timer and global pauses. When you come back from an idle period, keep, discard, count as pause or reassign the time, or decide later. |
+| **Stop panel** | Stopping is instant, with an undo toast. Make project, category or work item required, and Takt asks for them before it stops; `⌥`-click opens the panel any time. |
 | **Rules** | Assign category, project and tags automatically, for example "work item type Bug → category Support". |
-| **Azure DevOps** | Search work items, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. |
-| **Analytics** | Stacked bars, distributions, heatmap, focus blocks and context switches, plus CSV, JSON and a PDF report against your weekly target hours. |
+| **Azure DevOps** | Search work items with a compact preview (state, iteration, effort), current sprint first, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. The day close lists what to book; uncheck what should wait. |
+| **Analytics** | Stacked bars, distributions, top work items, heatmap, focus blocks and context switches, compared with the previous period and summed up in one sentence. Export CSV, JSON and a PDF report against your weekly target hours. |
+| **Working time record** | Built for German labor law (ArbZG): start, end, breaks and net time per day with checks for maximum hours, breaks and rest periods, public holidays per state, a change log, flextime, overtime payouts, vacation account and a monthly archive as PDF with a SHA-256 checksum. |
 | **Enterprise ready** | Managed preferences and a sample profile for rollout via Intune or Jamf ([MDM guide](docs/MDM.md)). |
 
 ## Architecture
