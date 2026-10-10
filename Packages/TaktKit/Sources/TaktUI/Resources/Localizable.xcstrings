@@ -3081,6 +3081,16 @@
         }
       }
     },
+    "Open in Azure DevOps": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Azure DevOps öffnen"
+          }
+        }
+      }
+    },
     "Open Takt": {
       "localizations": {
         "de": {

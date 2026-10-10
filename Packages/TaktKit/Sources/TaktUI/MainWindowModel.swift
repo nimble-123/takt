@@ -76,10 +76,13 @@ public final class MainWindowModel {
   /// Hits grouped for display; entries carry their segments for date and duration.
   public struct SearchResults: Hashable {
     public var entries = [EntryHit]()
+    /// Cached work items that match, by state like in the popover (#220).
+    public var workItems = [WorkItemLink]()
+    /// Projects, tasks, categories and tags.
     public var others = [SearchHit]()
 
     public var isEmpty: Bool {
-      entries.isEmpty && others.isEmpty
+      entries.isEmpty && workItems.isEmpty && others.isEmpty
     }
   }
 
@@ -746,10 +749,13 @@ public final class MainWindowModel {
           uniquingKeysWith: { first, _ in first },
         )
         let entries = try await queries.entries(entryHits.compactMap { EntryID(uuidString: $0.ref) })
+        let linkHits = hits.filter { $0.kind == .workItem }.compactMap { WorkItemLinkID(uuidString: $0.ref) }
+        let links = linkHits.isEmpty ? [:] : try await queries.workItemLinks()
         guard !Task.isCancelled else { return }
         searchResults = SearchResults(
           entries: entries.map { EntryHit(entry: $0, snippet: snippets[$0.id.uuidString] ?? nil) },
-          others: hits.filter { $0.kind != .entry },
+          workItems: linkHits.compactMap { links[$0] }.sortedByState(),
+          others: hits.filter { $0.kind != .entry && $0.kind != .workItem },
         )
       } catch {
         show(error)

@@ -606,6 +606,28 @@ struct MainWindowSearchTests {
     #expect(model.searchText.isEmpty)
   }
 
+  @Test
+  func searchShowsMatchingWorkItemsByStateWithoutRemovedOnes() async throws {
+    let database = try AppDatabase.inMemory()
+    let model = MainWindowModel(
+      engine: TimerEngine(store: GRDBTimerStore(database: database), clock: clock),
+      queries: EntryQueries(database: database),
+      catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+      search: SearchIndex(database: database),
+      clock: clock,
+    )
+    func link(_ id: Int, _ state: String) -> WorkItemLink {
+      WorkItemLink(organization: "contoso", project: "Portal", workItemID: id, cachedTitle: "Login \(state)", cachedState: state)
+    }
+    try await WorkItemCache(database: database).store([link(1, "Done"), link(2, "Removed"), link(3, "Active"), link(4, "New")])
+
+    model.searchText = "login"
+    await model.searchTask?.value
+
+    #expect(model.searchResults.workItems.map(\.workItemID) == [3, 4, 1])
+    #expect(!model.searchResults.others.contains { $0.kind == .workItem })
+  }
+
   // MARK: Private
 
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))

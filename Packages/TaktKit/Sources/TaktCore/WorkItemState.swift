@@ -49,3 +49,13 @@ extension WorkItemLink {
     WorkItemStateGroup(state: cachedState)
   }
 }
+
+extension [WorkItemLink] {
+  /// Without removed or cancelled ones, by state group; otherwise in the given order.
+  public func sortedByState() -> [WorkItemLink] {
+    enumerated()
+      .filter { $0.element.stateGroup != .removed }
+      .sorted { ($0.element.stateGroup.rawValue, $0.offset) < ($1.element.stateGroup.rawValue, $1.offset) }
+      .map(\.element)
+  }
+}
