@@ -461,6 +461,16 @@
         }
       }
     },
+    "All entries, projects, categories, rules, bookings, settings and Azure DevOps connections are deleted, and Takt starts as on first launch. The daily backups stay. This cannot be undone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Einträge, Projekte, Kategorien, Regeln, Buchungen, Einstellungen und Azure-DevOps-Verbindungen werden gelöscht, und Takt startet wie beim ersten Mal. Die täglichen Backups bleiben erhalten. Das lässt sich nicht rückgängig machen."
+          }
+        }
+      }
+    },
     "All Saints' Day": {
       "localizations": {
         "de": {
@@ -1727,6 +1737,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eintrag löschen"
+          }
+        }
+      }
+    },
+    "Deletes all entries, settings and connections. The daily backups stay.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Löscht alle Einträge, Einstellungen und Verbindungen. Die täglichen Backups bleiben erhalten."
           }
         }
       }
@@ -3807,6 +3827,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pflicht beim Beenden"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurücksetzen"
+          }
+        }
+      }
+    },
+    "Reset Takt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt zurücksetzen"
+          }
+        }
+      }
+    },
+    "Reset Takt to factory settings?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takt auf Werkseinstellungen zurücksetzen?"
+          }
+        }
+      }
+    },
+    "Reset to Factory Settings …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf Werkseinstellungen zurücksetzen …"
           }
         }
       }

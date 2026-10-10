@@ -332,6 +332,21 @@ struct SettingsScreen: View {
           Text("Daily backups are kept automatically for 14 days.", bundle: .module)
             .font(.system(size: 11))
             .foregroundStyle(Palette.textSecondary)
+          LabeledContent {
+            Button(role: .destructive) {
+              Task { await resetToFactorySettings() }
+            } label: {
+              Text("Reset to Factory Settings …", bundle: .module)
+                .foregroundStyle(Palette.danger)
+            }
+          } label: {
+            VStack(alignment: .leading, spacing: 2) {
+              Text("Reset Takt", bundle: .module)
+              Text("Deletes all entries, settings and connections. The daily backups stay.", bundle: .module)
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+            }
+          }
         }
       }
 
@@ -409,6 +424,16 @@ struct SettingsScreen: View {
     do {
       try await DatabaseArchive.export(database, to: url)
       message = String(localized: "Backup saved.", bundle: .module)
+    } catch {
+      NSAlert(error: error).runModal()
+    }
+  }
+
+  private func resetToFactorySettings() async {
+    guard let database = model.database, FactoryReset.confirm() else { return }
+    do {
+      try await FactoryReset.run(database: database, azureDevOps: model.azureDevOps)
+      FactoryReset.relaunch()
     } catch {
       NSAlert(error: error).runModal()
     }
