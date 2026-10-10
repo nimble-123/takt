@@ -145,6 +145,19 @@ struct WorkItemSearchTests {
     #expect(WorkItemSearch.workItemID(in: text) == id)
   }
 
+  @Test(arguments: [
+    ("lo", false),
+    ("log", true),
+    (" lo ", false),
+    ("#1", false),
+    ("#12", false),
+    ("#123", true),
+    ("123", true),
+  ])
+  func searchStartsAtThreeCharactersWithoutTheHash(text: String, searchable: Bool) {
+    #expect(WorkItemSearch.isSearchable(text) == searchable)
+  }
+
   @Test
   func webURLPointsToTheEditPage() {
     let item = WorkItemLink(organization: "contoso", project: "Kunden Portal", workItemID: 7)

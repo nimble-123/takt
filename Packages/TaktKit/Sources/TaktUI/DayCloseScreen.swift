@@ -305,7 +305,10 @@ struct WorkItemPicker: View {
     .frame(width: 380)
     .task(id: query) {
       let text = query.trimmingCharacters(in: .whitespaces)
-      guard !text.isEmpty else { return }
+      guard WorkItemSearch.isSearchable(text) else {
+        results = []
+        return
+      }
       results = (try? await source.cached(text)) ?? []
       try? await Task.sleep(for: MenuBarModel.searchDelay)
       guard !Task.isCancelled else { return }

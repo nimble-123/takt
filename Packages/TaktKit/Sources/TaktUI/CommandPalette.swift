@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import SwiftUI
+import TaktADO
 import TaktCore
 import TaktStore
 
@@ -272,7 +273,11 @@ public final class CommandPaletteModel {
           )
         }
       }
-      if let source = window.workItems, let found = try? await source.cached(text) {
+      if
+        let source = window.workItems,
+        WorkItemSearch.isSearchable(text),
+        let found = try? await source.cached(text)
+      {
         for item in found.prefix(5) {
           items.append(
             PaletteItem(

@@ -261,8 +261,19 @@ public actor WorkItemSearch {
 
   // MARK: Public
 
+  /// Fewer characters find little and only cost requests.
+  public static let minimumQueryLength = 3
+
   public var organization: String {
     client.organization
+  }
+
+  /// Whether typed text is long enough to search for work items: at least `minimumQueryLength`
+  /// characters, a leading `#` not counted (`#123`, not `#12`).
+  public static func isSearchable(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    let counted = trimmed.hasPrefix("#") ? trimmed.dropFirst() : Substring(trimmed)
+    return counted.count >= minimumQueryLength
   }
 
   /// `#1234` or a plain number.
