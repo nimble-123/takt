@@ -44,6 +44,13 @@ struct DayTimeline: View {
               .gesture(createGesture)
               .onTapGesture { model.selection = [] }
               .contextMenu { AbsenceMenu(model: model, day: day.lowerBound) }
+          } else {
+            // The week draws no new entries, but a click on free space ends the selection as in Today.
+            Color.clear
+              .contentShape(Rectangle())
+              .frame(width: width, height: height(dayLength))
+              .offset(x: gutter)
+              .onTapGesture { model.selection = [] }
           }
           ForEach(layout.items) { item in
             block(item, width: width)
