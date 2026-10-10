@@ -32,8 +32,16 @@ struct AnalyticsScreen: View {
           HStack(alignment: .top, spacing: 20) {
             DayBars(model: model, report: report)
               .frame(maxWidth: .infinity)
-            Distribution(model: model, report: report)
-              .frame(width: 280)
+            VStack(alignment: .leading, spacing: 20) {
+              Distribution(model: model, report: report)
+              if model.grouping != .project, !model.projectGroups.isEmpty {
+                ProjectShares(model: model)
+              }
+              if model.grouping != .workItem, !model.topWorkItems.isEmpty {
+                TopWorkItems(model: model)
+              }
+            }
+            .frame(width: 280)
           }
           if model.drilldown != nil {
             Drilldown(model: model)
@@ -185,7 +193,7 @@ private struct KPIRow: View {
       figure(
         String(localized: "Total", bundle: .module),
         DurationText.hoursMinutes(report.total),
-        change: previous.map { change(report.total, $0.total) } ?? nil,
+        detail: previous.map { versus(AnalyticsHover.signedDuration(report.total - $0.total) + " h") },
         help: hint(
           String(
             localized: "Allocated time in the period; with full counting, parallel time counts more than once.",
@@ -257,6 +265,10 @@ private struct KPIRow: View {
       figure(
         String(localized: "Multitasking", bundle: .module),
         report.multitaskingShare.formatted(Self.percent),
+        detail: String(
+          localized: "\(DurationText.hoursMinutes(report.wallClock * report.multitaskingShare)) h parallel",
+          bundle: .module,
+        ),
         help: hint(
           String(localized: "Share of the tracked time in which entries ran in parallel.", bundle: .module),
           previous: previous.map { $0.multitaskingShare.formatted(Self.percent) },
@@ -268,7 +280,9 @@ private struct KPIRow: View {
       figure(
         String(localized: "Focus blocks", bundle: .module),
         "\(report.focusBlocks)",
-        detail: DurationText.hoursMinutes(report.focusTime),
+        detail: previous.map { versus((report.focusBlocks - $0.focusBlocks).formatted(.number.sign(strategy: .always()))) }
+          ?? DurationText.hoursMinutes(report.focusTime),
+        detailColor: previous.map { tone(Double(report.focusBlocks - $0.focusBlocks)) } ?? Palette.textSecondary,
         help: hint(
           String(
             localized: "Uninterrupted work on one entry, without a parallel one, of at least 25 minutes.",
@@ -281,6 +295,11 @@ private struct KPIRow: View {
       figure(
         String(localized: "Switches per day", bundle: .module),
         report.contextSwitchesPerDay.formatted(Self.decimal),
+        detail: previous.map {
+          versus((report.contextSwitchesPerDay - $0.contextSwitchesPerDay).formatted(Self.decimal.sign(strategy: .always())))
+        },
+        // Fewer switches are better.
+        detailColor: previous.map { tone($0.contextSwitchesPerDay - report.contextSwitchesPerDay) } ?? Palette.textSecondary,
         help: hint(
           String(
             localized: "Changes between entries, averaged over the days with tracked time; pauses do not count.",
@@ -314,8 +333,14 @@ private struct KPIRow: View {
     return String(localized: "left · \(vacation.planned) planned", bundle: .module)
   }
 
-  private func change(_ now: TimeInterval, _ before: TimeInterval) -> Double? {
-    before > 0 ? (now - before) / before : nil
+  /// "+2:10 h vs. CW 40".
+  private func versus(_ difference: String) -> String {
+    String(localized: "\(difference) vs. \(model.previousPeriodName)", bundle: .module)
+  }
+
+  /// The accent for an improvement, otherwise secondary.
+  private func tone(_ improvement: Double) -> Color {
+    improvement > 0 ? Palette.accentText : Palette.textSecondary
   }
 
   /// Tooltip of a figure: what it means and, if there is one, the value of the previous period (#129).
@@ -327,8 +352,8 @@ private struct KPIRow: View {
   private func figure(
     _ title: String,
     _ value: String,
-    change: Double? = nil,
     detail: String? = nil,
+    detailColor: Color = Palette.textSecondary,
     help: String,
   ) -> some View {
     VStack(alignment: .leading, spacing: 2) {
@@ -339,18 +364,11 @@ private struct KPIRow: View {
       Text(value)
         .font(.system(size: 22, weight: .semibold))
         .monospacedDigit()
-      if let change {
-        Text(
-          "\(change >= 0 ? "+" : "")\(change.formatted(.percent.precision(.fractionLength(0)))) vs. previous period",
-          bundle: .module,
-        )
-        .font(.system(size: 11))
-        .foregroundStyle(Palette.textSecondary)
-      } else if let detail {
+      if let detail {
         Text(detail)
           .font(.system(size: 11))
           .monospacedDigit()
-          .foregroundStyle(Palette.textSecondary)
+          .foregroundStyle(detailColor)
       }
     }
     .accessibilityElement(children: .combine)
@@ -371,7 +389,12 @@ private struct DayBars: View {
   var body: some View {
     let top = AnalyticsScreen.topGroups(report)
     VStack(alignment: .leading, spacing: 8) {
-      SectionTitle(text: String(localized: "Per day", bundle: .module))
+      if let insight = model.insight {
+        Text(insight)
+          .font(.system(size: 15, weight: .semibold))
+      } else {
+        SectionTitle(text: String(localized: "Per day", bundle: .module))
+      }
       Chart {
         ForEach(report.days, id: \.start) { day in
           ForEach(AnalyticsHover.parts(of: day, top: top), id: \.self) { part in
@@ -594,6 +617,70 @@ private struct Distribution: View {
       return
     }
     hovered = shown[index]
+  }
+}
+
+// MARK: - ProjectShares
+
+/// Time per project with its share, whatever the grouping (docs/DESIGN.md "Analysen").
+private struct ProjectShares: View {
+  let model: AnalyticsModel
+
+  var body: some View {
+    let groups = Array(model.projectGroups.prefix(5))
+    let total = model.projectGroups.lazy.map(\.seconds).reduce(0, +)
+    VStack(alignment: .leading, spacing: 8) {
+      SectionTitle(text: String(localized: "By project", bundle: .module))
+      ForEach(Array(groups.enumerated()), id: \.element.key) { index, group in
+        VStack(alignment: .leading, spacing: 4) {
+          HStack {
+            Text(model.label(group.key)).lineLimit(1)
+            Spacer()
+            Text(DurationText.hoursMinutes(group.seconds)).monospacedDigit()
+            Text(AnalyticsHover.share(group.seconds, of: total))
+              .monospacedDigit()
+              .foregroundStyle(Palette.textSecondary)
+              .frame(width: 36, alignment: .trailing)
+          }
+          .font(.system(size: 12))
+          GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+              Capsule().fill(Palette.separator)
+              Capsule()
+                .fill(AnalyticsScreen.color(group.key, index: index, model))
+                .frame(width: proxy.size.width * (total > 0 ? group.seconds / total : 0))
+            }
+          }
+          .frame(height: 6)
+          .accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+      }
+    }
+  }
+}
+
+// MARK: - TopWorkItems
+
+/// The work items with the most time in the period.
+private struct TopWorkItems: View {
+  let model: AnalyticsModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      SectionTitle(text: String(localized: "Top work items", bundle: .module))
+      ForEach(model.topWorkItems, id: \.key) { group in
+        HStack {
+          Text(model.label(group.key)).lineLimit(1)
+          Spacer()
+          Text(DurationText.hoursMinutes(group.seconds))
+            .monospacedDigit()
+            .foregroundStyle(Palette.textSecondary)
+        }
+        .font(.system(size: 12))
+        .accessibilityElement(children: .combine)
+      }
+    }
   }
 }
 

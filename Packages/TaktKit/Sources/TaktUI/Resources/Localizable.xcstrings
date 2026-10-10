@@ -81,6 +81,16 @@
         }
       }
     },
+    "%@ h parallel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ h parallel"
+          }
+        }
+      }
+    },
     "%@ h without a break, at most 6 h (§ 4 ArbZG)": {
       "localizations": {
         "de": {
@@ -97,6 +107,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ von %2$@ Soll"
+          }
+        }
+      }
+    },
+    "%@ prevails": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ überwiegt"
+          }
+        }
+      }
+    },
+    "%@ vs. %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ggü. %2$@"
+          }
+        }
+      }
+    },
+    "%@ was the longest day": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ war der längste Tag"
+          }
+        }
+      }
+    },
+    "%@ was the longest day, %@ prevails": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ war der längste Tag, %2$@ überwiegt"
           }
         }
       }
@@ -127,16 +177,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ „%2$@“"
-          }
-        }
-      }
-    },
-    "%@%@ vs. previous period": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$@%2$@ ggü. Vorperiode"
           }
         }
       }
@@ -961,6 +1001,16 @@
         }
       }
     },
+    "By project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Projekt"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "de": {
@@ -1447,6 +1497,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kundenportal"
+          }
+        }
+      }
+    },
+    "CW %lld": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KW %lld"
           }
         }
       }
@@ -3281,6 +3341,16 @@
         }
       }
     },
+    "previous period": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorperiode"
+          }
+        }
+      }
+    },
     "Previous period: %@ (%@)": {
       "localizations": {
         "de": {
@@ -4687,6 +4757,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Werkzeug"
+          }
+        }
+      }
+    },
+    "Top work items": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top Work Items"
           }
         }
       }
