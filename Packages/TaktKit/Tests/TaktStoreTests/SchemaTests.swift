@@ -59,6 +59,7 @@ struct SchemaTests {
       "v7-segment-change-log",
       "v8-absence",
       "v9-overtime-payout",
+      "v10-segment-source-import",
     ])
   }
 

@@ -602,6 +602,7 @@ extension SegmentSource {
     case .manual: String(localized: "manual", bundle: .module)
     case .idle: String(localized: "inactivity", bundle: .module)
     case .calendar: String(localized: "calendar", bundle: .module)
+    case .imported: String(localized: "imported", bundle: .module)
     }
   }
 }

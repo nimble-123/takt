@@ -139,6 +139,8 @@ public enum SegmentSource: String, Sendable, Codable {
   case manual
   case idle
   case calendar
+  /// Taken over from another record, e.g. the Excel timesheet (#190); not a correction (AZ-04).
+  case imported = "import"
 }
 
 // MARK: - Segment
