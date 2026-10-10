@@ -71,6 +71,7 @@ struct WeekScreen: View {
           .padding(.vertical, 12)
           .padding(.trailing, 8)
         }
+        .modifier(TimelineKeyboard(model: model, days: model.weekDays, proxy: proxy))
         // Runs again whenever the week changes. When the window opens, the task starts before the
         // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
         .task(id: model.weekRange) {

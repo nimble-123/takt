@@ -41,6 +41,7 @@ struct DayScreen: View {
             .padding(.vertical, 12)
             .padding(.trailing, 12)
         }
+        .modifier(TimelineKeyboard(model: model, days: [model.dayRange], proxy: proxy))
         // Runs again whenever the day changes. When the window opens, the task starts before the
         // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
         .task(id: model.dayRange) {

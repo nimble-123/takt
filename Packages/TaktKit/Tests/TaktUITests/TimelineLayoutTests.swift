@@ -10,6 +10,22 @@ struct TimelineLayoutTests {
   // MARK: Internal
 
   @Test
+  func keyboardVisitsBlocksByStartThenLaneAndSkipsPauses() {
+    let meeting = entry([(9, 10)])
+    let ticket = entry([(9, 9.5), (11, 12)])
+    let layout = TimelineLayout(entries: [ticket, meeting], day: t(0)..<t(24), now: t(13))
+
+    let order = layout.keyboardOrder
+    #expect(order.map(\.start) == [t(9), t(9), t(11)])
+    #expect(order.map(\.lane) == [0, 1, 0])
+    #expect(layout.item(from: nil, .next)?.id == order.first?.id)
+    #expect(layout.item(from: nil, .previous)?.id == order.last?.id)
+    #expect(layout.item(from: order[1].id, .next)?.id == order[2].id)
+    #expect(layout.item(from: order[2].id, .next) == nil)
+    #expect(layout.item(nearest: 10.8 * 3600, in: t(0)..<t(24))?.id == order[2].id)
+  }
+
+  @Test
   func separateItemsShareOneLane() {
     let layout = TimelineLayout(entries: [entry([(8, 9)]), entry([(9, 10)])], day: day, now: t(12))
     #expect(layout.items.map(\.lane) == [0, 0])

@@ -116,6 +116,42 @@ nonisolated public struct TimelineLayout: Equatable, Sendable {
 }
 
 nonisolated extension TimelineLayout {
+
+  // MARK: Public
+
+  /// ↑ and ↓ in the timeline (#171).
+  public enum Step: Sendable {
+    case previous
+    case next
+  }
+
+  /// The blocks the keyboard visits, in reading order: by start, then lane. Pauses are part of
+  /// their entry and not visited on their own.
+  public var keyboardOrder: [Item] {
+    items.filter { !$0.isPause }.sorted { ($0.start, $0.lane) < ($1.start, $1.lane) }
+  }
+
+  /// The block before or after the one with `id`; without a focused block the first or the last.
+  /// `nil` at either end.
+  public func item(from id: Item.ID?, _ step: Step) -> Item? {
+    let order = keyboardOrder
+    guard let id, let index = order.firstIndex(where: { $0.id == id }) else {
+      return step == .next ? order.first : order.last
+    }
+    let target = step == .next ? index + 1 : index - 1
+    return order.indices.contains(target) ? order[target] : nil
+  }
+
+  /// ← and → in the week: the block of this day closest to `secondsIntoDay`, e.g. the time of
+  /// the block focused in the neighbouring day.
+  public func item(nearest secondsIntoDay: TimeInterval, in day: Range<Timestamp>) -> Item? {
+    keyboardOrder.min { a, b in
+      abs(a.start.seconds(since: day.lowerBound) - secondsIntoDay) < abs(b.start.seconds(since: day.lowerBound) - secondsIntoDay)
+    }
+  }
+
+  // MARK: Internal
+
   /// Where a segment starts after dragging it `days` columns over and `seconds` along the day.
   /// Columns are calendar days, so the clock time stays the same across a DST change.
   static func movedStart(_ start: Timestamp, days: Int, seconds: TimeInterval, calendar: Calendar = .current) -> Timestamp {
