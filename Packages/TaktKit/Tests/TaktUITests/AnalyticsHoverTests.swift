@@ -91,7 +91,38 @@ struct AnalyticsHoverTests {
     #expect(text == "9 h 42 min, 10 h 1 h 00 min")
   }
 
+  @Test
+  func heatmapCellShowsWeekdayHoursAndTime() {
+    let label: (Int) -> String = { "\($0):00" }
+    #expect(AnalyticsHover.heatmapCell(weekday: "Tue", hour: 10, seconds: 2700, hourLabel: label) == [
+      "Tue 10:00–11:00",
+      "0:45 h",
+    ])
+    #expect(AnalyticsHover.heatmapCell(weekday: "Tue", hour: 23, seconds: 0, hourLabel: label).first == "Tue 23:00–0:00")
+  }
+
+  @Test
+  func labelSitsAboveTheAnchorAndStaysInside() {
+    let size = CGSize(width: 100, height: 40)
+    let bounds = CGSize(width: 400, height: 240)
+    // Centred above with a gap.
+    #expect(AnalyticsHover.labelCenter(size: size, above: CGRect(x: 200, y: 100, width: 0, height: 0), in: bounds) == CGPoint(
+      x: 200,
+      y: 74,
+    ))
+    // At the left edge it moves right, at the top it goes below.
+    #expect(AnalyticsHover.labelCenter(size: size, above: CGRect(x: 10, y: 20, width: 20, height: 18), in: bounds) == CGPoint(
+      x: 50,
+      y: 64,
+    ))
+    #expect(AnalyticsHover.labelCenter(size: size, above: CGRect(x: 395, y: 100, width: 0, height: 0), in: bounds).x == 350)
+    // With room above the bounds it stays above.
+    #expect(AnalyticsHover.labelCenter(size: size, above: CGRect(x: 200, y: 20, width: 20, height: 18), in: bounds, minY: -40)
+      .y == -6)
+  }
+
   // MARK: Private
 
   private let start = Timestamp(milliseconds: 1_791_331_200_000)
+
 }
