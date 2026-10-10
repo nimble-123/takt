@@ -198,6 +198,27 @@ struct WorkItemSearchModelTests {
   }
 
   @Test
+  func hitsAreOrderedByStateAndRemovedOnesAreLeftOut() async {
+    func hit(_ id: Int, _ state: String) -> WorkItemLink {
+      var link = item(id, "Login \(state)")
+      link.cachedState = state
+      return link
+    }
+    let model = model(FakeWorkItems(remote: [
+      hit(1, "Done"),
+      hit(2, "New"),
+      hit(3, "Removed"),
+      hit(4, "Active"),
+      hit(5, "Testing"),
+      hit(6, "Cancelled"),
+    ]))
+    model.query = "login"
+    await settle(model)
+
+    #expect(model.suggestions.compactMap(\.workItem?.workItemID) == [4, 5, 2, 1])
+  }
+
+  @Test
   func activeTimersKnowTheirWorkItem() async throws {
     let stored = try #require(try await WorkItemCache(database: database).store([item(4821, "Login")]).first)
     let model = model(FakeWorkItems(local: [stored]))
