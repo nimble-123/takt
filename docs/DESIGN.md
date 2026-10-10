@@ -58,7 +58,7 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 | Review | `#7C3AED` | `#A78BFA` | `#EDE9FE` / `#2E2650` |
 | Support | `#DB2777` | `#F472B6` | `#FCE7F3` / `#4A1D35` |
 
-**Work-Item-Typen** (Badge mit Buchstabe): Task `#A16207`, Bug `#B91C1C`, User Story `#0369A1`. Buchstabe (wie das Häkchen auf Farbmustern) weiß oder schwarz, je nachdem, was auf der Fläche mehr Kontrast hat – mindestens 4,5:1, auch mit den Dunkel-Varianten.
+**Work-Item-Typen** (Badge mit Buchstabe, Farben wie in Azure DevOps): Task `#A16207`, Bug `#B91C1C`, User Story/Product Backlog Item `#0369A1`, Feature `#7E22CE` (lila), Epic `#EA580C` (orange), andere `#475569`. Buchstabe (wie das Häkchen auf Farbmustern) weiß oder schwarz, je nachdem, was auf der Fläche mehr Kontrast hat – mindestens 4,5:1, auch mit den Dunkel-Varianten.
 
 ## Typografie
 
