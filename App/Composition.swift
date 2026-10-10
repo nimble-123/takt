@@ -63,6 +63,8 @@ final class Composition {
       },
       actions: actions,
     )
+    menuBar.hasAzureDevOps = { [azureDevOps] in !azureDevOps.connections.isEmpty }
+    menuBar.bookNow = { [booking] id in await booking.book(entry: id) }
     let analyticsSource = AnalyticsSource(database: database)
     let analytics = AnalyticsModel(source: analyticsSource, settings: settings, clock: clock)
     monthClose = MonthCloseModel(source: analyticsSource, analytics: analytics, settings: settings, clock: clock)

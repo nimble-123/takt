@@ -89,9 +89,29 @@ public final class MenuBarModel {
   public struct Toast: Equatable, Identifiable {
     public var id: EntryID
     public var title: String
+    /// The entry's tracked time when it was stopped.
+    public var duration: TimeInterval = 0
 
     /// Reverts exactly this stop, whatever was done after it.
     var undo: TimerUndo
+  }
+
+  /// What a stop needs before it can stop at once (TM-11). A work item only counts with an
+  /// Azure DevOps connection.
+  public enum Requirement: Hashable, CaseIterable {
+    case project
+    case category
+    case workItem
+  }
+
+  /// What the stop panel changes on the entry.
+  public struct StopEdits: Equatable {
+    public var note: String?
+    public var projectID: ProjectID?
+    public var categoryID: CategoryID?
+    public var workItemLinkID: WorkItemLinkID?
+    /// `nil` keeps the tags.
+    public var tags: [String]?
   }
 
   public private(set) var snapshot = TimerSnapshot()
@@ -109,6 +129,12 @@ public final class MenuBarModel {
   @ObservationIgnored public var openMainWindow: (() -> Void)?
   /// Opens the settings in the main window; set by the app.
   @ObservationIgnored public var openSettings: (() -> Void)?
+  /// Whether an Azure DevOps connection exists; a required work item needs one (TM-11).
+  @ObservationIgnored public var hasAzureDevOps: () -> Bool = { false }
+  /// "Book now" in the stop panel; set by the app.
+  @ObservationIgnored public var bookNow: ((EntryID) async -> Void)?
+  /// The entry the stop panel finishes (TM-11); `nil` while it is closed.
+  public var stopPanelEntry: EntryID?
   /// Start and stop, shared with the main window; books after stopping (DO-21).
   @ObservationIgnored public let actions: TimerActions
   /// Increments whenever the popover opens, so the view can focus the search field.
@@ -254,6 +280,7 @@ public final class MenuBarModel {
   public func popoverDidOpen() {
     openCount += 1
     query = ""
+    stopPanelEntry = nil
     postponedIdle = []
     selection = nil
     // ⌘Z reverts what was done in this opening, plus the stop the toast still offers to undo;
@@ -406,10 +433,59 @@ public final class MenuBarModel {
     await perform { try await $0.resume(id, mode: .switchTo).undo }
   }
 
+  /// Required fields `entry` lacks, per the settings.
+  public func missing(for entry: TimeEntry) -> [Requirement] {
+    Requirement.allCases.filter { requirement in
+      switch requirement {
+      case .project: settings.stopRequiresProject && entry.projectID == nil
+      case .category: settings.stopRequiresCategory && entry.categoryID == nil
+      case .workItem: settings.stopRequiresWorkItem && hasAzureDevOps() && entry.workItemLinkID == nil
+      }
+    }
+  }
+
+  /// Stop in the popover: stops at once unless a required field is missing or the panel is asked
+  /// for (⌥-click); then the stop panel opens (TM-11).
+  public func requestStop(_ id: EntryID, panel: Bool = false) async {
+    guard let entry = snapshot.entry(id)?.entry else { return }
+    if panel || !missing(for: entry).isEmpty {
+      stopPanelEntry = id
+    } else {
+      await stop(id)
+    }
+  }
+
+  /// "Finish ⌘↩" in the stop panel: saves the edits on the stored entry, stops it and books it if
+  /// asked. Only the panel's fields change, so a pause in the meantime is kept.
+  public func finish(_ id: EntryID, with edits: StopEdits, bookNow book: Bool) async {
+    do {
+      guard let stored = try await queries.entry(id) else { return }
+      var entry = stored
+      entry.note = edits.note
+      entry.projectID = edits.projectID
+      entry.categoryID = edits.categoryID
+      entry.workItemLinkID = edits.workItemLinkID
+      if entry != stored {
+        entry.updatedAt = clock.now()
+        let edited = entry
+        guard await perform({ try await $0.apply([.entry(before: stored, after: edited)]).undo }) != nil else { return }
+      }
+      if let tags = edits.tags { await catalog.setTags(named: tags, on: [id]) }
+    } catch {
+      show(error)
+      return
+    }
+    stopPanelEntry = nil
+    await stop(id)
+    if book { await bookNow?(id) }
+  }
+
   public func stop(_ id: EntryID) async {
-    let title = snapshot.entry(id)?.entry.title ?? ""
+    let active = snapshot.entry(id)
+    let title = active?.entry.title ?? ""
+    let duration = active?.elapsed(at: clock.now()) ?? 0
     if let undo = await perform({ [actions] _ in try await actions.stop(id) }) {
-      showToast(Toast(id: id, title: title, undo: undo))
+      showToast(Toast(id: id, title: title, duration: duration, undo: undo))
     }
   }
 
@@ -423,7 +499,13 @@ public final class MenuBarModel {
   }
 
   /// Stops every running and paused entry; one ⌘Z brings them all back.
+  /// Stops everything at once, unless an entry lacks a required field: then that entry's stop
+  /// panel opens and nothing is stopped (TM-11).
   public func stopAll() async {
+    if let incomplete = orderedEntries.first(where: { !missing(for: $0.entry).isEmpty }) {
+      stopPanelEntry = incomplete.id
+      return
+    }
     await perform { [actions] _ in try await actions.stopAll() }
   }
 
@@ -501,6 +583,8 @@ public final class MenuBarModel {
   /// The running work item search; tests await it.
   private(set) var searchTask: Task<Void, Never>?
 
+  let workItems: (any WorkItemSource)?
+
   /// The input's tokens matched against the catalog; shown as chips below the search field.
   var tokens: StartTokens {
     StartTokens(input, catalog: catalog)
@@ -536,7 +620,6 @@ public final class MenuBarModel {
   private let engine: TimerEngine
   private let clock: any TaktClock
   private let calendar: Calendar
-  private let workItems: (any WorkItemSource)?
   private let rules: RulesModel?
   private let gitBranches: (@Sendable () async -> [GitBranch])?
   private var suggestionsLoadedAt: Timestamp?

@@ -36,23 +36,21 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:15px;height:15
 <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #1D4ED8">#4821</span> Login-Flow refaktorieren</span>
 <span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums">3:33</span>
 </div>
-<div style="display: flex; height: 8px; gap: 2px">
-<div style="flex: 75; background: #0F766E; border-radius: 2px"></div>
-<div style="flex: 120; background: #0F766E; border-radius: 2px"></div>
-<div style="flex: 25; background: #0F766E; border-radius: 2px"></div>
-</div>
-<div style="font-size: 12px; color: #55555A">3 Segmente heute · 08:30 bis 16:40 · Pausen nicht mitgezählt</div>
 </div>
 <label style="display: flex; flex-direction: column; gap: 4px">
 <span style="font-size: 12px; font-weight: 600; color: #55555A">Notiz</span>
 <textarea rows="2" style="resize: none; border: 1px solid #D9D9DE; border-radius: 8px; padding: 8px 10px; background: #FFFFFF; line-height: 1.4">Token-Refresh ausgelagert, Unit-Tests ergänzt</textarea>
 </label>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Kategorie</span>
-<select style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; padding: 0 6px"><option>Entwicklung</option><option>Meeting</option><option>Review</option><option>Support</option></select></label>
-<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Tags</span>
-<span style="display: flex; align-items: center; gap: 4px; height: 30px; padding: 0 6px; border: 1px solid #D9D9DE; border-radius: 8px; box-sizing: border-box"><span style="padding: 1px 6px; border-radius: 4px; background: #EEEEF1; font-size: 12px">auth</span><span style="color: #6E6E73; font-size: 12px">+ Tag</span></span></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Projekt</span>
+<select style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; padding: 0 6px"><option>Kundenportal</option><option>Plattform</option><option>Intern</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Kategorie <span style="color: #B45309">Pflicht</span></span>
+<select style="height: 30px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF; padding: 0 6px; border-color: #B45309"><option>Keine</option><option>Entwicklung</option><option>Meeting</option><option>Review</option><option>Support</option></select></label>
 </div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Work Item</span>
+<div style="display: flex; align-items: center; gap: 8px"><span style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-size: 11px; color: #1D4ED8">#4821</span> Login-Flow refaktorieren</span><button type="button" style="height: 24px; padding: 0 8px; border: 1px solid #D9D9DE; border-radius: 6px; background: #FFFFFF; font-size: 12px">Verknüpfen …</button></div></div>
+<label style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; font-weight: 600; color: #55555A">Tags</span>
+<span style="display: flex; align-items: center; height: 30px; padding: 0 8px; border: 1px solid #D9D9DE; border-radius: 8px; box-sizing: border-box; font-size: 12px">auth</span></label>
 <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
 <legend style="font-size: 12px; font-weight: 600; color: #55555A; padding: 0 0 4px">Azure DevOps</legend>
 <label style="display: flex; gap: 8px; cursor: pointer"><input type="radio" name="book" checked><span>Im Tagesabschluss buchen</span></label>
@@ -61,7 +59,7 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:15px;height:15
 <div style="display: flex; gap: 8px; align-items: center">
 <button type="button" style="height: 34px; padding: 0 14px; border: 1px solid #D9D9DE; border-radius: 8px; background: #FFFFFF">Abbrechen</button>
 <div style="flex: 1"></div>
-<button type="button" style="height: 34px; padding: 0 16px; border: 0; border-radius: 8px; background: #0F766E; color: #FFFFFF; font-weight: 600; display: flex; align-items: center; gap: 8px">Beenden <span style="font-size: 11px; opacity: 0.85">⌘↩</span></button>
+<button type="button" disabled title="Kategorie fehlt" style="height: 34px; padding: 0 16px; border: 0; border-radius: 8px; background: #0F766E; opacity: 0.45; color: #FFFFFF; font-weight: 600; display: flex; align-items: center; gap: 8px">Beenden <span style="font-size: 11px; opacity: 0.85">⌘↩</span></button>
 </div>
 </div>
 </div>

@@ -121,6 +121,16 @@
         }
       }
     },
+    "%@ stopped · %@ h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ beendet · %2$@ h"
+          }
+        }
+      }
+    },
     "%@ vs. %@": {
       "localizations": {
         "de": {
@@ -871,7 +881,27 @@
         }
       }
     },
+    "Book in the day close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Tagesabschluss buchen"
+          }
+        }
+      }
+    },
     "Book Now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt buchen"
+          }
+        }
+      }
+    },
+    "Book now": {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -1997,6 +2027,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Befunde"
+          }
+        }
+      }
+    },
+    "Finish ⌘↩": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden ⌘↩"
           }
         }
       }
@@ -3681,6 +3721,26 @@
         }
       }
     },
+    "required": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pflicht"
+          }
+        }
+      }
+    },
+    "Required when stopping": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pflicht beim Beenden"
+          }
+        }
+      }
+    },
     "Rest": {
       "localizations": {
         "de": {
@@ -4241,6 +4301,26 @@
         }
       }
     },
+    "Stop timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer beenden"
+          }
+        }
+      }
+    },
+    "Stop · ⌥-click for note, assignment and booking": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beenden · ⌥-Klick für Notiz, Zuordnung und Buchung"
+          }
+        }
+      }
+    },
     "Stop “%@”": {
       "localizations": {
         "de": {
@@ -4257,6 +4337,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gestoppt: %@"
+          }
+        }
+      }
+    },
+    "Stopping an entry without these opens the stop panel first. ⌥-click on stop always opens it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fehlt eine dieser Angaben, öffnet Beenden zuerst das Beenden-Panel. ⌥-Klick auf Stopp öffnet es immer."
           }
         }
       }

@@ -56,6 +56,9 @@ public final class AppSettings {
     flexCarryoverLimitHours = stored.flexCarryoverLimitHours
     monthCloseFolder = stored.monthCloseFolder
     monthCloseAutomatic = stored.monthCloseAutomatic
+    stopRequiresCategory = stored.stopRequiresCategory
+    stopRequiresProject = stored.stopRequiresProject
+    stopRequiresWorkItem = stored.stopRequiresWorkItem
   }
 
   // MARK: Public
@@ -90,6 +93,9 @@ public final class AppSettings {
     case flexCarryoverLimitHours
     case monthCloseFolder
     case monthCloseAutomatic
+    case stopRequiresCategory
+    case stopRequiresProject
+    case stopRequiresWorkItem
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -299,6 +305,21 @@ public final class AppSettings {
     didSet { write(.monthCloseAutomatic, monthCloseAutomatic) }
   }
 
+  /// TM-11: stopping an entry without a category opens the stop panel first.
+  public var stopRequiresCategory: Bool {
+    didSet { write(.stopRequiresCategory, stopRequiresCategory) }
+  }
+
+  /// TM-11: stopping an entry without a project opens the stop panel first.
+  public var stopRequiresProject: Bool {
+    didSet { write(.stopRequiresProject, stopRequiresProject) }
+  }
+
+  /// TM-11: stopping an entry without a work item opens the stop panel first.
+  public var stopRequiresWorkItem: Bool {
+    didSet { write(.stopRequiresWorkItem, stopRequiresWorkItem) }
+  }
+
   /// Readable from any isolation, e.g. from the `@Sendable` closures of the services.
   public nonisolated var snapshot: Snapshot {
     snapshotLock.withLock { $0 }
@@ -460,6 +481,18 @@ public final class AppSettings {
 
     case .monthCloseAutomatic:
       if monthCloseAutomatic != stored.monthCloseAutomatic { monthCloseAutomatic = stored.monthCloseAutomatic }
+
+    case .stopRequiresCategory: if
+      stopRequiresCategory != stored
+        .stopRequiresCategory { stopRequiresCategory = stored.stopRequiresCategory }
+
+    case .stopRequiresProject: if
+      stopRequiresProject != stored
+        .stopRequiresProject { stopRequiresProject = stored.stopRequiresProject }
+
+    case .stopRequiresWorkItem: if
+      stopRequiresWorkItem != stored
+        .stopRequiresWorkItem { stopRequiresWorkItem = stored.stopRequiresWorkItem }
     }
   }
 }
@@ -508,6 +541,9 @@ private struct Stored {
     let folder = defaults.string(forKey: AppSettings.Key.monthCloseFolder.rawValue) ?? ""
     monthCloseFolder = folder.isEmpty ? nil : folder
     monthCloseAutomatic = defaults.bool(forKey: AppSettings.Key.monthCloseAutomatic.rawValue)
+    stopRequiresCategory = defaults.bool(forKey: AppSettings.Key.stopRequiresCategory.rawValue)
+    stopRequiresProject = defaults.bool(forKey: AppSettings.Key.stopRequiresProject.rawValue)
+    stopRequiresWorkItem = defaults.bool(forKey: AppSettings.Key.stopRequiresWorkItem.rawValue)
   }
 
   // MARK: Internal
@@ -541,6 +577,9 @@ private struct Stored {
   let flexCarryoverLimitHours: Double
   let monthCloseFolder: String?
   let monthCloseAutomatic: Bool
+  let stopRequiresCategory: Bool
+  let stopRequiresProject: Bool
+  let stopRequiresWorkItem: Bool
 
   // MARK: Private
 

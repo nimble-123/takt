@@ -79,6 +79,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
           }
         }
+        // `-openStopPanel YES`: the stop panel of the first timer (TM-11).
+        if UserDefaults.standard.bool(forKey: "openStopPanel") {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            composition.menuBar.stopPanelEntry = composition.menuBar.orderedEntries.first?.id
+          }
+        }
       }
     }
     #endif

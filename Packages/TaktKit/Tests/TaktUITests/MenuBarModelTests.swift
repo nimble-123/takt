@@ -368,6 +368,54 @@ extension MenuBarModelTests {
   }
 
   @Test
+  func aMissingRequiredFieldOpensTheStopPanelInsteadOfStopping() async throws {
+    model.settings.stopRequiresCategory = true
+    await model.start(EntryDraft(title: "A"), parallel: false)
+    try await sync()
+    let id = try #require(model.snapshot.running.first?.id)
+
+    await model.requestStop(id)
+    #expect(model.stopPanelEntry == id)
+    #expect(model.snapshot.running.count == 1)
+    await model.stopAll()
+    #expect(model.snapshot.running.count == 1)
+
+    await catalog.seedDefaults()
+    let category = try #require(catalog.activeCategories.first?.id)
+    clock.advance(seconds: 45 * 60)
+    await model.finish(id, with: .init(note: "fertig", categoryID: category), bookNow: false)
+    try await sync()
+
+    #expect(model.stopPanelEntry == nil)
+    #expect(model.snapshot.entries.isEmpty)
+    #expect(model.toast.map { Int($0.duration) } == 45 * 60)
+    let stored = try #require(try await model.queries.entry(id))
+    #expect(stored.categoryID == category)
+    #expect(stored.note == "fertig")
+  }
+
+  @Test
+  func aRequiredWorkItemCountsOnlyWithAnAzureDevOpsConnection() {
+    model.settings.stopRequiresWorkItem = true
+    let entry = TimeEntry(draft: EntryDraft(title: "A"), state: .running, at: clock.now())
+    #expect(model.missing(for: entry).isEmpty)
+    model.hasAzureDevOps = { true }
+    #expect(model.missing(for: entry) == [.workItem])
+  }
+
+  @Test
+  func optionClickOpensThePanelAlthoughNothingIsMissing() async throws {
+    await model.start(EntryDraft(title: "A"), parallel: false)
+    try await sync()
+    let id = try #require(model.snapshot.running.first?.id)
+    await model.requestStop(id, panel: true)
+    #expect(model.stopPanelEntry == id)
+    await model.requestStop(id)
+    try await sync()
+    #expect(model.snapshot.entries.isEmpty)
+  }
+
+  @Test
   func laterHidesTheInactivityUntilThePopoverOpensAgain() async throws {
     await model.start(EntryDraft(title: "A"), parallel: false)
     let start = clock.now().adding(seconds: 600)
