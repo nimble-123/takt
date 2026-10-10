@@ -33,6 +33,7 @@ jobs:
             ado
             analytics
             calendar
+            cli
             app
             release
             deps

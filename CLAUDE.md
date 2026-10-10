@@ -50,7 +50,7 @@ Ohne macOS bzw. ohne Swift-Toolchain (z. B. in einer Linux-Sandbox) können die 
 - Stil nach dem Airbnb Swift Style Guide, durchgesetzt von `scripts/format.sh` (Konfiguration in `BuildTools/`). Ausnahmen nur mit `// swiftlint:disable:next <regel>` und Begründung in der Zeile davor. Passende Xcode-Einstellungen (Einrückung, Zeilenlänge) optional per [`xcode_settings.bash`](https://github.com/airbnb/swift/blob/master/resources/xcode_settings.bash).
 - Commits und PR-Titel nach Conventional Commits; der PR-Titel wird geprüft und wird per Squash-Merge zur Commit-Nachricht.
   - Typen: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`
-  - Scopes: `core`, `store`, `ui`, `system`, `ado`, `analytics`, `calendar`, `app`, `release`, `deps`, `site`
+  - Scopes: `core`, `store`, `ui`, `system`, `ado`, `analytics`, `calendar`, `cli`, `app`, `release`, `deps`, `site`
   - Beispiel: `feat(core): add split allocation with weights (TM-04)`
 - Anforderungs-IDs aus dem PRD in PR-Beschreibung und, wo sinnvoll, im Commit-Titel nennen.
 - Branches: `feat/<issue>-<kurzname>`, `fix/<issue>-<kurzname>`. Kleine PRs, ein Thema pro PR.
