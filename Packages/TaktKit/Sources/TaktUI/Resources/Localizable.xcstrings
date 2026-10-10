@@ -301,6 +301,16 @@
         }
       }
     },
+    "+ Segment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Segment"
+          }
+        }
+      }
+    },
     "0 = no limit. Hours above it forfeit at the year change.": {
       "localizations": {
         "de": {
@@ -397,6 +407,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ordner hinzufügen …"
+          }
+        }
+      }
+    },
+    "Add Segment": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segment hinzufügen"
           }
         }
       }
@@ -891,12 +911,22 @@
         }
       }
     },
-    "Booked: %@ h · changes are booked as a difference": {
+    "Booked: %@ · changes are booked as a difference": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gebucht: %@ h · Änderungen werden als Differenz nachgebucht"
+            "value": "Gebucht: %@ · Änderungen werden als Differenz gebucht"
+          }
+        }
+      }
+    },
+    "Booked: %@. Now %@; the difference of %@ is booked in the next day close.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits gebucht: %1$@. Nach der Änderung sind es %2$@; die Differenz von %3$@ wird im nächsten Tagesabschluss nachgebucht."
           }
         }
       }
@@ -2821,6 +2851,16 @@
         }
       }
     },
+    "Not booked yet: %@ in the next day close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch nicht gebucht: %@ im nächsten Tagesabschluss"
+          }
+        }
+      }
+    },
     "Not chosen": {
       "localizations": {
         "de": {
@@ -3101,6 +3141,16 @@
         }
       }
     },
+    "Parallel to %@, %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallel zu %1$@, %2$@"
+          }
+        }
+      }
+    },
     "Parent: #%@": {
       "localizations": {
         "de": {
@@ -3127,6 +3177,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pause %@"
+          }
+        }
+      }
+    },
+    "Pause %@ · from inactivity": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause %@ · aus Inaktivität"
           }
         }
       }
