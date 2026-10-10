@@ -10,6 +10,22 @@
       "x": 1360,
       "y": 1060
     },
+    "Catalog.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Projekte",
+      "w": 1280,
+      "x": 0,
+      "y": 2900
+    },
+    "DayClose.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Tagesabschluss",
+      "w": 1280,
+      "x": 0,
+      "y": 1980
+    },
     "Edit.dc.html": {
       "expand": "fill",
       "h": 800,
@@ -17,6 +33,14 @@
       "w": 1280,
       "x": 2720,
       "y": 1060
+    },
+    "Entries.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Einträge (Mehrfachauswahl)",
+      "w": 1280,
+      "x": 2960,
+      "y": 1501
     },
     "Idle.dc.html": {
       "h": 640,
@@ -53,6 +77,14 @@
       "x": 0,
       "y": 5640
     },
+    "Palette.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Befehlspalette ⌘K",
+      "w": 1280,
+      "x": 4080,
+      "y": 1980
+    },
     "Search.dc.html": {
       "h": 640,
       "title": "Suche & ADO-Vorschau",
@@ -66,6 +98,22 @@
       "w": 420,
       "x": 2040,
       "y": 0
+    },
+    "SearchResults.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Suchergebnisse",
+      "w": 1280,
+      "x": 2720,
+      "y": 2900
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Hauptfenster · Einstellungen (MDM)",
+      "w": 1280,
+      "x": 1360,
+      "y": 2900
     },
     "Stop.dc.html": {
       "h": 640,
@@ -90,14 +138,6 @@
       "x": 500,
       "y": 4120
     },
-    "DayClose.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Hauptfenster · Tagesabschluss",
-      "w": 1280,
-      "x": 0,
-      "y": 1980
-    },
     "Week.dc.html": {
       "expand": "fill",
       "h": 800,
@@ -106,45 +146,12 @@
       "x": 1360,
       "y": 1980
     },
-    "Entries.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Hauptfenster · Einträge (Mehrfachauswahl)",
-      "w": 1280,
-      "x": 2720,
-      "y": 1980
-    },
-    "Palette.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Befehlspalette ⌘K",
-      "w": 1280,
+    "OvertimePayout.dc.html": {
+      "h": 420,
+      "title": "Analysen · Überstunden vergüten (AZ-07)",
+      "w": 760,
       "x": 4080,
-      "y": 1980
-    },
-    "Catalog.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Hauptfenster · Projekte",
-      "w": 1280,
-      "x": 0,
-      "y": 2900
-    },
-    "Settings.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Hauptfenster · Einstellungen (MDM)",
-      "w": 1280,
-      "x": 1360,
-      "y": 2900
-    },
-    "SearchResults.dc.html": {
-      "expand": "fill",
-      "h": 800,
-      "title": "Hauptfenster · Suchergebnisse",
-      "w": 1280,
-      "x": 2720,
-      "y": 2900
+      "y": 1060
     }
   },
   "createdOnFiles": {
@@ -156,6 +163,18 @@
     "view": "canvas"
   },
   "notes": {
+    "note-menubar": {
+      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen und Regeltermin gehören zu Phase 3 (#14) und sind noch nicht gebaut.",
+      "w": 340,
+      "x": 3040,
+      "y": 0
+    },
+    "note-window": {
+      "text": "Stand: App v0.4.x, abgeglichen in #92.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nEntworfen, aber noch nicht gebaut: #101.\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md).",
+      "w": 360,
+      "x": 5440,
+      "y": 1060
+    },
     "row-dark": {
       "kind": "title1",
       "maxW": 1780,
@@ -187,18 +206,6 @@
       "w": 240,
       "x": 0,
       "y": 760
-    },
-    "note-menubar": {
-      "x": 3040,
-      "y": 0,
-      "w": 340,
-      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen und Regeltermin gehören zu Phase 3 (#14) und sind noch nicht gebaut."
-    },
-    "note-window": {
-      "x": 5440,
-      "y": 1060,
-      "w": 360,
-      "text": "Stand: App v0.4.x, abgeglichen in #92.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nEntworfen, aber noch nicht gebaut: #101.\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md)."
     }
   },
   "order": [
@@ -210,6 +217,7 @@
     "MeetingStart.dc.html",
     "Today.dc.html",
     "Analytics.dc.html",
+    "OvertimePayout.dc.html",
     "Edit.dc.html",
     "DayClose.dc.html",
     "Week.dc.html",

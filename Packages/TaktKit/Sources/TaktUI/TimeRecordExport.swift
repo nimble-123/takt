@@ -198,6 +198,8 @@ private struct DayTable: View {
           Text("Target", bundle: .module).gridColumnAlignment(.trailing)
           Text("Balance", bundle: .module).gridColumnAlignment(.trailing)
           Text("Flex account", bundle: .module).gridColumnAlignment(.trailing)
+          Text("Overtime", bundle: .module).gridColumnAlignment(.trailing)
+          Text("Paid out", bundle: .module).gridColumnAlignment(.trailing)
         }
         Text("Findings", bundle: .module)
         Text("Corr.", bundle: .module)
@@ -217,6 +219,8 @@ private struct DayTable: View {
             Text(TimeRecord.duration(row.target)).monospacedDigit()
             Text(TimeRecord.duration(row.balance)).monospacedDigit()
             Text(TimeRecord.duration(row.cumulative)).monospacedDigit()
+            Text(row.overtime == 0 ? "" : TimeRecord.duration(row.overtime)).monospacedDigit()
+            Text(TimeRecord.duration(row.paidOut)).monospacedDigit()
           }
           Text(row.findings.map(\.rule.shortName).joined(separator: ", ")).lineLimit(1)
           Text(row.corrected ? "✓" : "")
@@ -252,6 +256,13 @@ private struct TotalsView: View {
         )
         ForEach(WorkTimeFinding.Rule.allCases, id: \.self) { rule in
           line(rule.shortName, String(totals.findings[rule] ?? 0))
+        }
+        // AZ-07: overtime and payouts per quarter, flex time only.
+        ForEach(totals.quarters, id: \.quarter) { quarter in
+          line(
+            String(localized: "Overtime \(quarter.quarter) / paid out", bundle: .module),
+            "\(TimeRecord.duration(quarter.overtime)) / \(TimeRecord.duration(quarter.paidOut))",
+          )
         }
         if let vacation = export.record.vacation {
           line(String(localized: "Vacation days in the period", bundle: .module), String(vacation.days))

@@ -52,6 +52,7 @@ public final class AppSettings {
     flexStartDay = stored.flexStartDay
     vacationDaysPerYear = stored.vacationDaysPerYear
     vacationCarryoverDays = stored.vacationCarryoverDays
+    overtimeQuarterQuotaHours = stored.overtimeQuarterQuotaHours
   }
 
   // MARK: Public
@@ -82,6 +83,7 @@ public final class AppSettings {
     case flexStartDay
     case vacationDaysPerYear
     case vacationCarryoverDays
+    case overtimeQuarterQuotaHours
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -127,6 +129,7 @@ public final class AppSettings {
   public static let flexStartBalanceRange: ClosedRange<Double> = -999...999
   public static let vacationDaysRange = 0...60
   public static let vacationCarryoverRange = 0...99
+  public static let overtimeQuotaRange: ClosedRange<Double> = 0...999
 
   /// Enter starts with this mode; ⌥↩ with the other (TM-05).
   public var startMode: TimerEngine.StartMode {
@@ -243,6 +246,15 @@ public final class AppSettings {
   /// AZ-06: vacation days left from the year before the account starts; later years are computed.
   public var vacationCarryoverDays: Int {
     didSet { write(.vacationCarryoverDays, vacationCarryoverDays) }
+  }
+
+  /// AZ-07: hours of overtime that may be paid out per quarter; 0 = no quota.
+  public var overtimeQuarterQuotaHours: Double {
+    didSet {
+      let hours = Self.hours(overtimeQuarterQuotaHours, in: Self.overtimeQuotaRange)
+      if hours != overtimeQuarterQuotaHours, !isLocked(.overtimeQuarterQuotaHours) { overtimeQuarterQuotaHours = hours }
+      write(.overtimeQuarterQuotaHours, overtimeQuarterQuotaHours)
+    }
   }
 
   /// Folders whose Git repositories suggest work items by branch name.
@@ -401,6 +413,11 @@ public final class AppSettings {
 
     case .vacationCarryoverDays:
       if vacationCarryoverDays != stored.vacationCarryoverDays { vacationCarryoverDays = stored.vacationCarryoverDays }
+
+    case .overtimeQuarterQuotaHours:
+      if overtimeQuarterQuotaHours != stored.overtimeQuarterQuotaHours {
+        overtimeQuarterQuotaHours = stored.overtimeQuarterQuotaHours
+      }
     }
   }
 }
@@ -443,6 +460,7 @@ private struct Stored {
     let vacationDays = defaults.object(forKey: AppSettings.Key.vacationDaysPerYear.rawValue) as? Int ?? 30
     vacationDaysPerYear = max(0, vacationDays)
     vacationCarryoverDays = defaults.integer(forKey: AppSettings.Key.vacationCarryoverDays.rawValue)
+    overtimeQuarterQuotaHours = max(0, defaults.double(forKey: AppSettings.Key.overtimeQuarterQuotaHours.rawValue))
   }
 
   // MARK: Internal
@@ -472,6 +490,7 @@ private struct Stored {
   let flexStartDay: String?
   let vacationDaysPerYear: Int
   let vacationCarryoverDays: Int
+  let overtimeQuarterQuotaHours: Double
 
   // MARK: Private
 

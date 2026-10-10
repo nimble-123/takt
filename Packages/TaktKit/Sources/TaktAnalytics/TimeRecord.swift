@@ -33,6 +33,18 @@ public struct TimeRecord: Hashable, Sendable {
     public var target: TimeInterval?
     public var balance: TimeInterval?
     public var cumulative: TimeInterval?
+    /// Flex time only, and only up to today: net beyond the target (AZ-07), and the payouts of the
+    /// day if there are any.
+    public var overtime: TimeInterval?
+    public var paidOut: TimeInterval?
+  }
+
+  /// AZ-07: overtime and payouts of the days of a calendar quarter within the period.
+  public struct QuarterTotal: Hashable, Sendable {
+    /// E.g. `2026-Q4`.
+    public var quarter: String
+    public var overtime: TimeInterval
+    public var paidOut: TimeInterval
   }
 
   public struct Totals: Hashable, Sendable {
@@ -42,6 +54,8 @@ public struct TimeRecord: Hashable, Sendable {
     /// Net time of days that begin on a Sunday or public holiday.
     public var sundayOrHoliday: TimeInterval
     public var findings: [WorkTimeFinding.Rule: Int]
+    /// Flex time only, oldest first.
+    public var quarters: [QuarterTotal]
   }
 
   /// AZ-06: vacation days in the period and the vacation account as of its last day.
@@ -71,6 +85,7 @@ public struct TimeRecord: Hashable, Sendable {
   ///   - changes: change records whose old or new times lie in the period.
   ///   - flex: the plan, the flex account's balance at the start of `range` and the account's start
   ///     day (days before it get no balance); `nil` for trust-based working time.
+  ///   - payouts: overtime payouts (AZ-07); they reduce the flex account on their day.
   ///   - vacation: vacation days in `range` and the vacation account as of its last day (AZ-06).
   public static func make(
     range: Range<Timestamp>,
@@ -80,6 +95,7 @@ public struct TimeRecord: Hashable, Sendable {
     absences: [String: AbsenceKind],
     federalState: FederalState?,
     flex: (plan: TargetPlan, openingBalance: TimeInterval, startDay: Timestamp)?,
+    payouts: [OvertimePayout] = [],
     vacation: Vacation? = nil,
     now: Timestamp,
     calendar: Calendar,
@@ -87,6 +103,7 @@ public struct TimeRecord: Hashable, Sendable {
     let checksByDay = Dictionary(checks.map { ($0.day.day, $0) }) { $1 }
     let correctedDays = correctedDays(segments: segments, changes: changes, checks: checks, calendar: calendar)
     let today = now.localDay(in: calendar).lowerBound
+    let paidByDay = payouts.reduce(into: [String: TimeInterval]()) { $0[$1.day, default: 0] += $1.seconds }
     var cumulative = flex?.openingBalance ?? 0
     var rows = [Row]()
     var day = range.lowerBound.localDay(in: calendar).lowerBound
@@ -109,10 +126,13 @@ public struct TimeRecord: Hashable, Sendable {
       )
       if let flex, day <= today, day >= flex.startDay {
         let target = flex.plan.target(on: day, calendar: calendar)
-        cumulative += row.net - target
+        let paid = paidByDay[date] ?? 0
+        cumulative += row.net - target - paid
         row.target = target
         row.balance = row.net - target
         row.cumulative = cumulative
+        row.overtime = max(0, row.net - target)
+        row.paidOut = paid > 0 ? paid : nil
       }
       rows.append(row)
       guard let next = calendar.date(byAdding: .day, value: 1, to: day.date) else { break }
@@ -124,6 +144,7 @@ public struct TimeRecord: Hashable, Sendable {
       beyondEightHours: rows.reduce(0) { $0 + max(0, $1.net - 8 * 3600) },
       sundayOrHoliday: rows.filter { $0.weekday == 7 || $0.holiday != nil }.reduce(0) { $0 + $1.net },
       findings: findings,
+      quarters: quarters(rows, calendar: calendar),
     )
     return TimeRecord(
       range: range,
@@ -163,6 +184,8 @@ public struct TimeRecord: Hashable, Sendable {
       "target",
       "balance",
       "flex_account",
+      "overtime",
+      "paid_out",
       "findings",
       "corrected",
     ]]
@@ -180,6 +203,8 @@ public struct TimeRecord: Hashable, Sendable {
         Self.duration(row.target),
         Self.duration(row.balance),
         Self.duration(row.cumulative),
+        Self.duration(row.overtime),
+        Self.duration(row.paidOut),
         row.findings.map(\.rule.rawValue).joined(separator: " "),
         row.corrected ? "yes" : "",
       ]
@@ -191,6 +216,10 @@ public struct TimeRecord: Hashable, Sendable {
     lines.append(["total_sunday_or_holiday", Self.duration(totals.sundayOrHoliday)])
     for rule in WorkTimeFinding.Rule.allCases {
       lines.append(["findings_\(rule.rawValue)", String(totals.findings[rule] ?? 0)])
+    }
+    for quarter in totals.quarters {
+      lines.append(["overtime_\(quarter.quarter)", Self.duration(quarter.overtime)])
+      lines.append(["paid_out_\(quarter.quarter)", Self.duration(quarter.paidOut)])
     }
     if let vacation {
       lines.append(["vacation_days", String(vacation.days)])
@@ -257,6 +286,19 @@ public struct TimeRecord: Hashable, Sendable {
   }
 
   // MARK: Private
+
+  /// Overtime and payouts per calendar quarter of the rows that have them.
+  private static func quarters(_ rows: [Row], calendar: Calendar) -> [QuarterTotal] {
+    var totals = [QuarterTotal]()
+    for row in rows where row.overtime != nil || row.paidOut != nil {
+      let parts = calendar.dateComponents([.year, .month], from: row.day.date)
+      let quarter = "\(parts.year ?? 0)-Q\(((parts.month ?? 1) - 1) / 3 + 1)"
+      if totals.last?.quarter != quarter { totals.append(QuarterTotal(quarter: quarter, overtime: 0, paidOut: 0)) }
+      totals[totals.count - 1].overtime += row.overtime ?? 0
+      totals[totals.count - 1].paidOut += row.paidOut ?? 0
+    }
+    return totals
+  }
 
   private static func milliseconds(_ timestamp: Timestamp?) -> String {
     timestamp.map { String($0.milliseconds) } ?? "-"

@@ -221,6 +221,16 @@
         }
       }
     },
+    "0 = no quota. Exceeding it only shows a hint.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0 = kein Kontingent. Überschreiten zeigt nur einen Hinweis."
+          }
+        }
+      }
+    },
     "> 10 h": {
       "localizations": {
         "de": {
@@ -1591,6 +1601,16 @@
         }
       }
     },
+    "Exceeds the quarterly quota by %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überschreitet das Quartalskontingent um %@."
+          }
+        }
+      }
+    },
     "Expires on": {
       "localizations": {
         "de": {
@@ -2391,6 +2411,16 @@
         }
       }
     },
+    "No overtime paid out.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Überstunden vergütet."
+          }
+        }
+      }
+    },
     "No Selection": {
       "localizations": {
         "de": {
@@ -2487,6 +2517,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Notiz"
+          }
+        }
+      }
+    },
+    "Note (optional)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notiz (optional)"
           }
         }
       }
@@ -2631,12 +2671,72 @@
         }
       }
     },
+    "Overtime": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden"
+          }
+        }
+      }
+    },
+    "Overtime %@ / paid out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden %@ / vergütet"
+          }
+        }
+      }
+    },
+    "Overtime paid out per quarter at most": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Höchstens vergütete Überstunden pro Quartal"
+          }
+        }
+      }
+    },
     "Page %lld of %lld": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Seite %1$lld von %2$lld"
+          }
+        }
+      }
+    },
+    "Paid out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergütet"
+          }
+        }
+      }
+    },
+    "Paid out this quarter: %@ of %@ · %@ left": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Quartal vergütet: %1$@ von %2$@ · noch %3$@"
+          }
+        }
+      }
+    },
+    "Paid out this quarter: %@ of %@ · %@ over": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In diesem Quartal vergütet: %1$@ von %2$@ · %3$@ darüber"
           }
         }
       }
@@ -2747,6 +2847,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pausen"
+          }
+        }
+      }
+    },
+    "Pay Out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergüten"
+          }
+        }
+      }
+    },
+    "Pay Out Overtime": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden vergüten"
+          }
+        }
+      }
+    },
+    "Pay Out Overtime …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Überstunden vergüten …"
           }
         }
       }
@@ -3077,6 +3207,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verknüpfung entfernen"
+          }
+        }
+      }
+    },
+    "Remove Payout": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergütung entfernen"
           }
         }
       }
@@ -3541,6 +3681,16 @@
         }
       }
     },
+    "Start balance plus net working time minus target and payouts, from the start day through today. Vacation, sick days, days off and public holidays have no target. Click for payouts.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startsaldo plus Netto-Arbeitszeit minus Soll und Vergütungen, vom Stichtag bis heute. Urlaub, Krankheit, freie Tage und Feiertage haben kein Soll. Klicken für Vergütungen."
+          }
+        }
+      }
+    },
     "Start Timer": {
       "localizations": {
         "de": {
@@ -3557,16 +3707,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Timer „%@“ starten"
-          }
-        }
-      }
-    },
-    "Start balance plus net working time minus target, from the start day through today. Vacation, sick days, days off and public holidays have no target.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Startsaldo plus Netto-Arbeitszeit minus Soll, vom Stichtag bis heute. Urlaub, Krankheit, freie Tage und Feiertage haben kein Soll."
           }
         }
       }
@@ -3951,12 +4091,42 @@
         }
       }
     },
+    "The flex account goes negative: −%@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Flexkonto wird negativ: −%@."
+          }
+        }
+      }
+    },
     "The organization was not found.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
             "value": "Die Organisation wurde nicht gefunden."
+          }
+        }
+      }
+    },
+    "The payout could not be removed.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Vergütung konnte nicht entfernt werden."
+          }
+        }
+      }
+    },
+    "The payout could not be saved.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Vergütung konnte nicht gespeichert werden."
           }
         }
       }

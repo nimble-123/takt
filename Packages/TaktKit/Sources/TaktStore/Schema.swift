@@ -200,4 +200,21 @@ enum Schema {
         """
     )
   }
+
+  /// Overtime paid out (AZ-07); `deleted_at` keeps removed ones traceable.
+  static func v9(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE overtime_payout (
+          id TEXT PRIMARY KEY,
+          day TEXT NOT NULL,
+          seconds INTEGER NOT NULL CHECK (seconds > 0),
+          note TEXT,
+          created_at INTEGER NOT NULL,
+          deleted_at INTEGER
+        );
+        CREATE INDEX overtime_payout_day ON overtime_payout(day);
+        """
+    )
+  }
 }

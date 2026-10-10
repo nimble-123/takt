@@ -97,6 +97,8 @@ public final class CommandPaletteModel {
   @ObservationIgnored var export: ((AnalyticsModel.ExportFormat) -> Void)?
   /// AZ-09: `true` for CSV, `false` for PDF.
   @ObservationIgnored var exportTimeRecord: ((Bool) -> Void)?
+  /// AZ-07: opens the payout sheet.
+  @ObservationIgnored var payOutOvertime: (() -> Void)?
 
   /// Loads the search hits; tests await it.
   @ObservationIgnored private(set) var hitTask: Task<Void, Never>?
@@ -216,6 +218,16 @@ public final class CommandPaletteModel {
           symbol: "tablecells",
           keywords: ["export", "arbeitszeitnachweis", "nachweis", "arbzg"],
         ) { [weak self] in self?.exportTimeRecord?(true) }
+      )
+    }
+    if window.analytics?.showsTarget == true {
+      items.append(
+        PaletteItem(
+          id: "pay-out-overtime",
+          title: String(localized: "Pay Out Overtime …", bundle: .module),
+          symbol: "banknote",
+          keywords: ["overtime", "überstunden", "vergüten", "auszahlen", "flexkonto"],
+        ) { [weak self] in self?.payOutOvertime?() }
       )
     }
     if let booking = window.booking {

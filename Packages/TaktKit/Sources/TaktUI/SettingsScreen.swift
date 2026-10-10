@@ -110,6 +110,13 @@ struct SettingsScreen: View {
             displayedComponents: .date,
           )
           .managed(settings.isLocked(.flexStartDay))
+          HoursField(
+            title: String(localized: "Overtime paid out per quarter at most", bundle: .module),
+            value: $settings.overtimeQuarterQuotaHours,
+            range: AppSettings.overtimeQuotaRange,
+          )
+          .managed(settings.isLocked(.overtimeQuarterQuotaHours))
+          .help(String(localized: "0 = no quota. Exceeding it only shows a hint.", bundle: .module))
         }
         Stepper(value: $settings.vacationDaysPerYear, in: AppSettings.vacationDaysRange) {
           LabeledContent(String(localized: "Vacation days per year", bundle: .module)) {

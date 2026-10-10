@@ -300,3 +300,73 @@ extension AnalyticsModelTests {
     }
   }
 }
+
+// MARK: - Overtime payouts (AZ-07)
+
+extension AnalyticsModelTests {
+
+  // MARK: Internal
+
+  @Test
+  func payoutsReduceTheFlexAccountWithHintsOnQuotaAndBalance() async throws {
+    settings.flexStartDay = "2026-10-05"
+    settings.flexStartBalanceHours = 30
+    settings.overtimeQuarterQuotaHours = 1
+    try await track("A", hours: 1)
+    await model.reload()
+    // 30 h + 1 h − 3 × 8 h.
+    #expect(model.flexBalance == TimeInterval(7 * 3600))
+    #expect(model.payoutHints(hours: 2, on: clock.now().date) == [.exceedsQuota(by: 3600)])
+
+    await model.payOut(hours: 2, on: clock.now().date, note: " ")
+    #expect(model.flexBalance == TimeInterval(5 * 3600))
+    #expect(model.payouts.map(\.seconds) == [7200])
+    #expect(model.payouts.first?.note == nil)
+    #expect(model.overtimeQuota?.remaining == -3600)
+    #expect(model.payoutHints(hours: 6, on: clock.now().date) == [.exceedsQuota(by: 7 * 3600), .negativeBalance(-3600)])
+    // A payout in the next quarter counts against that quarter's quota.
+    #expect(model.payoutHints(hours: 1, on: try date(2027, 1, 4)) == [])
+
+    try await model.removePayout(#require(model.payouts.first).id)
+    #expect(model.flexBalance == TimeInterval(7 * 3600))
+    #expect(model.payouts.isEmpty)
+  }
+
+  @Test
+  func withoutAQuotaPayoutsAreUnlimited() async throws {
+    settings.flexStartBalanceHours = 100
+    try await track("A", hours: 1)
+    await model.reload()
+
+    #expect(model.overtimeQuota == nil)
+    #expect(model.payoutHints(hours: 50, on: clock.now().date).isEmpty)
+  }
+
+  @Test
+  func timeRecordShowsOvertimeAndPayouts() async throws {
+    settings.flexStartDay = "2026-10-05"
+    try await track("A", hours: 9)
+    await model.payOut(hours: 3, on: try date(2026, 10, 6), note: "")
+    model.period = .week
+    await model.reload()
+
+    let record = try await model.timeRecord()
+
+    let tuesday = try #require(record.rows.first { $0.date == "2026-10-06" })
+    let wednesday = try #require(record.rows.first { $0.date == "2026-10-07" })
+    #expect(tuesday.paidOut == TimeInterval(3 * 3600))
+    #expect(tuesday.cumulative == TimeInterval(-19 * 3600))
+    #expect(wednesday.overtime == 3600)
+    #expect(wednesday.cumulative == TimeInterval(-18 * 3600))
+    #expect(record.totals.quarters.map(\.quarter) == ["2026-Q4"])
+    #expect(record.totals.quarters.first?.overtime == 3600)
+    #expect(record.totals.quarters.first?.paidOut == TimeInterval(3 * 3600))
+    #expect(record.csv(calendar: calendar).contains("overtime_2026-Q4,1:00\r\npaid_out_2026-Q4,3:00\r\n"))
+  }
+
+  // MARK: Private
+
+  private func date(_ year: Int, _ month: Int, _ day: Int) throws -> Date {
+    try #require(calendar.date(from: DateComponents(year: year, month: month, day: day)))
+  }
+}

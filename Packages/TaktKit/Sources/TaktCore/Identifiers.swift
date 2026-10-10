@@ -163,3 +163,13 @@ public struct SegmentChangeID: UUIDIdentifier {
 
   public let rawValue: UUID
 }
+
+// MARK: - OvertimePayoutID
+
+public struct OvertimePayoutID: UUIDIdentifier {
+  public init(rawValue: UUID) {
+    self.rawValue = rawValue
+  }
+
+  public let rawValue: UUID
+}

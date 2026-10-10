@@ -91,7 +91,7 @@ struct TimeRecordTests {
     let csv = try week().csv(calendar: calendar)
     let lines = csv.components(separatedBy: "\r\n")
     #expect(lines[0].hasPrefix("date,weekday,holiday,absence,start,end,break,net,rest_before"))
-    #expect(lines[1] == "2026-09-28,1,,,08:00,17:00,0:30,8:30,,8:00,0:30,2:30,dailyEightHours,yes")
+    #expect(lines[1] == "2026-09-28,1,,,08:00,17:00,0:30,8:30,,8:00,0:30,2:30,0:30,,dailyEightHours,yes")
     #expect(csv.contains("total_net,19:30"))
     #expect(csv.contains("changed,"))
   }
