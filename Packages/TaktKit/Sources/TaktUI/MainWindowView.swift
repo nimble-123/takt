@@ -250,7 +250,7 @@ private struct SearchField: ViewModifier {
       content.searchable(
         text: $model.searchText,
         placement: .toolbar,
-        prompt: Text("Entries, notes, projects, work items", bundle: .module),
+        prompt: Text("Entries, projects, work items", bundle: .module),
       )
     } else {
       content
