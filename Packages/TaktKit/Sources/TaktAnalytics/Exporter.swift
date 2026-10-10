@@ -23,6 +23,60 @@ public enum Exporter {
     public var roundedHours: Double
   }
 
+  /// Sheet names and column titles of the Excel export; the app passes them from its String
+  /// Catalog.
+  public struct SpreadsheetLabels: Hashable, Sendable {
+
+    // MARK: Lifecycle
+
+    public init(
+      entriesSheet: String = "Entries",
+      totalsSheet: String = "Totals",
+      entryColumns: [String] = [
+        "Date",
+        "Title",
+        "Project",
+        "Task",
+        "Category",
+        "Tags",
+        "Work item",
+        "Note",
+        "Counting",
+        "Seconds",
+        "Hours",
+        "Rounded hours",
+      ],
+      totalColumns: [String] = ["Kind", "Name", "Hours", "Rounded hours", "Share"],
+      project: String = "Project",
+      category: String = "Category",
+      total: String = "Total",
+      none: String = "(none)",
+    ) {
+      self.entriesSheet = entriesSheet
+      self.totalsSheet = totalsSheet
+      self.entryColumns = entryColumns
+      self.totalColumns = totalColumns
+      self.project = project
+      self.category = category
+      self.total = total
+      self.none = none
+    }
+
+    // MARK: Public
+
+    public var entriesSheet: String
+    public var totalsSheet: String
+    /// Twelve titles, in the order of the CSV columns.
+    public var entryColumns: [String]
+    /// Kind, name, hours, rounded hours, share.
+    public var totalColumns: [String]
+    public var project: String
+    public var category: String
+    public var total: String
+    /// Name of the group without project or category.
+    public var none: String
+  }
+
   public static func rows(
     _ report: Report,
     _ data: AnalyticsData,
@@ -107,6 +161,37 @@ public enum Exporter {
     )
   }
 
+  /// AN-08: the CSV rows as typed cells on the sheet "Entries", and their sums per project and per
+  /// category on "Totals". Text stays text, so nothing needs defusing as in the CSV.
+  public static func xlsx(_ rows: [Row], labels: SpreadsheetLabels = SpreadsheetLabels()) -> Data {
+    let entries = rows.map { row -> [XLSXWriter.Cell] in
+      [
+        .day(row.date),
+        .text(row.title),
+        text(row.project),
+        text(row.task),
+        text(row.category),
+        text(row.tags.isEmpty ? nil : row.tags.joined(separator: "; ")),
+        row.workItem.map { .number(Double($0), .integer) } ?? .empty,
+        text(row.note),
+        .text(row.countingMode),
+        .number(row.seconds, .integer),
+        .number(row.hours, .decimal),
+        .number(row.roundedHours, .decimal),
+      ]
+    }
+    let total = rows.reduce(0.0) { $0 + $1.hours }
+    let roundedTotal = rows.reduce(0.0) { $0 + $1.roundedHours }
+    let totals =
+      sums(rows, kind: labels.project, none: labels.none, by: \.project, total: total)
+        + sums(rows, kind: labels.category, none: labels.none, by: \.category, total: total)
+        + [[.text(labels.total), .empty, .number(round4(total), .decimal), .number(round4(roundedTotal), .decimal)]]
+    return XLSXWriter.workbook([
+      XLSXWriter.Sheet(name: labels.entriesSheet, header: labels.entryColumns, rows: entries),
+      XLSXWriter.Sheet(name: labels.totalsSheet, header: labels.totalColumns, rows: totals),
+    ])
+  }
+
   /// `YYYY-MM-DD` of the local day.
   public static func dayString(_ timestamp: Timestamp, calendar: Calendar) -> String {
     timestamp.localDayString(in: calendar)
@@ -130,6 +215,46 @@ public enum Exporter {
 
   private static func hours(_ seconds: TimeInterval) -> Double {
     (seconds / 3600 * 10_000).rounded() / 10_000
+  }
+
+  private static func text(_ value: String?) -> XLSXWriter.Cell {
+    value.map { .text($0) } ?? .empty
+  }
+
+  private static func round4(_ value: Double) -> Double {
+    (value * 10_000).rounded() / 10_000
+  }
+
+  /// One row per group, most hours first, equal hours by name.
+  private static func sums(
+    _ rows: [Row],
+    kind: String,
+    none: String,
+    by key: KeyPath<Row, String?>,
+    total: Double,
+  ) -> [[XLSXWriter.Cell]] {
+    struct Group {
+      var name: String
+      var hours: Double
+      var rounded: Double
+    }
+    let byName = Dictionary(grouping: rows) { (row: Row) -> String in row[keyPath: key] ?? none }
+    let groups = byName
+      .map { (name: String, rows: [Row]) -> Group in
+        let hours = rows.reduce(0.0) { $0 + $1.hours }
+        let rounded = rows.reduce(0.0) { $0 + $1.roundedHours }
+        return Group(name: name, hours: round4(hours), rounded: round4(rounded))
+      }
+      .sorted { $0.hours != $1.hours ? $0.hours > $1.hours : $0.name < $1.name }
+    return groups.map { group -> [XLSXWriter.Cell] in
+      [
+        .text(kind),
+        .text(group.name),
+        .number(group.hours, .decimal),
+        .number(group.rounded, .decimal),
+        .number(total > 0 ? group.hours / total : 0, .percent),
+      ]
+    }
   }
 
   private static func format(_ value: Double) -> String {

@@ -46,6 +46,8 @@ public final class AnalyticsModel {
 
   public enum ExportFormat {
     case csv
+    /// AN-08
+    case xlsx
     case json
     case pdf
   }
@@ -326,6 +328,7 @@ public final class AnalyticsModel {
     let rows = Exporter.rows(report, data, rounding: rounding, defaultMode: defaultMode, calendar: calendar)
     switch format {
     case .csv: return Data(Exporter.csv(rows).utf8)
+    case .xlsx: return Exporter.xlsx(rows, labels: Self.spreadsheetLabels)
     case .json: return try Exporter.json(rows, range: reportRange, calendar: calendar)
     case .pdf: return ReportPDF.render(self, rows: rows)
     }
@@ -391,6 +394,39 @@ public final class AnalyticsModel {
   }
 
   // MARK: Internal
+
+  /// AN-08: sheet names and column titles of the Excel export, in the app's language.
+  static var spreadsheetLabels: Exporter.SpreadsheetLabels {
+    Exporter.SpreadsheetLabels(
+      entriesSheet: String(localized: "Entries", bundle: .module),
+      totalsSheet: String(localized: "Totals", bundle: .module),
+      entryColumns: [
+        String(localized: "Date", bundle: .module),
+        String(localized: "Title", bundle: .module),
+        String(localized: "Project", bundle: .module),
+        String(localized: "Task", bundle: .module),
+        String(localized: "Category", bundle: .module),
+        String(localized: "Tags", bundle: .module),
+        String(localized: "Work item", bundle: .module),
+        String(localized: "Note", bundle: .module),
+        String(localized: "Counting", bundle: .module),
+        String(localized: "Seconds", bundle: .module),
+        String(localized: "Hours", bundle: .module),
+        String(localized: "Rounded hours", bundle: .module),
+      ],
+      totalColumns: [
+        String(localized: "Kind", bundle: .module),
+        String(localized: "Name", bundle: .module),
+        String(localized: "Hours", bundle: .module),
+        String(localized: "Rounded hours", bundle: .module),
+        String(localized: "Share", bundle: .module),
+      ],
+      project: String(localized: "Project", bundle: .module),
+      category: String(localized: "Category", bundle: .module),
+      total: String(localized: "Total", bundle: .module),
+      none: String(localized: "Without", bundle: .module),
+    )
+  }
 
   var defaultMode: CountingMode {
     settings.countingMode
