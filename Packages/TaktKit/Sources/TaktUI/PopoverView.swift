@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import TaktCore
+import TaktStore
 
 // MARK: - PopoverView
 

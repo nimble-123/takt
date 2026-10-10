@@ -1,17 +1,15 @@
 import Foundation
 import TaktCore
-import TaktStore
 
 /// The tokens of a start input (`@category`, `/project/task`, `#tag`) matched against the catalog (MB-09).
 /// Tokens without a match assign nothing; they show up as an unresolved chip instead.
-nonisolated struct StartTokens: Equatable, Sendable {
+public struct StartTokens: Equatable, Sendable {
 
   // MARK: Lifecycle
 
-  init() { }
+  public init() { }
 
-  @MainActor
-  init(_ input: StartInput, catalog: CatalogModel) {
+  public init(_ input: StartInput, catalog: Catalog) {
     if let name = input.category {
       let category = Self.best(name, in: catalog.activeCategories, name: \.name)
       categoryID = category?.id
@@ -29,49 +27,49 @@ nonisolated struct StartTokens: Equatable, Sendable {
     }
     for name in input.tags {
       // An existing tag keeps its spelling; new names become new tags (ST-01).
-      let existing = catalog.catalog.tags.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }
+      let existing = catalog.tags.first { $0.name.caseInsensitiveCompare(name) == .orderedSame }
       tags.append(existing?.name ?? name)
       chips.append(Chip(kind: .tag, label: existing?.name ?? name, resolved: true))
     }
   }
 
-  // MARK: Internal
+  // MARK: Public
 
   /// A recognised token, shown as a chip below the search field.
-  struct Chip: Hashable, Identifiable, Sendable {
-    enum Kind: Hashable, Sendable { case category, project, task, tag }
+  public struct Chip: Hashable, Identifiable, Sendable {
+    public enum Kind: Hashable, Sendable { case category, project, task, tag }
 
-    var kind: Kind
+    public var kind: Kind
     /// The catalog name if matched, otherwise what was typed.
-    var label: String
-    var resolved: Bool
+    public var label: String
+    public var resolved: Bool
 
-    var id: String {
+    public var id: String {
       "\(kind)-\(label)"
     }
   }
 
   /// A completion while a token is being typed.
-  struct Completion: Hashable, Identifiable, Sendable {
-    var token: StartInput.Token
-    var title: String
+  public struct Completion: Hashable, Identifiable, Sendable {
+    public var token: StartInput.Token
+    public var title: String
     /// For tasks: the project; for tags not used before: a "new tag" hint.
-    var subtitle: String?
+    public var subtitle: String?
 
-    var id: StartInput.Token {
+    public var id: StartInput.Token {
       token
     }
   }
 
-  var categoryID: CategoryID?
-  var projectID: ProjectID?
-  var taskID: TaskID?
-  var tags = [String]()
-  var chips = [Chip]()
+  public var categoryID: CategoryID?
+  public var projectID: ProjectID?
+  public var taskID: TaskID?
+  public var tags = [String]()
+  public var chips = [Chip]()
 
-  /// Up to six completions for the token being typed, best match first.
-  @MainActor
-  static func completions(for partial: StartInput.Token, catalog: CatalogModel) -> [Completion] {
+  /// Up to six completions for the token being typed, best match first. `newTagHint` labels a
+  /// tag that does not exist yet.
+  public static func completions(for partial: StartInput.Token, catalog: Catalog, newTagHint: String) -> [Completion] {
     switch partial {
     case .category(let typed):
       return ranked(typed, in: catalog.activeCategories, name: \.name).map {
@@ -90,19 +88,18 @@ nonisolated struct StartTokens: Equatable, Sendable {
       }
 
     case .tag(let typed):
-      let existing = ranked(typed, in: catalog.catalog.tags, name: \.name).map {
+      let existing = ranked(typed, in: catalog.tags, name: \.name).map {
         Completion(token: .tag($0.name), title: $0.name)
       }
       guard !existing.contains(where: { $0.title.caseInsensitiveCompare(typed) == .orderedSame }) else {
         return existing
       }
-      let hint = String(localized: "New tag", bundle: .module)
-      return Array(existing.prefix(5)) + [Completion(token: .tag(typed), title: typed, subtitle: hint)]
+      return Array(existing.prefix(5)) + [Completion(token: .tag(typed), title: typed, subtitle: newTagHint)]
     }
   }
 
   /// Typed tags first, then tags from rules, without case-insensitive duplicates.
-  static func merged(_ typed: [String], _ ruled: [String]) -> [String] {
+  public static func merged(_ typed: [String], _ ruled: [String]) -> [String] {
     var result = [String]()
     for tag in typed + ruled where !result.contains(where: { $0.caseInsensitiveCompare(tag) == .orderedSame }) {
       result.append(tag)
@@ -112,7 +109,7 @@ nonisolated struct StartTokens: Equatable, Sendable {
 
   /// The best match for a typed name: an exact name (ignoring case and spaces) first, then the
   /// best fuzzy match.
-  static func best<Item>(_ typed: String, in items: [Item], name: KeyPath<Item, String>) -> Item? {
+  public static func best<Item>(_ typed: String, in items: [Item], name: KeyPath<Item, String>) -> Item? {
     let key = compact(typed)
     if let exact = items.first(where: { compact($0[keyPath: name]) == key }) { return exact }
     return ranked(typed, in: items, name: name).first
@@ -120,7 +117,7 @@ nonisolated struct StartTokens: Equatable, Sendable {
 
   /// `draft` with the tokens applied: they replace what a suggestion brought along. A new
   /// project drops a task of the old one.
-  func applied(to draft: EntryDraft) -> EntryDraft {
+  public func applied(to draft: EntryDraft) -> EntryDraft {
     var draft = draft
     if let categoryID { draft.categoryID = categoryID }
     if let projectID, projectID != draft.projectID {

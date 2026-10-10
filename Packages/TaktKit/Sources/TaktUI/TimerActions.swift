@@ -1,5 +1,6 @@
 import Foundation
 import TaktCore
+import TaktStore
 
 /// Starting and stopping, shared by the menu bar, the main window and ⌘K, so every path applies
 /// the rules (ST-05), assigns a work item's project (DO-10) and books after stopping (DO-21).
@@ -53,15 +54,7 @@ public final class TimerActions {
 
   /// A timer for a work item: its title, linked, in the taken-over project (DO-10).
   public func draft(for item: WorkItemLink) -> EntryDraft {
-    let projects = catalog.activeProjects.filter {
-      $0.source == .ado && $0.adoOrganization == item.organization && $0.adoProject == item.project
-    }
-    let project = projects.first { $0.areaPath == nil } ?? projects.first
-    return EntryDraft(
-      title: item.cachedTitle ?? "#\(item.workItemID)",
-      projectID: project?.id,
-      workItemLinkID: item.id,
-    )
+    catalog.catalog.draft(for: item)
   }
 
   // MARK: Private
