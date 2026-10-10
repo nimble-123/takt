@@ -101,6 +101,28 @@ struct WorkItemSearchModelTests {
   }
 
   @Test
+  func shortQueriesSearchNothingAndClearTheResults() async throws {
+    let source = FakeWorkItems(local: [item(123, "Login")], remote: [item(123, "Login")])
+    let model = model(source)
+    model.query = "login"
+    await settle(model)
+    #expect(!model.workItemResults.isEmpty)
+
+    for text in ["lo", "#12", "lo @meeting /portal"] {
+      model.query = text
+      await settle(model)
+      #expect(model.workItemResults.isEmpty)
+    }
+    try await Task.sleep(for: MenuBarModel.searchDelay * 2)
+    #expect(source.remoteSearches == 1)
+
+    model.query = "#123"
+    await settle(model)
+    #expect(model.workItemResults.map(\.workItemID) == [123])
+    #expect(source.remoteSearches == 2)
+  }
+
+  @Test
   func workItemTimerIsLinkedAndInTheTakenOverProject() async {
     await catalog.save(
       Project(

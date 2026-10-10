@@ -125,16 +125,20 @@ struct SettingsScreen: View {
           .managed(settings.isLocked(.overtimeQuarterQuotaHours))
           .help(String(localized: "0 = no quota. Exceeding it only shows a hint.", bundle: .module))
         }
-        Stepper(value: $settings.vacationDaysPerYear, in: AppSettings.vacationDaysRange) {
-          LabeledContent(String(localized: "Vacation days per year", bundle: .module)) {
-            Text("\(settings.vacationDaysPerYear) days", bundle: .module).monospacedDigit()
-          }
+        StepperField(
+          title: String(localized: "Vacation days per year", bundle: .module),
+          value: $settings.vacationDaysPerYear,
+          in: AppSettings.vacationDaysRange,
+        ) {
+          Text("\(settings.vacationDaysPerYear) days", bundle: .module)
         }
         .managed(settings.isLocked(.vacationDaysPerYear))
-        Stepper(value: $settings.vacationCarryoverDays, in: AppSettings.vacationCarryoverRange) {
-          LabeledContent(String(localized: "Vacation left from last year", bundle: .module)) {
-            Text("\(settings.vacationCarryoverDays) days", bundle: .module).monospacedDigit()
-          }
+        StepperField(
+          title: String(localized: "Vacation left from last year", bundle: .module),
+          value: $settings.vacationCarryoverDays,
+          in: AppSettings.vacationCarryoverRange,
+        ) {
+          Text("\(settings.vacationCarryoverDays) days", bundle: .module)
         }
         .managed(settings.isLocked(.vacationCarryoverDays))
         .help(String(localized: "Only for the first year Takt counts; later years carry over what is left.", bundle: .module))
@@ -163,10 +167,12 @@ struct SettingsScreen: View {
           Text("Shared: split by weight", bundle: .module).tag(CountingMode.split)
         }
         .managed(settings.isLocked(.countingMode))
-        Stepper(value: $settings.idleThresholdMinutes, in: 1...60) {
-          LabeledContent(String(localized: "Ask about inactivity after", bundle: .module)) {
-            Text("\(settings.idleThresholdMinutes) min", bundle: .module).monospacedDigit()
-          }
+        StepperField(
+          title: String(localized: "Ask about inactivity after", bundle: .module),
+          value: $settings.idleThresholdMinutes,
+          in: 1...60,
+        ) {
+          Text("\(settings.idleThresholdMinutes) min", bundle: .module)
         }
         .managed(settings.isLocked(.idleThresholdMinutes))
         Toggle(
@@ -202,10 +208,13 @@ struct SettingsScreen: View {
         }
         .managed(settings.isLocked(.workdayStartMinute) || settings.isLocked(.workdayEndMinute))
         .disabled(!settings.remindWhenNoTimer)
-        Stepper(value: $settings.noTimerReminderMinutes, in: AppSettings.noTimerReminderRange, step: 5) {
-          LabeledContent(String(localized: "Remind after", bundle: .module)) {
-            Text("\(settings.noTimerReminderMinutes) min", bundle: .module).monospacedDigit()
-          }
+        StepperField(
+          title: String(localized: "Remind after", bundle: .module),
+          value: $settings.noTimerReminderMinutes,
+          in: AppSettings.noTimerReminderRange,
+          step: 5,
+        ) {
+          Text("\(settings.noTimerReminderMinutes) min", bundle: .module)
         }
         .managed(settings.isLocked(.noTimerReminderMinutes))
         .disabled(!settings.remindWhenNoTimer)
@@ -404,6 +413,47 @@ struct HoursField: View {
         Text(verbatim: "h")
           .foregroundStyle(Palette.textSecondary)
         Stepper(title, value: $value, in: range, step: 0.1)
+          .labelsHidden()
+      }
+    }
+  }
+}
+
+// MARK: - StepperField
+
+/// A whole-number setting with its value right next to the stepper, like `HoursField`.
+struct StepperField<Value: View>: View {
+
+  // MARK: Lifecycle
+
+  init(
+    title: String,
+    value: Binding<Int>,
+    in range: ClosedRange<Int>,
+    step: Int = 1,
+    @ViewBuilder text: () -> Value,
+  ) {
+    self.title = title
+    _value = value
+    self.range = range
+    self.step = step
+    self.text = text()
+  }
+
+  // MARK: Internal
+
+  @Binding var value: Int
+
+  let title: String
+  let range: ClosedRange<Int>
+  let step: Int
+  let text: Value
+
+  var body: some View {
+    LabeledContent(title) {
+      HStack(spacing: 6) {
+        text.monospacedDigit()
+        Stepper(title, value: $value, in: range, step: step)
           .labelsHidden()
       }
     }

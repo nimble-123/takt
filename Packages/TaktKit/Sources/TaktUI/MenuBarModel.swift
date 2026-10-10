@@ -531,7 +531,7 @@ public final class MenuBarModel {
     isSearchingWorkItems = false
     // Tokens are not part of the work item's title.
     let text = input.title
-    guard let workItems, !text.isEmpty else {
+    guard let workItems, WorkItemSearch.isSearchable(text) else {
       workItemResults = []
       isSearchingWorkItems = false
       return
