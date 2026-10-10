@@ -73,7 +73,7 @@ Time tracking usually happens after the fact and from memory, because starting, 
 | **Azure DevOps** | Search work items with a compact preview (state, iteration, effort), current sprint first, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. The day close lists what to book; uncheck what should wait. |
 | **Analytics** | Stacked bars, distributions, top work items, heatmap, focus blocks and context switches, compared with the previous period and summed up in one sentence. Export CSV, JSON and a PDF report against your weekly target hours. |
 | **Working time record** | Built for German labor law (ArbZG): start, end, breaks and net time per day with checks for maximum hours, breaks and rest periods, public holidays per state, a change log, flextime, overtime payouts, vacation account and a monthly archive as PDF with a SHA-256 checksum. |
-| **Command line** | `takt status`, `takt start "Code review @Review /Portal"`, `stop`, `pause`, `resume`, `log` and `report`, with `--json` for scripts. Changes show up in the menu bar at once. |
+| **Command line** | `takt status`, `takt start "Code review @Review /Portal"`, `stop`, `pause`, `resume`, `log` and `report`, with `--json` for scripts. Changes show up in the menu bar at once. `takt import` takes over an Excel timesheet once. |
 | **Enterprise ready** | Managed preferences and a sample profile for rollout via Intune or Jamf ([MDM guide](docs/MDM.md)). |
 
 ## Architecture
@@ -110,7 +110,32 @@ Update with `brew upgrade --cask takt`. Every release updates the cask automatic
 
 Or download `Takt-<version>-arm64.dmg` from the [latest release](https://github.com/nimble-123/takt/releases/latest) and drag Takt into Applications. It runs on Apple Silicon with macOS 26 or later.
 
-To use Takt from the terminal, open **Settings → Command line → Install …**. It links `takt` to `/usr/local/bin`, then try `takt --help`. For zsh completion, run `takt --generate-completion-script zsh > ~/.zfunc/_takt` and add `~/.zfunc` to your `fpath`.
+### Command line
+
+The Homebrew cask links the `takt` command automatically. With the DMG, open **Settings → Command line → Install …** to link it to `/usr/local/bin`. Then try `takt --help`:
+
+```bash
+takt status                                   # running and paused timers
+takt start "Code review @Review /Portal #qa"   # start, with category, project and tag
+takt start 4821 --parallel                    # a work item, next to the running timer
+takt stop                                     # stop everything; takt stop review stops one
+takt log --week                               # this week's entries
+takt report --month --by category --json      # totals for scripts
+```
+
+Exit codes: 0 success, 1 invalid input, 3 nothing running or paused, 4 not found, 5 ambiguous. For zsh completion, run `takt --generate-completion-script zsh > ~/.zfunc/_takt` and add `~/.zfunc` to your `fpath`.
+
+### Import an Excel timesheet
+
+To bring hours recorded in the German Excel template „Zeiterfassungstabelle … Vollzeit V2“ into Takt once, convert it to JSON and import it. The import only adds: days that already have time in Takt are skipped and listed, and nothing is booked to Azure DevOps.
+
+```bash
+uv run --with openpyxl scripts/timesheet-to-json.py Zeiterfassung.xlsx ~/timesheet.json
+takt import ~/timesheet.json --dry-run    # counts, skipped days, flex time per month: Excel vs. Takt
+takt import ~/timesheet.json --settings   # import; also takes over flex start balance and vacation days
+```
+
+The database is backed up first. Options: `--until 2026-09-30`, `--category Development`, `--distribute Meeting=30,Development=70`. Details are in the [technical concept](docs/TECHNICAL_CONCEPT.md#kommandozeile).
 
 > [!IMPORTANT]
 > These builds are not signed or notarized yet, so macOS blocks the first launch. Open **System Settings → Privacy & Security** and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/Takt.app`. After each update macOS asks again for access to the Keychain.
