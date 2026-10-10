@@ -67,6 +67,8 @@
       <integer>0</integer>
       <key>overtimeQuarterQuotaHours</key>
       <real>0</real>
+      <key>flexCarryoverLimitHours</key>
+      <real>220</real>
       <key>showElapsedInMenuBar</key>
       <true/>
       <key>remindWhenNoTimer</key>

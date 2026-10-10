@@ -73,6 +73,18 @@ public final class AnalyticsModel {
   /// AZ-06: the vacation account of the current year as of today; `nil` before the first load.
   public private(set) var vacation: VacationAccount.Year?
 
+  /// AZ-08: from 1 October, the balance above the carryover limit that forfeits at the year change
+  /// if nothing changes, with the quarter's payable rest when a quota is set; `nil` otherwise.
+  public var carryoverHint: (forfeiting: TimeInterval, payable: TimeInterval?)? {
+    guard
+      let flexBalance,
+      let limit = settings.flexCarryoverLimit,
+      flexBalance > limit,
+      calendar.component(.month, from: clock.now().date) >= 10
+    else { return nil }
+    return (flexBalance - limit, overtimeQuota.map { max(0, $0.remaining) })
+  }
+
   public var period = Period.week {
     didSet { reloadSoon() }
   }
@@ -304,7 +316,13 @@ public final class AnalyticsModel {
       var plan = settings.targetPlan
       plan.absences = absences
       let startBalance = settings.flexStartBalanceHours * 3600
-      let account = FlexAccount(plan: plan, startBalance: startBalance, startDay: flexStart, calendar: calendar)
+      let account = FlexAccount(
+        plan: plan,
+        startBalance: startBalance,
+        startDay: flexStart,
+        carryoverLimit: settings.flexCarryoverLimit,
+        calendar: calendar,
+      )
       let dayBefore = range.lowerBound.adding(seconds: -1)
       let opening = flexStart < range.lowerBound ? account.balance(days, payouts: payouts, now: dayBefore) : startBalance
       flex = (plan, opening, flexStart)
@@ -326,6 +344,7 @@ public final class AnalyticsModel {
       federalState: settings.federalState,
       flex: flex,
       payouts: payouts,
+      carryoverLimit: settings.flexCarryoverLimit,
       vacation: vacation,
       now: now,
       calendar: calendar,
@@ -394,6 +413,7 @@ public final class AnalyticsModel {
       plan: plan,
       startBalance: settings.flexStartBalanceHours * 3600,
       startDay: start,
+      carryoverLimit: settings.flexCarryoverLimit,
       calendar: calendar,
     )
     let balance = account.balance(

@@ -370,3 +370,40 @@ extension AnalyticsModelTests {
     try #require(calendar.date(from: DateComponents(year: year, month: month, day: day)))
   }
 }
+
+// MARK: - Carryover limit (AZ-08)
+
+extension AnalyticsModelTests {
+  @Test
+  func fromOctoberTheHintNamesWhatForfeitsAndWhatIsPayable() async throws {
+    settings.flexStartDay = "2026-10-05"
+    settings.flexStartBalanceHours = 30
+    settings.flexCarryoverLimitHours = 5
+    try await track("A", hours: 1)
+    await model.reload()
+    // 7 h on Wednesday 7 October, 2 h above the limit.
+    let hint = try #require(model.carryoverHint)
+    #expect(hint.forfeiting == 2 * 3600)
+    #expect(hint.payable == nil)
+
+    settings.overtimeQuarterQuotaHours = 3
+    await model.payOut(hours: 1, on: clock.now().date, note: "")
+    // 6 h now, 1 h above the limit; 2 h of the quota left.
+    let reduced = try #require(model.carryoverHint)
+    #expect(reduced.forfeiting == 3600)
+    #expect(reduced.payable == TimeInterval(2 * 3600))
+  }
+
+  @Test
+  func noHintBelowTheLimitOrWithoutOne() async throws {
+    settings.flexStartDay = "2026-10-05"
+    settings.flexStartBalanceHours = 30
+    settings.flexCarryoverLimitHours = 10
+    try await track("A", hours: 1)
+    await model.reload()
+    #expect(model.carryoverHint == nil)
+
+    settings.flexCarryoverLimitHours = 0
+    #expect(model.carryoverHint == nil)
+  }
+}

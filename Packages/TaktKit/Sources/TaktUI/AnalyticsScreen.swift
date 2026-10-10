@@ -220,7 +220,7 @@ private struct KPIRow: View {
           figure(
             String(localized: "Flex account", bundle: .module),
             (flexBalance >= 0 ? "+" : "−") + DurationText.hoursMinutes(abs(flexBalance)),
-            detail: model.overtimeQuota.map(OvertimePayoutText.quota),
+            detail: model.carryoverHint.map(OvertimePayoutText.forfeiture) ?? model.overtimeQuota.map(OvertimePayoutText.quota),
             help: String(
               localized: "Start balance plus net working time minus target and payouts, from the start day through today. Vacation, sick days, days off and public holidays have no target. Click for payouts.",
               bundle: .module,

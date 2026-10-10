@@ -40,6 +40,7 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.vacationDaysPerYear.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.vacationCarryoverDays.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.overtimeQuarterQuotaHours.rawValue, type: .real, isRead: true),
+    Key(name: AppSettings.Key.flexCarryoverLimitHours.rawValue, type: .real, isRead: true),
     Key(name: AppSettings.Key.showElapsedInMenuBar.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.remindWhenNoTimer.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.noTimerReminderMinutes.rawValue, type: .integer, isRead: true),

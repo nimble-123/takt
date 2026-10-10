@@ -264,6 +264,13 @@ private struct TotalsView: View {
             "\(TimeRecord.duration(quarter.overtime)) / \(TimeRecord.duration(quarter.paidOut))",
           )
         }
+        // AZ-08: flex time above the limit at a year change.
+        ForEach(totals.forfeited.keys.sorted(), id: \.self) { year in
+          line(
+            String(localized: "Flex account forfeited at the end of \(String(year))", bundle: .module),
+            TimeRecord.duration(totals.forfeited[year]),
+          )
+        }
         if let vacation = export.record.vacation {
           line(String(localized: "Vacation days in the period", bundle: .module), String(vacation.days))
           line(

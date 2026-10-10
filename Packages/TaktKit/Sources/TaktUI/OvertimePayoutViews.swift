@@ -129,6 +129,18 @@ enum OvertimePayoutText {
       )
   }
 
+  /// AZ-08, e.g. "12:30 forfeit at the year change · 30:00 payable".
+  static func forfeiture(_ hint: (forfeiting: TimeInterval, payable: TimeInterval?)) -> String {
+    let forfeiting = DurationText.hoursMinutes(hint.forfeiting)
+    guard let payable = hint.payable else {
+      return String(localized: "\(forfeiting) forfeit at the year change", bundle: .module)
+    }
+    return String(
+      localized: "\(forfeiting) forfeit at the year change · \(DurationText.hoursMinutes(payable)) payable",
+      bundle: .module,
+    )
+  }
+
   static func hint(_ hint: AnalyticsModel.PayoutHint) -> String {
     switch hint {
     case .exceedsQuota(let seconds):
