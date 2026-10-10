@@ -71,9 +71,12 @@ struct WeekScreen: View {
           .padding(.vertical, 12)
           .padding(.trailing, 8)
         }
-        // A task starts after the first layout pass, when the rows have a position, and again
-        // whenever the week changes.
-        .task(id: model.weekRange) { scrollToNow(proxy) }
+        // Runs again whenever the week changes. When the window opens, the task starts before the
+        // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
+        .task(id: model.weekRange) {
+          await Task.yield()
+          scrollToNow(proxy)
+        }
       }
     }
   }
