@@ -21,10 +21,11 @@ public enum EntryEdits {
     from start: Timestamp,
     to end: Timestamp,
     now: Timestamp,
+    source: SegmentSource = .manual,
   ) throws -> (entry: TimeEntry, changes: [TimerChange]) {
     guard end > start, end <= now else { throw EditError.invalidRange }
     let entry = TimeEntry(draft: draft, state: .stopped, at: now)
-    let segment = Segment(entryID: entry.id, start: start, end: end, source: .manual)
+    let segment = Segment(entryID: entry.id, start: start, end: end, source: source)
     return (entry, [.entry(before: nil, after: entry), .segment(before: nil, after: segment)])
   }
 

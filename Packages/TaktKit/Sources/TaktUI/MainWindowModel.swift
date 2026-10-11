@@ -133,6 +133,10 @@ public final class MainWindowModel {
   @ObservationIgnored public let actions: TimerActions
   /// Full-text search (HW-06); `nil` hides the search field.
   public let search: SearchIndex?
+  /// Outlook events for suggestions in the day view; set by the app (CA-23).
+  @ObservationIgnored public var calendarEvents: CalendarEvents?
+  /// Events of the shown day without recorded time, drawn faded in Today (CA-23).
+  public private(set) var calendarSuggestions = [CalendarEvent]()
   public private(set) var searchResults = SearchResults()
   /// Linked work items of the shown entries.
   public private(set) var workItemLinks = [WorkItemLinkID: WorkItemLink]()
@@ -292,6 +296,7 @@ public final class MainWindowModel {
       selection.formIntersection(Set(data.entries.map(\.id)))
       await reloadAbsences()
       await reloadWorkTimeCheck()
+      await reloadCalendarSuggestions()
     } catch {
       guard generation == reloadGeneration, range == shownRange else { return }
       show(error)
@@ -355,6 +360,40 @@ public final class MainWindowModel {
     guard await apply(created.changes, name: String(localized: "New Entry", bundle: .module)) else { return nil }
     selection = [created.entry.id]
     return created.entry.id
+  }
+
+  /// A click on a faded event in Today: an entry over the event (up to now) with its title and its
+  /// series' assignment, selected like a drawn one (CA-23).
+  @discardableResult
+  public func adopt(_ event: CalendarEvent) async -> EntryID? {
+    let rules = (try? await calendarEvents?.rules.all()) ?? []
+    let title = event.isPrivate ? String(localized: "Private", bundle: .module) : event.title
+    let draft = rules.first { $0.seriesID == event.seriesID }.map { $0.applied(to: EntryDraft(title: title)) }
+      ?? EntryDraft(title: title)
+    let now = clock.now()
+    guard
+      let created = attempt({
+        try EntryEdits.create(draft, from: event.start, to: min(event.end, now), now: now, source: .calendar)
+      })
+    else { return nil }
+    guard await apply(created.changes, name: String(localized: "New Entry", bundle: .module)) else { return nil }
+    selection = [created.entry.id]
+    return created.entry.id
+  }
+
+  public func reloadCalendarSuggestions() async {
+    guard let calendarEvents, settings?.calendarEnabled == true, section == .today else {
+      calendarSuggestions = []
+      return
+    }
+    let day = dayRange
+    let events = (try? await calendarEvents.cache.events(from: day.lowerBound, to: day.upperBound)) ?? []
+    guard day == dayRange else { return }
+    calendarSuggestions = CalendarEvent.untracked(
+      events,
+      segments: data.entries.flatMap(\.segments),
+      now: clock.now(),
+    )
   }
 
   /// ⌘N: 30 minutes up to now on today, otherwise 9:00–9:30 on the shown day.

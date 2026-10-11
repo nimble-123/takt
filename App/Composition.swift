@@ -112,6 +112,7 @@ final class Composition {
       monthClose: monthClose,
       clock: clock,
     )
+    mainWindow.calendarEvents = menuBar.calendarEvents
     idleMonitor = IdleMonitor(engine: engine, signals: MacActivitySignals(), clock: clock) {
       [settings] () -> IdleSettings in settings.snapshot.idle
     }
@@ -297,6 +298,7 @@ final class Composition {
   private func syncCalendar() async {
     do {
       try await calendarSync?.sync()
+      await mainWindow.reloadCalendarSuggestions()
     } catch {
       logger.error("Calendar sync failed: \(String(describing: error), privacy: .public)")
     }
