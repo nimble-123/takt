@@ -42,7 +42,7 @@ public final class MenuBarModel {
   /// A start option in the search: a work item, a recent activity or a local task
   /// (DESIGN: "Treffer gruppiert (Azure DevOps, Lokale Tasks)").
   public struct Suggestion: Hashable, Identifiable {
-    public enum Group: Hashable { case azureDevOps, recent, localTask }
+    public enum Group: Hashable { case calendar, azureDevOps, recent, localTask }
 
     public var draft: EntryDraft
     public var group: Group
@@ -50,11 +50,16 @@ public final class MenuBarModel {
     public var subtitle: String?
     /// For Azure DevOps hits: the details of the compact preview.
     public var workItem: WorkItemLink?
+    /// For calendar hits: the Outlook event (CA-10).
+    public var event: CalendarEvent?
 
     /// Stable across renders and launches: the group plus the work item, the task or the
     /// recent activity's fields.
     public var id: String {
       switch group {
+      case .calendar:
+        "calendar:" + (event?.id ?? draft.title)
+
       case .azureDevOps:
         "ado:" + (workItem.map { "\($0.organization)#\($0.workItemID)" } ?? draft.title)
 
@@ -125,6 +130,10 @@ public final class MenuBarModel {
   /// The user is typing a note in the toast.
   public private(set) var isHoldingToast = false
   public private(set) var errorMessage: String?
+  /// Cached Outlook events matching the search text; with an empty field the upcoming ones.
+  public private(set) var calendarResults = [CalendarEvent]()
+  /// Outlook events for the search; set by the app, nil without a Microsoft account.
+  @ObservationIgnored public var calendarEvents: CalendarEvents?
   /// Opens the main window; set by the app.
   @ObservationIgnored public var openMainWindow: (() -> Void)?
   /// Opens the settings in the main window; set by the app.
@@ -173,7 +182,19 @@ public final class MenuBarModel {
       completionSelection = 0
       completionsDismissed = false
       searchWorkItems()
+      searchCalendar()
     }
+  }
+
+  /// The clock's time, for relative texts like "running for 2 min".
+  public var now: Timestamp {
+    clock.now()
+  }
+
+  /// Events running now or starting within 15 minutes, shown above "Recent" (CA-11).
+  public var currentEvents: [CalendarEvent] {
+    let now = clock.now()
+    return Array(calendarResults.filter { $0.isCurrent(at: now) }.prefix(2))
   }
 
   /// The search text split into a title and tokens: `@category`, `/project/task`, `#tag` (MB-09).
@@ -195,6 +216,9 @@ public final class MenuBarModel {
         Suggestion(draft: $0, group: .recent, subtitle: subtitle($0))
       }
     }
+    let events = calendarResults.prefix(3).map { event in
+      Suggestion(draft: draft(for: event), group: .calendar, subtitle: nil, event: event)
+    }
     let azure = sortedWorkItemResults.prefix(6).map { item in
       Suggestion(draft: draft(for: item), group: .azureDevOps, subtitle: nil, workItem: item)
     }
@@ -215,7 +239,7 @@ public final class MenuBarModel {
       !recent.contains { $0.draft.taskID == task.draft.taskID && $0.draft.title == task.draft.title }
     }
     .prefix(5)
-    return Array(azure) + Array(recent) + Array(tasks)
+    return Array(events) + Array(azure) + Array(recent) + Array(tasks)
   }
 
   /// The work item whose compact preview shows below the hits: the highlighted one, else the first.
@@ -286,9 +310,16 @@ public final class MenuBarModel {
     // ⌘Z reverts what was done in this opening, plus the stop the toast still offers to undo;
     // never an action from hours ago.
     undoStack = toast.map { [$0.undo] } ?? []
+    searchCalendar()
     Task {
       await refresh()
       await loadSuggestedWorkItems()
+    }
+    if let calendarEvents {
+      Task {
+        await calendarEvents.refresh()
+        searchCalendar()
+      }
     }
   }
 
@@ -375,6 +406,7 @@ public final class MenuBarModel {
     if acceptCompletion() { return }
     let title = input.title
     let draft: EntryDraft
+    let event = selectedSuggestion?.event
     if let suggestion = selectedSuggestion {
       draft = suggestion.draft
     } else {
@@ -384,14 +416,24 @@ public final class MenuBarModel {
     let tokens = tokens
     query = ""
     let parallel = settings.startMode == .parallel
-    await start(tokens.applied(to: draft), parallel: alternate ? !parallel : parallel, tags: tokens.tags)
+    await start(
+      tokens.applied(to: draft),
+      parallel: alternate ? !parallel : parallel,
+      tags: tokens.tags,
+      event: event,
+    )
   }
 
   /// A click on a suggestion; tokens typed alongside still apply (MB-09).
   public func start(suggestion: Suggestion, parallel: Bool) async {
     let tokens = tokens
     query = ""
-    await start(tokens.applied(to: suggestion.draft), parallel: parallel, tags: tokens.tags)
+    await start(tokens.applied(to: suggestion.draft), parallel: parallel, tags: tokens.tags, event: suggestion.event)
+  }
+
+  /// A click on a current event above "Recent" (CA-11, CA-13).
+  public func start(event: CalendarEvent, parallel: Bool) async {
+    await start(draft(for: event), parallel: parallel, event: event)
   }
 
   /// Tab or Enter while completions show: replaces the typed token with the highlighted one.
@@ -418,10 +460,23 @@ public final class MenuBarModel {
     await start(recent[index], parallel: settings.startMode == .parallel)
   }
 
-  /// Starts `draft`; `tags` come from typed tokens and are merged with tags from rules.
-  public func start(_ draft: EntryDraft, parallel: Bool, tags typed: [String] = []) async {
+  /// Starts `draft`; `tags` come from typed tokens and are merged with tags from rules. A timer
+  /// for an event starts at the event's start if that was up to ten minutes ago (CA-13).
+  public func start(
+    _ draft: EntryDraft,
+    parallel: Bool,
+    tags typed: [String] = [],
+    event: CalendarEvent? = nil,
+  ) async {
+    let earliest = event.flatMap { CalendarEvents.start(for: $0, at: clock.now()) }
     await perform { [actions] _ in
-      try await actions.start(draft, mode: parallel ? .parallel : .switchTo, tags: typed)
+      try await actions.start(
+        draft,
+        mode: parallel ? .parallel : .switchTo,
+        tags: typed,
+        from: earliest,
+        source: event == nil ? .live : .calendar,
+      )
     }
   }
 
@@ -582,6 +637,7 @@ public final class MenuBarModel {
 
   /// The running work item search; tests await it.
   private(set) var searchTask: Task<Void, Never>?
+  private(set) var calendarTask: Task<Void, Never>?
 
   let workItems: (any WorkItemSource)?
 
@@ -650,6 +706,24 @@ public final class MenuBarModel {
           < (b.element.stateGroup.rawValue, bCurrent ? 0 : 1, b.offset)
       }
       .map(\.element)
+  }
+
+  /// The event's title; private events only say so (CA-04).
+  private func draft(for event: CalendarEvent) -> EntryDraft {
+    EntryDraft(title: event.isPrivate ? String(localized: "Private", bundle: .module) : event.title)
+  }
+
+  /// Local and fast, so no typing pause; a newer search replaces an older one's results.
+  private func searchCalendar() {
+    calendarTask?.cancel()
+    guard let calendarEvents else { return }
+    let text = input.title
+    let now = clock.now()
+    calendarTask = Task {
+      let events = (try? await calendarEvents.search(text, now)) ?? []
+      guard !Task.isCancelled else { return }
+      calendarResults = events
+    }
   }
 
   private func searchWorkItems() {

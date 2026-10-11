@@ -57,6 +57,50 @@ struct TimerEngineTests {
   }
 
   @Test
+  func startFromEarlierTimeBackdatesTheSegment() async throws {
+    let begin = clock.now()
+    clock.advance(seconds: 300)
+    let id = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo, from: begin, source: .calendar).value
+
+    let segment = try #require(await snapshot().entry(id)?.openSegment)
+    #expect(segment.start == begin)
+    #expect(segment.source == .calendar)
+  }
+
+  @Test
+  func startFromEarlierTimePausesOthersAtThatTime() async throws {
+    let first = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 600)
+    let begin = clock.now()
+    clock.advance(seconds: 120)
+    _ = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo, from: begin)
+
+    #expect(await snapshot().entry(first)?.closedDuration == 600)
+  }
+
+  @Test
+  func startFromEarlierTimeNeverOverlapsTheEntryItPauses() async throws {
+    let begin = clock.now()
+    clock.advance(seconds: 120)
+    let first = try await engine.start(EntryDraft(title: "A"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let id = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo, from: begin).value
+
+    // The new entry starts when A started; A keeps no time of its own.
+    let snapshot = await snapshot()
+    #expect(snapshot.entry(first)?.closedDuration == 0)
+    #expect(snapshot.entry(first)?.entry.state == .paused)
+    #expect(snapshot.entry(id)?.openSegment?.start == begin.adding(seconds: 120))
+  }
+
+  @Test
+  func startFromLaterTimeStartsNow() async throws {
+    let id = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo, from: clock.now().adding(seconds: 600))
+      .value
+    #expect(await snapshot().entry(id)?.openSegment?.start == clock.now())
+  }
+
+  @Test
   func startParallelKeepsRunningEntries() async throws {
     let first = try await engine.start(EntryDraft(title: "Meeting"), mode: .switchTo).value
     clock.advance(seconds: 60)
