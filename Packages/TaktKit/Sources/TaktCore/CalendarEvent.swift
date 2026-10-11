@@ -40,6 +40,21 @@ public struct CalendarEvent: Hashable, Sendable, Identifiable {
   public var isOnlineMeeting: Bool
   public var isPrivate: Bool
 
+  /// Events that began before `now` and for which `segments` cover less than half of the time
+  /// up to now, so the day view can offer them (CA-23).
+  public static func untracked(_ events: [CalendarEvent], segments: [Segment], now: Timestamp) -> [CalendarEvent] {
+    events.filter { event in
+      guard event.start < now else { return false }
+      let end = min(event.end, now)
+      let length = end.milliseconds - event.start.milliseconds
+      let covered = segments.reduce(Int64(0)) { sum, segment in
+        let overlap = min(segment.end ?? now, end).milliseconds - max(segment.start, event.start).milliseconds
+        return sum + max(0, overlap)
+      }
+      return covered * 2 < length
+    }
+  }
+
   /// Running at `now`, or starting within `lead` seconds (CA-11).
   public func isCurrent(at now: Timestamp, lead seconds: Int64 = 15 * 60) -> Bool {
     start.milliseconds - seconds * 1000 <= now.milliseconds && now < end

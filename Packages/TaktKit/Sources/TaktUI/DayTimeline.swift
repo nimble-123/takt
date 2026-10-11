@@ -47,6 +47,11 @@ struct DayTimeline: View {
               .offset(x: gutter)
               .onTapGesture { model.selection = [] }
           }
+          if interactive {
+            ForEach(model.calendarSuggestions) { event in
+              suggestion(event, width: width)
+            }
+          }
           ForEach(layout.items) { item in
             block(item, width: width)
           }
@@ -130,6 +135,37 @@ struct DayTimeline: View {
   private func time(atY y: CGFloat) -> Timestamp {
     let seconds = TimeInterval(y / hourHeight) * 3600
     return Self.snapped(day.lowerBound.adding(seconds: min(max(0, seconds), dayLength)))
+  }
+
+  /// An Outlook event without recorded time, faded; a click takes it over (CA-23).
+  private func suggestion(_ event: CalendarEvent, width: CGFloat) -> some View {
+    let start = max(event.start, day.lowerBound)
+    let end = min(event.end, day.upperBound)
+    return Button {
+      Task { await model.adopt(event) }
+    } label: {
+      VStack(alignment: .leading, spacing: 1) {
+        Text(event.isPrivate ? String(localized: "Private", bundle: .module) : event.title)
+          .font(.system(size: 12, weight: .medium))
+          .lineLimit(1)
+        Text("Outlook · click to take over", bundle: .module)
+          .font(.system(size: 11))
+          .lineLimit(1)
+      }
+      .foregroundStyle(Palette.textSecondary)
+      .padding(.horizontal, 6)
+      .padding(.vertical, 3)
+      .frame(width: max(4, width - 4), height: max(3, height(end.seconds(since: start))), alignment: .topLeading)
+      .background(Palette.separator.opacity(0.25), in: RoundedRectangle(cornerRadius: 6))
+      .overlay(
+        RoundedRectangle(cornerRadius: 6)
+          .strokeBorder(Palette.textSecondary.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+      )
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .help(String(localized: "Take over this Outlook event as an entry", bundle: .module))
+    .offset(x: gutter + 2, y: y(start))
   }
 
   /// Real rows (not offsets), so `ScrollViewReader.scrollTo(hour)` finds them.

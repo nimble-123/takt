@@ -242,6 +242,14 @@
       "w": 360,
       "maxH": 360,
       "text": "Popover mit leerem Suchfeld (CA-11): über „Zuletzt“ ein Abschnitt „Kalender“ (rechts „Outlook“) mit bis zu zwei Terminen, die gerade laufen oder in den nächsten 15 min beginnen; Zeilen wie in der Suche (Tagesblatt, Titel, Badge „läuft seit 2 min“ / „in 5 min“, Unterzeile).\nKlick startet den Timer mit dem Termintitel. Begann der Termin vor höchstens 10 min, beginnt der Timer zum Terminbeginn (CA-13), sonst jetzt."
+    },
+    "note-day-suggestions": {
+      "x": -440,
+      "y": 1060,
+      "w": 360,
+      "maxH": 480,
+      "fill": "orange",
+      "text": "Heute · Terminvorschläge (CA-23), gebaut: Outlook-Termine des gezeigten Tags, die schon begonnen haben und bis jetzt zu weniger als der Hälfte ihrer Dauer von erfasster Zeit abgedeckt sind, erscheinen blass in der Timeline (Beispiel: Architektur-Sync 07:45–08:30).\nVolle Spurbreite unter den Einträgen; Grund Trennlinienfarbe 25 %, Rand 1 px gestrichelt (4/3) in Sekundärtext 50 %, Radius 6, Innenabstand 6/3. Titel 12 pt mittel (oder „Privat“), darunter 11 pt „Outlook · zum Übernehmen klicken“, beides sekundär. Tooltip „Diesen Outlook-Termin als Eintrag übernehmen“.\nKlick legt einen beendeten Eintrag von Terminbeginn bis Terminende (höchstens jetzt) an, Quelle Kalender, mit der Zuordnung der Serie, und wählt ihn aus. Nur bei eingeschaltetem Outlook-Kalender."
     }
   },
   "order": [

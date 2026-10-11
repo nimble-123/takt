@@ -2,6 +2,8 @@ import Testing
 
 @testable import TaktCore
 
+// MARK: - EventStartCheckTests
+
 struct EventStartCheckTests {
 
   // MARK: Internal
@@ -51,5 +53,54 @@ struct EventStartCheckTests {
       isOnlineMeeting: false,
       isPrivate: false,
     )
+  }
+}
+
+// MARK: - UntrackedEventsTests
+
+struct UntrackedEventsTests {
+
+  // MARK: Internal
+
+  @Test
+  func eventWithoutTimeIsUntracked() {
+    #expect(CalendarEvent.untracked([event], segments: [], now: at(7200)).map(\.id) == ["e"])
+  }
+
+  @Test
+  func eventCoveredMostlyIsTracked() {
+    let segment = Segment(entryID: EntryID(), start: at(600), end: at(3600))
+    #expect(CalendarEvent.untracked([event], segments: [segment], now: at(7200)).isEmpty)
+  }
+
+  @Test
+  func eventCoveredLessThanHalfStaysAndFutureEventsAreLeftOut() {
+    let segment = Segment(entryID: EntryID(), start: at(0), end: at(900))
+    #expect(CalendarEvent.untracked([event], segments: [segment], now: at(7200)).map(\.id) == ["e"])
+    #expect(CalendarEvent.untracked([event], segments: [], now: at(-60)).isEmpty)
+  }
+
+  @Test
+  func runningEventCountsOnlyUpToNow() {
+    let segment = Segment(entryID: EntryID(), start: at(0), end: nil)
+    #expect(CalendarEvent.untracked([event], segments: [segment], now: at(600)).isEmpty)
+  }
+
+  // MARK: Private
+
+  /// 0:00–1:00.
+  private let event = CalendarEvent(
+    id: "e",
+    seriesID: nil,
+    title: "Review",
+    start: Timestamp(milliseconds: 1_790_000_000_000),
+    end: Timestamp(milliseconds: 1_790_003_600_000),
+    attendeeCount: 0,
+    isOnlineMeeting: false,
+    isPrivate: false,
+  )
+
+  private func at(_ seconds: Int64) -> Timestamp {
+    Timestamp(milliseconds: 1_790_000_000_000 + seconds * 1000)
   }
 }
