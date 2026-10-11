@@ -172,7 +172,7 @@
   },
   "notes": {
     "note-menubar": {
-      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen: Trefferliste gebaut (#14, CA-10–CA-14), die Vorschaukarte noch nicht. Regeltermin gehört zu Phase 3 (#14) und ist noch nicht gebaut.",
+      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen: Trefferliste (#14, CA-10–CA-14) und Vorschaukarte (CA-12, CA-20) gebaut; die beiden Checkboxen der Karte sind geplant (CA-21, CA-22). Regeltermin gehört zu Phase 3 (#14) und ist noch nicht gebaut.",
       "w": 340,
       "x": 3040,
       "y": 0
@@ -231,9 +231,9 @@
       "x": 3460,
       "y": 0,
       "w": 360,
-      "maxH": 300,
+      "maxH": 420,
       "fill": "orange",
-      "text": "Suche mit Outlook-Terminen · Vorschaukarte (Zuordnung für die ganze Serie, „Timer endet mit dem Termin“, „Ab 09:45 starten“): geplant (CA-12, CA-20–CA-22), noch nicht gebaut.\nGebaut ist die Trefferliste: Gruppe „Kalender“ (rechts „Outlook“) vor Azure DevOps; Badge „läuft seit 2 min“ bzw. „in 5 min“; Unterzeile Zeit · Serie · Online-Meeting · N Teilnehmer (nur, was zutrifft; kein „Einzeltermin“)."
+      "text": "Suche mit Outlook-Terminen · Vorschaukarte: gebaut (CA-12, CA-20). Titel 14 pt halbfett, darunter 12 pt sekundär Zeit (Dauer) · Serie · Online-Meeting · N Teilnehmer.\nNur bei Serien: „Zuordnung für die ganze Serie“ mit Projekt (erste Option „Kein Projekt“) und Kategorie (erste Option „Keine Kategorie“); darunter nur mit Azure-DevOps-Verbindung „+ Work Item verknüpfen (optional)“, verknüpft „#4821 Titel“ mit „Entfernen“ rechts.\nButton „Ab 09:45 starten“, wenn der Termin vor höchstens 10 min begann, sonst „Timer starten“.\nNoch nicht gebaut: „Zu Terminbeginn Timer anbieten“ und „Timer endet mit dem Termin“ (CA-21, CA-22, geplant).\nTrefferliste: Gruppe „Kalender“ (rechts „Outlook“) vor Azure DevOps; Badge „läuft seit 2 min“ bzw. „in 5 min“; Unterzeile nur, was zutrifft."
     },
     "note-calendar-empty": {
       "x": 3880,

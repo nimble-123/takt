@@ -78,6 +78,14 @@ nonisolated enum CalendarEventText {
     }
   }
 
+  /// The preview's line: "Today 09:45–10:00 (15 min) · Series · Online meeting · 8 attendees" (CA-12).
+  static func preview(for event: CalendarEvent, at now: Timestamp, calendar: Calendar = .current) -> String {
+    let minutes = Int((event.end.milliseconds - event.start.milliseconds) / 60_000)
+    var parts = details(for: event, at: now, calendar: calendar).components(separatedBy: " · ")
+    parts[0] += " " + String(localized: "(\(minutes) min)", bundle: .module)
+    return parts.joined(separator: " · ")
+  }
+
   /// "Today 09:45–10:00 · Series · Online meeting".
   static func details(for event: CalendarEvent, at now: Timestamp, calendar: Calendar = .current) -> String {
     let start = event.start.date

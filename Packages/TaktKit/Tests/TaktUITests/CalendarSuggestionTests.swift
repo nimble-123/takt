@@ -16,19 +16,17 @@ struct CalendarSuggestionTests {
     testDefaults = try TestDefaults()
     let database = try AppDatabase.inMemory()
     engine = TimerEngine(store: GRDBTimerStore(database: database), clock: clock)
+    catalog = CatalogModel(store: CatalogStore(database: database), clock: clock)
     model = MenuBarModel(
       engine: engine,
       queries: EntryQueries(database: database),
-      catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+      catalog: catalog,
       clock: clock,
       settings: AppSettings(defaults: testDefaults.defaults),
     )
     let cache = CalendarEventCache(database: database)
     self.cache = cache
-    model.calendarEvents = CalendarEvents(
-      search: { text, now in try await cache.search(text, at: now) },
-      refresh: { },
-    )
+    model.calendarEvents = CalendarEvents(cache: cache, rules: SeriesRuleStore(database: database), refresh: { })
   }
 
   // MARK: Internal
@@ -91,6 +89,38 @@ struct CalendarSuggestionTests {
   }
 
   @Test
+  func seriesRuleAppliesToTimersFromTheSeries() async throws {
+    let category = try #require(await catalog.addCategory(named: "Meeting")).id
+    let daily = event("daily", "Daily", minutes: 0, series: "series-1")
+    await model.save(SeriesRule(seriesID: "series-1", categoryID: category))
+    await model.start(event: daily, parallel: false)
+    try await sync()
+
+    #expect(model.snapshot.running.first?.entry.categoryID == category)
+  }
+
+  @Test
+  func seriesRulesSurviveReopening() async throws {
+    let category = try #require(await catalog.addCategory(named: "Meeting")).id
+    await model.save(SeriesRule(seriesID: "series-1", categoryID: category))
+    await model.save(SeriesRule(seriesID: "series-2"))
+    await model.loadSeriesRules()
+
+    #expect(model.seriesRules.keys.sorted() == ["series-1"])
+    #expect(model.seriesRule(for: event("x", "X", minutes: 0, series: "series-2")) == SeriesRule(seriesID: "series-2"))
+    #expect(model.seriesRule(for: event("y", "Y", minutes: 0)) == nil)
+  }
+
+  @Test
+  func firstCalendarHitIsPreviewed() async throws {
+    try await store([event("daily", "Daily", minutes: 30)])
+    model.query = "Daily"
+    await model.calendarTask?.value
+
+    #expect(model.previewEvent?.id == "daily")
+  }
+
+  @Test
   func badgeSaysHowLongTheEventRunsOrWhenItStarts() {
     let now = clock.now()
     #expect(CalendarEventText.badge(for: event("a", "A", minutes: -2), at: now)?.contains("2") == true)
@@ -103,14 +133,21 @@ struct CalendarSuggestionTests {
   private let clock = ManualClock(Timestamp(milliseconds: 1_791_360_000_000))
   private let testDefaults: TestDefaults
   private let engine: TimerEngine
+  private let catalog: CatalogModel
   private let model: MenuBarModel
   private let cache: CalendarEventCache
 
-  private func event(_ id: String, _ title: String, minutes: Int64, isPrivate: Bool = false) -> CalendarEvent {
+  private func event(
+    _ id: String,
+    _ title: String,
+    minutes: Int64,
+    series: String? = nil,
+    isPrivate: Bool = false,
+  ) -> CalendarEvent {
     let start = Timestamp(milliseconds: clock.now().milliseconds + minutes * 60_000)
     return CalendarEvent(
       id: id,
-      seriesID: nil,
+      seriesID: series,
       title: title,
       start: start,
       end: start.adding(seconds: 30 * 60),

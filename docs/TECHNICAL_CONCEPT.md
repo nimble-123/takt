@@ -247,7 +247,17 @@ CREATE TABLE calendar_event (
 CREATE INDEX calendar_event_time ON calendar_event(start_at, end_at);
 ```
 
-Für die Zuordnung pro Serie (CA-20) kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
+**Zuordnung pro Serie (Migration `v12-series-rule`).** Eine Zeile je Outlook-Serie (`seriesMasterId`); ein Timer aus einem Termin der Serie übernimmt die Felder, die der Entwurf noch nicht hat. Eine leere Zuordnung löscht die Zeile.
+
+```sql
+CREATE TABLE series_rule (
+  series_id TEXT PRIMARY KEY,
+  project_id TEXT REFERENCES project(id),
+  category_id TEXT REFERENCES category(id),
+  work_item_link_id TEXT REFERENCES work_item_link(id),
+  updated_at INTEGER NOT NULL
+);
+```
 
 **Segment-Indizes (Migration `v4-segment-indexes`).** `segment_open` ist seit v4 eindeutig: Ein Eintrag hat höchstens ein offenes Segment; beide Stores melden einen Verstoß als `TimerStoreError.invalidValue`. Die Migration repariert vorher Altdaten: Hat ein Eintrag mehrere offene Segmente, endet jedes bis auf das jüngste beim Beginn des nächsten; eines mit gleichem Beginn wie das nächste entfällt. `segment_entry` beschleunigt das Laden der Segmente eines Eintrags und das Löschen per Cascade.
 
@@ -453,6 +463,7 @@ Phase 3, Anforderungen CA-01 bis CA-23. Anmeldung über dasselbe Entra-Konto wie
 - **Takt (CA-05):** Fenster von Mitternacht vor sieben Tagen bis Mitternacht in acht Tagen (Zeitzone des Nutzers). Abruf beim Start, alle fünf Minuten, direkt nach der Anmeldung und beim Öffnen des Popovers; gleichzeitige Aufrufe teilen sich eine Anfrage. Fehler (offline, abgelaufene Anmeldung) lassen den letzten Stand im Cache stehen.
 - **Startsuche (CA-10, CA-11):** `MenuBarModel` sucht bei jeder Eingabe lokal in `calendar_event` (Titel, nur nicht beendete Termine, private Termine nie per Text) und zeigt bis zu drei Treffer als Gruppe vor Azure DevOps. Beim Öffnen des Popovers sucht es sofort im Cache und nach einem neuen Abruf noch einmal. Bei leerem Suchfeld stehen bis zu zwei Termine über „Zuletzt“, die gerade laufen oder in 15 Minuten beginnen.
 - **Timer aus einem Termin (CA-13):** Titel des Termins (bei privaten „Privat“), Segmentquelle `calendar`. Begann der Termin vor höchstens zehn Minuten, beginnt das Segment am Terminbeginn: `TimerEngine.start(_:mode:from:source:)` setzt den Beginn zurück, aber nie vor die offenen Segmente, die „Wechseln“ pausiert, und nie nach jetzt; die pausierten Einträge enden zum selben Zeitpunkt.
+- **Vorschau und Zuordnung (CA-12, CA-20):** Unter den Treffern zeigt eine Karte den markierten oder ersten Termin mit Zeit, Dauer, Serie, Teilnehmern und Online-Meeting. Bei Serienterminen lassen sich Projekt, Kategorie und (mit ADO-Verbindung) ein Work Item für alle künftigen Termine festlegen; `MenuBarModel` lädt alle Zeilen von `series_rule` beim Öffnen des Popovers und speichert jede Änderung sofort.
 - **Rechte:** Single-Tenant-App-Registrierung, delegiert `Calendars.Read`, kein Schreibzugriff.
 
 ## Analysen

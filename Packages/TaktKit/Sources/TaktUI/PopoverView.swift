@@ -303,6 +303,11 @@ struct SuggestionList: View {
         WorkItemPreview(item: item)
           .padding(.top, 6)
       }
+      if let event = model.previewEvent {
+        CalendarEventPreview(model: model, event: event)
+          .id(event.id)
+          .padding(.top, 6)
+      }
       if model.isSearchingWorkItems {
         HStack(spacing: 6) {
           ProgressView().controlSize(.mini)

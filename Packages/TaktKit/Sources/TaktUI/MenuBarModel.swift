@@ -134,6 +134,8 @@ public final class MenuBarModel {
   public private(set) var calendarResults = [CalendarEvent]()
   /// Outlook events for the search; set by the app, nil without a Microsoft account.
   @ObservationIgnored public var calendarEvents: CalendarEvents?
+  /// Assignments per Outlook series, by series ID (CA-20).
+  public private(set) var seriesRules = [String: SeriesRule]()
   /// Opens the main window; set by the app.
   @ObservationIgnored public var openMainWindow: (() -> Void)?
   /// Opens the settings in the main window; set by the app.
@@ -189,6 +191,12 @@ public final class MenuBarModel {
   /// The clock's time, for relative texts like "running for 2 min".
   public var now: Timestamp {
     clock.now()
+  }
+
+  /// The event whose compact preview shows below the hits: the highlighted one, else the first
+  /// calendar hit while nothing is highlighted (CA-12).
+  public var previewEvent: CalendarEvent? {
+    selectedSuggestion?.event ?? (selection == nil && sortedWorkItemResults.isEmpty ? calendarResults.first : nil)
   }
 
   /// Events running now or starting within 15 minutes, shown above "Recent" (CA-11).
@@ -266,6 +274,23 @@ public final class MenuBarModel {
     !undoStack.isEmpty
   }
 
+  /// The series' assignment, or an empty one for a recurring event without one; nil for single
+  /// events.
+  public func seriesRule(for event: CalendarEvent) -> SeriesRule? {
+    event.seriesID.map { seriesRules[$0] ?? SeriesRule(seriesID: $0) }
+  }
+
+  /// Saves the assignment for every future event of the series (CA-20).
+  public func save(_ rule: SeriesRule) async {
+    guard let calendarEvents else { return }
+    do {
+      try await calendarEvents.rules.save(rule, at: clock.now())
+      seriesRules[rule.seriesID] = rule.isEmpty ? nil : rule
+    } catch {
+      show(error)
+    }
+  }
+
   /// Follows the engine until the task is cancelled.
   public func run() async {
     do {
@@ -316,6 +341,7 @@ public final class MenuBarModel {
       await loadSuggestedWorkItems()
     }
     if let calendarEvents {
+      Task { await loadSeriesRules() }
       Task {
         await calendarEvents.refresh()
         searchCalendar()
@@ -658,6 +684,15 @@ public final class MenuBarModel {
     return lists.flatMap { $0 }.filter { seen.insert("\($0.organization)#\($0.workItemID)").inserted }
   }
 
+  func loadSeriesRules() async {
+    guard let calendarEvents else { return }
+    do {
+      seriesRules = Dictionary(uniqueKeysWithValues: try await calendarEvents.rules.all().map { ($0.seriesID, $0) })
+    } catch {
+      show(error)
+    }
+  }
+
   func receive(_ snapshot: TimerSnapshot) async {
     self.snapshot = snapshot
     if let workItems {
@@ -708,9 +743,10 @@ public final class MenuBarModel {
       .map(\.element)
   }
 
-  /// The event's title; private events only say so (CA-04).
+  /// The event's title (private events only say so, CA-04) with its series' assignment (CA-13).
   private func draft(for event: CalendarEvent) -> EntryDraft {
-    EntryDraft(title: event.isPrivate ? String(localized: "Private", bundle: .module) : event.title)
+    let draft = EntryDraft(title: event.isPrivate ? String(localized: "Private", bundle: .module) : event.title)
+    return seriesRule(for: event).map { $0.applied(to: draft) } ?? draft
   }
 
   /// Local and fast, so no typing pause; a newer search replaces an older one's results.
@@ -720,7 +756,7 @@ public final class MenuBarModel {
     let text = input.title
     let now = clock.now()
     calendarTask = Task {
-      let events = (try? await calendarEvents.search(text, now)) ?? []
+      let events = (try? await calendarEvents.cache.search(text, at: now)) ?? []
       guard !Task.isCancelled else { return }
       calendarResults = events
     }

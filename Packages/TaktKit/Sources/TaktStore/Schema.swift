@@ -261,4 +261,20 @@ enum Schema {
         """
     )
   }
+
+  /// Assignment per Outlook series (CA-20): project, category and work item for every future
+  /// event of the series.
+  static func v12(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE series_rule (
+          series_id TEXT PRIMARY KEY,
+          project_id TEXT REFERENCES project(id),
+          category_id TEXT REFERENCES category(id),
+          work_item_link_id TEXT REFERENCES work_item_link(id),
+          updated_at INTEGER NOT NULL
+        )
+        """
+    )
+  }
 }
