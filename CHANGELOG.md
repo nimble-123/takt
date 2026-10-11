@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0](https://github.com/nimble-123/takt/compare/v0.7.0...v0.8.0) (2026-10-10)
+
+
+### Neue Funktionen
+
+* **analytics:** export the analysis as Excel workbook (AN-08) ([#225](https://github.com/nimble-123/takt/issues/225)) ([d7943ef](https://github.com/nimble-123/takt/commit/d7943ef28c8d9b63ec8eb928540b217cfd2bfdb0))
+* **ui:** export the working time record as Excel workbook (AZ-09, AN-08) ([#226](https://github.com/nimble-123/takt/issues/226)) ([ec36fc0](https://github.com/nimble-123/takt/commit/ec36fc0b95ee4296154db68c197b107c58b1d7c5))
+* **ui:** open the inspector with a single click on an entry ([#219](https://github.com/nimble-123/takt/issues/219)) ([784326a](https://github.com/nimble-123/takt/commit/784326a1f6de1e92ae23929f37f621310b53be40))
+* **ui:** order work item hits by state and colour the state ([#221](https://github.com/nimble-123/takt/issues/221)) ([407ab02](https://github.com/nimble-123/takt/commit/407ab024a73694625be43e68abd93255aefb08f5))
+* **ui:** show features purple and epics orange in the type badge ([#222](https://github.com/nimble-123/takt/issues/222)) ([a88baff](https://github.com/nimble-123/takt/commit/a88baffaa736c3a8df0218286b85fd81a5a77915))
+* **ui:** show work items in the search results like in the popover ([#223](https://github.com/nimble-123/takt/issues/223)) ([37f1e97](https://github.com/nimble-123/takt/commit/37f1e97560c1c4ea69465ab2ce7ba1856857a567))
+* **ui:** use the day and week timeline by keyboard ([#213](https://github.com/nimble-123/takt/issues/213)) ([582a7bd](https://github.com/nimble-123/takt/commit/582a7bd8490c4f826ee4c71547332628a625ab58))
+
+
+### Fehlerbehebungen
+
+* **analytics:** draw hover labels above the bars and add them to the heatmap ([#224](https://github.com/nimble-123/takt/issues/224)) ([630f4e3](https://github.com/nimble-123/takt/commit/630f4e3adbb31a68f3380ccf930a12b1c9b1469a))
+* **ui:** deselect in the week by clicking free space ([#217](https://github.com/nimble-123/takt/issues/217)) ([e205e19](https://github.com/nimble-123/takt/commit/e205e190acf3df024fcef1acae6c89d733bdcb7c))
+* **ui:** keep the search field above the inspector and start the inspector below the toolbar ([#218](https://github.com/nimble-123/takt/issues/218)) ([226cdff](https://github.com/nimble-123/takt/commit/226cdffa9204938be9548b4cae11b7105007be3b))
+
 ## [0.7.0](https://github.com/nimble-123/takt/compare/v0.6.1...v0.7.0) (2026-10-10)
 
 
