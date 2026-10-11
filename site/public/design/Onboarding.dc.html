@@ -14,11 +14,14 @@ a{color:#0F766E}a:hover{color:#115E59}
 button{font:inherit;color:inherit;cursor:pointer}
 input{font:inherit;color:inherit}
 input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16px;margin:1px 0 0;flex:none}
+input.sw{appearance:none;-webkit-appearance:none;width:30px;height:18px;border-radius:9px;background:#D9D9DE;position:relative;margin:0;flex:none;cursor:pointer}
+input.sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+input.sw:checked{background:#0F766E}input.sw:checked::after{transform:translateX(12px)}
 </style>
 </helmet>
-<div style="width: 1380px; height: 640px; box-sizing: border-box; padding: 40px 20px; background: #D8DCE3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px; display: flex; gap: 40px; align-items: flex-start">
+<div style="width: 1380px; height: 760px; box-sizing: border-box; padding: 40px 20px; background: #D8DCE3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px; display: flex; gap: 40px; align-items: flex-start">
 
-<section aria-labelledby="ob1" style="width: 420px; height: 560px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
+<section aria-labelledby="ob1" style="width: 420px; height: 680px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
 <div style="display: flex; gap: 8px; padding: 14px 16px" aria-hidden="true"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span></div>
 <div style="flex: 1; padding: 8px 32px 0; display: flex; flex-direction: column; gap: 16px">
 <div style="width: 48px; height: 48px; border-radius: 12px; background: #0F766E; display: flex; align-items: center; justify-content: center"><svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M5 14.5h6L9.2 2H6.8z"></path><path d="M8 11.5l3-6"></path></svg></div>
@@ -39,6 +42,10 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16
 <label style="display: flex; gap: 8px; cursor: pointer"><input type="checkbox" checked>Plattform</label>
 <label style="display: flex; gap: 8px; cursor: pointer"><input type="checkbox">Data-Hub</label>
 </div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 1px solid #F0F0F3">
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer"><span style="font-size: 14px; font-weight: 500">Outlook-Termine in der Suche zeigen</span><input type="checkbox" role="switch" class="sw"></label>
+<p style="margin: 0; font-size: 12px; color: #55555A">Beim Einschalten meldest du dich mit deinem Arbeitskonto an. Takt liest nur deinen Kalender.</p>
+</div>
 </div>
 <div style="display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-top: 1px solid #ECECF0">
 <span style="display: flex; gap: 5px" aria-hidden="true"><span style="width: 18px; height: 6px; border-radius: 3px; background: #0F766E"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #D9D9DE"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #D9D9DE"></span></span>
@@ -48,7 +55,7 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16
 </div>
 </section>
 
-<section aria-labelledby="ob2" style="width: 420px; height: 560px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
+<section aria-labelledby="ob2" style="width: 420px; height: 680px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
 <div style="display: flex; gap: 8px; padding: 14px 16px" aria-hidden="true"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span></div>
 <div style="flex: 1; padding: 8px 32px 0; display: flex; flex-direction: column; gap: 20px">
 <div>
@@ -72,7 +79,7 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16
 </div>
 </section>
 
-<section aria-labelledby="ob3" style="width: 420px; height: 560px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
+<section aria-labelledby="ob3" style="width: 420px; height: 680px; box-sizing: border-box; background: #FFFFFF; border-radius: 14px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 18px 50px rgba(0,0,0,0.18); display: flex; flex-direction: column; overflow: hidden">
 <div style="display: flex; gap: 8px; padding: 14px 16px" aria-hidden="true"><span style="width: 12px; height: 12px; border-radius: 50%; background: #FF5F57"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span><span style="width: 12px; height: 12px; border-radius: 50%; background: #D9D9DE"></span></div>
 <div style="flex: 1; padding: 8px 32px 0; display: flex; flex-direction: column; gap: 14px">
 <div>
@@ -81,8 +88,10 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16
 </div>
 <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
 <legend style="font-size: 12px; font-weight: 600; color: #55555A; padding-bottom: 6px">Neuen Timer starten</legend>
-<label style="display: flex; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 2px solid #0F766E; background: #E8F4F2; cursor: pointer"><input type="radio" name="start" checked><span><strong>Wechseln</strong><br><span style="font-size: 12px; color: #55555A">Der laufende Timer pausiert. Parallel mit ⌥↩</span></span></label>
-<label style="display: flex; gap: 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid #E5E5EA; cursor: pointer"><input type="radio" name="start"><span><strong>Parallel</strong><br><span style="font-size: 12px; color: #55555A">Beide laufen weiter. Wechseln mit ⌥↩</span></span></label>
+<div style="display: grid; grid-auto-rows: 1fr; gap: 6px">
+<label style="display: flex; gap: 10px; padding: 10px; border-radius: 10px; border: 2px solid #0F766E; background: #E8F4F2; cursor: pointer"><input type="radio" name="start" checked><span><strong>Wechseln</strong><br><span style="font-size: 12px; color: #55555A">Der laufende Timer pausiert. Parallel mit ⌥↩</span></span></label>
+<label style="display: flex; gap: 10px; padding: 10px; border-radius: 10px; border: 1px solid #E5E5EA; cursor: pointer"><input type="radio" name="start"><span><strong>Parallel</strong><br><span style="font-size: 12px; color: #55555A">Beide laufen weiter. Wechseln mit ⌥↩</span></span></label>
+</div>
 </fieldset>
 <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px">
 <legend style="font-size: 12px; font-weight: 600; color: #55555A; padding-bottom: 6px">Parallele Zeit zählen</legend>
@@ -111,7 +120,7 @@ input[type=radio],input[type=checkbox]{accent-color:#0F766E;width:16px;height:16
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1380,"height":640}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1380,"height":760}}'>
 class Component extends DCLogic {
   renderVals() {
     return { keys: ['⌥', '⇧', 'T'] };

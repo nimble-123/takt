@@ -6690,6 +6690,26 @@
           }
         }
       }
+    },
+    "Signed in as %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Angemeldet als %@."
+          }
+        }
+      }
+    },
+    "Turning it on signs you in with your work account. Takt only reads your calendar.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Einschalten meldest du dich mit deinem Arbeitskonto an. Takt liest nur deinen Kalender."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -11,9 +11,14 @@ public final class OnboardingModel {
 
   // MARK: Lifecycle
 
-  public init(settings: AppSettings, azureDevOps: AzureDevOpsModel? = nil) {
+  public init(
+    settings: AppSettings,
+    azureDevOps: AzureDevOpsModel? = nil,
+    microsoftAccount: MicrosoftAccountModel? = nil,
+  ) {
     self.settings = settings
     self.azureDevOps = azureDevOps
+    self.microsoftAccount = microsoftAccount
   }
 
   // MARK: Public
@@ -47,6 +52,17 @@ public final class OnboardingModel {
     if let previous = Step(rawValue: step.rawValue - 1) { step = previous }
   }
 
+  /// The Outlook switch in step 1 (CA-01): turning it on signs in first; if that fails or is
+  /// cancelled, the calendar stays off.
+  public func setCalendarEnabled(_ isOn: Bool) async {
+    guard isOn, let microsoftAccount else {
+      settings.calendarEnabled = false
+      return
+    }
+    if microsoftAccount.account == nil { await microsoftAccount.signIn() }
+    settings.calendarEnabled = microsoftAccount.account != nil
+  }
+
   public func finish() {
     try? LoginItem.setEnabled(launchAtLogin)
     settings.onboardingCompleted = true
@@ -58,6 +74,8 @@ public final class OnboardingModel {
   let settings: AppSettings
   /// Step 1; `nil` shows only the explanation.
   let azureDevOps: AzureDevOpsModel?
+  /// Step 1, below Azure DevOps; `nil` (no app registration configured) hides the calendar.
+  let microsoftAccount: MicrosoftAccountModel?
 
 }
 
@@ -135,6 +153,9 @@ public struct OnboardingView: View {
       if let azureDevOps = model.azureDevOps {
         AzureDevOpsOnboarding(model: azureDevOps)
       }
+      if let account = model.microsoftAccount {
+        calendar(account)
+      }
     }
   }
 
@@ -190,6 +211,8 @@ public struct OnboardingView: View {
             selection: $settings.startMode,
           )
         }
+        // As tall as the longer text, not as the free space below (both cards stay equal).
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("Starting a timer", bundle: .module))
         .managed(settings.isLocked(.startMode))
@@ -203,6 +226,39 @@ public struct OnboardingView: View {
       CountingExample(mode: model.settings.countingMode)
       Toggle(String(localized: "Open Takt at login", bundle: .module), isOn: $model.launchAtLogin)
     }
+  }
+
+  /// CA-01: the user decides here whether Outlook events appear in the search.
+  private func calendar(_ account: MicrosoftAccountModel) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Divider().overlay(Palette.separator)
+      Toggle(isOn: Binding {
+        model.settings.calendarEnabled && account.account != nil
+      } set: { isOn in
+        Task { await model.setCalendarEnabled(isOn) }
+      }) {
+        Text("Show Outlook events in the search", bundle: .module)
+          .font(.system(size: 14, weight: .medium))
+      }
+      .toggleStyle(.switch)
+      .disabled(account.isWorking)
+      Group {
+        if let signedIn = account.account {
+          Text("Signed in as \(signedIn.username).", bundle: .module)
+        } else {
+          Text("Turning it on signs you in with your work account. Takt only reads your calendar.", bundle: .module)
+        }
+      }
+      .font(.system(size: 12))
+      .foregroundStyle(Palette.textSecondary)
+      .fixedSize(horizontal: false, vertical: true)
+      if let message = account.errorMessage {
+        Text(message)
+          .font(.system(size: 12))
+          .foregroundStyle(Palette.danger)
+      }
+    }
+    .task { await account.load() }
   }
 
   private func title(_ text: Text, _ detail: Text) -> some View {
