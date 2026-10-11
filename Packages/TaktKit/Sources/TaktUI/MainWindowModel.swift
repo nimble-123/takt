@@ -370,7 +370,7 @@ public final class MainWindowModel {
   public func startTimer(_ draft: EntryDraft, tags typed: [String] = []) async {
     let mode: TimerEngine.StartMode = settings?.startMode ?? .switchTo
     await command(String(localized: "Start Timer", bundle: .module)) { [actions] _ in
-      try await actions.start(draft, mode: mode, tags: typed)
+      try await actions.start(draft, mode: mode, tags: typed).undo
     }
   }
 

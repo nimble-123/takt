@@ -10,11 +10,15 @@ public struct SeriesRule: Hashable, Sendable {
     projectID: ProjectID? = nil,
     categoryID: CategoryID? = nil,
     workItemLinkID: WorkItemLinkID? = nil,
+    offersTimerAtStart: Bool = false,
+    endsWithEvent: Bool = false,
   ) {
     self.seriesID = seriesID
     self.projectID = projectID
     self.categoryID = categoryID
     self.workItemLinkID = workItemLinkID
+    self.offersTimerAtStart = offersTimerAtStart
+    self.endsWithEvent = endsWithEvent
   }
 
   // MARK: Public
@@ -23,10 +27,14 @@ public struct SeriesRule: Hashable, Sendable {
   public var projectID: ProjectID?
   public var categoryID: CategoryID?
   public var workItemLinkID: WorkItemLinkID?
+  /// Ask at the event's start whether to start a timer (CA-21).
+  public var offersTimerAtStart: Bool
+  /// A timer from the series stops when the event ends and the paused work resumes (CA-22).
+  public var endsWithEvent: Bool
 
   /// No field set: the rule can be deleted.
   public var isEmpty: Bool {
-    projectID == nil && categoryID == nil && workItemLinkID == nil
+    projectID == nil && categoryID == nil && workItemLinkID == nil && !offersTimerAtStart && !endsWithEvent
   }
 
   /// `draft` with the rule's fields where the draft has none.

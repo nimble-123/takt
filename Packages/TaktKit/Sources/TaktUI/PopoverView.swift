@@ -565,6 +565,11 @@ struct TimerRow: View {
         subtitle
           .font(.system(size: 12))
           .lineLimit(1)
+        if isRunning, let meeting = model.meetingTimers[active.id] {
+          Text("ends \(meeting.end.date.formatted(date: .omitted, time: .shortened))", bundle: .module)
+            .font(.system(size: 11))
+            .foregroundStyle(Palette.textSecondary)
+        }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .layoutPriority(1)
@@ -830,18 +835,40 @@ struct StopToast: View {
         Image(systemName: "checkmark.circle.fill")
           .foregroundStyle(Palette.accent)
           .accessibilityHidden(true)
-        Text("\(toast.title) stopped · \(DurationText.hoursMinutes(toast.duration)) h", bundle: .module)
+        if let resumed = toast.resumed {
+          VStack(alignment: .leading, spacing: 1) {
+            Text("\(toast.title) ended · \(DurationText.hoursMinutes(toast.duration)) h", bundle: .module)
+              .lineLimit(1)
+            Text("“\(resumed)” continues.", bundle: .module)
+              .foregroundStyle(Palette.textSecondary)
+              .lineLimit(1)
+          }
           .font(.system(size: 12))
-          .lineLimit(1)
+        } else {
+          Text("\(toast.title) stopped · \(DurationText.hoursMinutes(toast.duration)) h", bundle: .module)
+            .font(.system(size: 12))
+            .lineLimit(1)
+        }
         Spacer()
-        Button {
-          model.holdToast()
-          editingNote = true
-          noteFocused = true
-        } label: {
-          Text("Note", bundle: .module)
-            .frame(minHeight: 28)
-            .contentShape(Rectangle())
+        if toast.resumed != nil {
+          // The meeting ran over: the automatic end is undone and the timer runs on (CA-22).
+          Button {
+            Task { await model.undoToast() }
+          } label: {
+            Text("Extend", bundle: .module)
+              .frame(minHeight: 28)
+              .contentShape(Rectangle())
+          }
+        } else {
+          Button {
+            model.holdToast()
+            editingNote = true
+            noteFocused = true
+          } label: {
+            Text("Note", bundle: .module)
+              .frame(minHeight: 28)
+              .contentShape(Rectangle())
+          }
         }
         Button {
           Task { await model.undoToast() }

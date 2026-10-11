@@ -35,22 +35,29 @@ button{font:inherit;color:inherit;cursor:pointer}
 </div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid #E5E5EA">
 <button type="button" style="height: 40px; border: 0; border-right: 1px solid #E5E5EA; background: transparent; color: #0F766E; font-weight: 600">Timer starten</button>
-<button type="button" style="height: 40px; border: 0; background: transparent">Ignorieren</button>
+<button type="button" style="height: 40px; border: 0; background: transparent">Schließen</button>
 </div>
 </div>
 <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #FFFFFF; border: 1px solid #E5E5EA">
 <span style="width: 10px; height: 10px; border-radius: 50%; background: #C2410C; flex: none"></span>
-<span style="flex: 1">Daily Stand-up</span>
-<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-weight: 600; color: #0F766E">0:08:31</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<span>Daily Stand-up</span>
+<span style="font-size: 12px; color: #55555A">Plattform · Meeting</span>
 <span style="font-size: 11px; color: #55555A">endet 10:00</span>
+</span>
+<span style="font-family: 'SF Mono', ui-monospace, Menlo, monospace; font-weight: 600; color: #0F766E">0:08:31</span>
 </div>
 <div style="height: 1px; background: #C6CAD1; margin: 10px 0"></div>
-<div style="font-size: 12px; font-weight: 600; color: #3A3A3C">10:00 · Termin endet</div>
-<div role="status" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: #1C1C1E; color: #F5F5F7; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
+<div style="font-size: 12px; font-weight: 600; color: #3A3A3C">10:00 · Termin endet <span style="font-weight: 400; color: #55555A">(Popover zu: als Mitteilung mit „Verlängern“)</span></div>
+<div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px; background: #1C1C1E; color: #F5F5F7; box-shadow: 0 10px 30px rgba(0,0,0,0.25)">
+<div style="display: flex; align-items: center; gap: 10px">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#5EEAD4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
-<span style="flex: 1; line-height: 1.35">Daily beendet · 0:15 h<br><span style="color: #C7C7CC; font-size: 12px">#4821 läuft weiter</span></span>
+<span style="flex: 1; line-height: 1.35">Daily Stand-up beendet · 0:15 h<br><span style="color: #C7C7CC; font-size: 12px">„Login-Flow refaktorieren“ läuft weiter.</span></span>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
 <button type="button" style="height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(255,255,255,0.12); color: #F5F5F7">Verlängern</button>
-<button type="button" style="height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(255,255,255,0.12); color: #F5F5F7">Rückgängig</button>
+<button type="button" style="height: 28px; padding: 0 8px; border: 0; border-radius: 6px; background: rgba(255,255,255,0.12); color: #F5F5F7">Rückgängig ⌘Z</button>
+</div>
 </div>
 </div>
 </div>

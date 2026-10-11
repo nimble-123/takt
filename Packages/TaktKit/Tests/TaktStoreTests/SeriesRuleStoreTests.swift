@@ -22,7 +22,13 @@ struct SeriesRuleStoreTests {
     let category = EntryCategory(name: "Meeting", color: "#888888")
     try await CatalogStore(database: database).save(project)
     try await CatalogStore(database: database).save(category)
-    let rule = SeriesRule(seriesID: "series-1", projectID: project.id, categoryID: category.id)
+    let rule = SeriesRule(
+      seriesID: "series-1",
+      projectID: project.id,
+      categoryID: category.id,
+      offersTimerAtStart: true,
+      endsWithEvent: true,
+    )
 
     try await store.save(rule, at: now)
 

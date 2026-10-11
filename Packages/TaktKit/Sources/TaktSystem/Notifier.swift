@@ -126,14 +126,83 @@ public struct NoTimerReminder: Sendable {
 
 /// Posts local notifications. Asks for permission on first use.
 public struct Notifier: Sendable {
+
+  // MARK: Lifecycle
+
   public init() { }
 
-  public func post(id: String, title: String, body: String) async {
+  // MARK: Public
+
+  /// `category` names buttons registered with `NotificationResponder`; `info` comes back with a
+  /// tapped button.
+  public func post(
+    id: String,
+    title: String,
+    body: String,
+    category: String? = nil,
+    info: [String: String] = [:],
+  ) async {
     let center = UNUserNotificationCenter.current()
     guard (try? await center.requestAuthorization(options: [.alert, .sound])) == true else { return }
     let content = UNMutableNotificationContent()
     content.title = title
     content.body = body
+    if let category { content.categoryIdentifier = category }
+    content.userInfo = info
     try? await center.add(UNNotificationRequest(identifier: id, content: content, trigger: nil))
+  }
+}
+
+// MARK: - NotificationResponder
+
+/// Registers notification buttons and reports taps on them, e.g. "Start timer" at an event's
+/// start (CA-21). Also shows notifications while Takt is in front.
+@MainActor
+public final class NotificationResponder: NSObject, UNUserNotificationCenterDelegate {
+
+  /// A button: its ID and title.
+  public struct Action: Sendable {
+    public init(id: String, title: String) {
+      self.id = id
+      self.title = title
+    }
+
+    public var id: String
+    public var title: String
+  }
+
+  /// Called with the button's ID and the notification's `info`.
+  public var onAction: ((String, [String: String]) -> Void)?
+
+  /// Becomes the center's delegate and registers the buttons per category.
+  public func register(_ categories: [String: [Action]]) {
+    let center = UNUserNotificationCenter.current()
+    center.delegate = self
+    center.setNotificationCategories(Set(categories.map { id, actions in
+      UNNotificationCategory(
+        identifier: id,
+        actions: actions.map { UNNotificationAction(identifier: $0.id, title: $0.title) },
+        intentIdentifiers: [],
+      )
+    }))
+  }
+
+  public nonisolated func userNotificationCenter(
+    _: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+  ) async {
+    let action = response.actionIdentifier
+    let info = response.notification.request.content.userInfo
+      .reduce(into: [String: String]()) { result, pair in
+        if let key = pair.key as? String, let value = pair.value as? String { result[key] = value }
+      }
+    await MainActor.run { onAction?(action, info) }
+  }
+
+  public nonisolated func userNotificationCenter(
+    _: UNUserNotificationCenter,
+    willPresent _: UNNotification,
+  ) async -> UNNotificationPresentationOptions {
+    [.banner, .sound]
   }
 }

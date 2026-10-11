@@ -79,6 +79,8 @@ struct CalendarEventPreview: View {
       }
       .labelsHidden()
       .controlSize(.small)
+      Toggle(String(localized: "Offer a timer when the event begins", bundle: .module), isOn: binding(rule, \.offersTimerAtStart))
+      Toggle(String(localized: "Timer ends with the event", bundle: .module), isOn: binding(rule, \.endsWithEvent))
       if model.hasAzureDevOps(), let source = model.workItems {
         HStack {
           if let id = rule.workItemLinkID {

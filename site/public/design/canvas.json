@@ -172,10 +172,11 @@
   },
   "notes": {
     "note-menubar": {
-      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen: Trefferliste (#14, CA-10–CA-14) und Vorschaukarte (CA-12, CA-20) gebaut; die beiden Checkboxen der Karte sind geplant (CA-21, CA-22). Regeltermin gehört zu Phase 3 (#14) und ist noch nicht gebaut.",
+      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen: Trefferliste (#14, CA-10–CA-14), Vorschaukarte (CA-12, CA-20) und die beiden Checkboxen der Karte (CA-21, CA-22) gebaut.\nRegeltermin: Start und Ende (#14, CA-21, CA-22) gebaut. Terminbeginn wird alle 30 s geprüft; die Mitteilung hat nur „Timer starten“, „Schließen“ ist das Verwerfen durch macOS. Der Satz „… läuft danach weiter.“ steht nur, wenn der Timer mit dem Termin endet, sonst „… wird pausiert.“ Die laufende Zeile zeigt darunter „endet 10:00“ (11 pt sekundär). Das Terminende hält Takt nur im Speicher: nach einem Neustart endet der Timer nicht mehr automatisch.",
       "w": 340,
       "x": 3040,
-      "y": 0
+      "y": 0,
+      "maxH": 520
     },
     "note-window": {
       "text": "Stand: App v0.5.x; die UI-Lücken aus #101 sind umgesetzt.\nAnalysen: Zählweise in der App zusätzlich „Pro Eintrag“ (Standard).\nNeue UI-Funktionen werden hier entworfen, bevor sie umgesetzt werden (CLAUDE.md).",
@@ -231,9 +232,9 @@
       "x": 3460,
       "y": 0,
       "w": 360,
-      "maxH": 420,
+      "maxH": 480,
       "fill": "orange",
-      "text": "Suche mit Outlook-Terminen · Vorschaukarte: gebaut (CA-12, CA-20). Titel 14 pt halbfett, darunter 12 pt sekundär Zeit (Dauer) · Serie · Online-Meeting · N Teilnehmer.\nNur bei Serien: „Zuordnung für die ganze Serie“ mit Projekt (erste Option „Kein Projekt“) und Kategorie (erste Option „Keine Kategorie“); darunter nur mit Azure-DevOps-Verbindung „+ Work Item verknüpfen (optional)“, verknüpft „#4821 Titel“ mit „Entfernen“ rechts.\nButton „Ab 09:45 starten“, wenn der Termin vor höchstens 10 min begann, sonst „Timer starten“.\nNoch nicht gebaut: „Zu Terminbeginn Timer anbieten“ und „Timer endet mit dem Termin“ (CA-21, CA-22, geplant).\nTrefferliste: Gruppe „Kalender“ (rechts „Outlook“) vor Azure DevOps; Badge „läuft seit 2 min“ bzw. „in 5 min“; Unterzeile nur, was zutrifft."
+      "text": "Suche mit Outlook-Terminen · Vorschaukarte: gebaut (CA-12, CA-20). Titel 14 pt halbfett, darunter 12 pt sekundär Zeit (Dauer) · Serie · Online-Meeting · N Teilnehmer.\nNur bei Serien: „Zuordnung für die ganze Serie“ mit Projekt (erste Option „Kein Projekt“) und Kategorie (erste Option „Keine Kategorie“); darunter nur mit Azure-DevOps-Verbindung „+ Work Item verknüpfen (optional)“, verknüpft „#4821 Titel“ mit „Entfernen“ rechts.\nButton „Ab 09:45 starten“, wenn der Termin vor höchstens 10 min begann, sonst „Timer starten“.\nNur bei Serien, gebaut: „Zu Terminbeginn Timer anbieten“ (CA-21, Prüfung alle 30 s) und „Timer endet mit dem Termin“ (CA-22; Terminende nur im Speicher, nach einem Neustart endet der Timer nicht mehr automatisch).\nTrefferliste: Gruppe „Kalender“ (rechts „Outlook“) vor Azure DevOps; Badge „läuft seit 2 min“ bzw. „in 5 min“; Unterzeile nur, was zutrifft."
     },
     "note-calendar-empty": {
       "x": 3880,

@@ -277,4 +277,14 @@ enum Schema {
         """
     )
   }
+
+  /// Per series: offer a timer at the event's start (CA-21) and end it with the event (CA-22).
+  static func v13(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        ALTER TABLE series_rule ADD COLUMN offers_timer_at_start INTEGER NOT NULL DEFAULT 0;
+        ALTER TABLE series_rule ADD COLUMN ends_with_event INTEGER NOT NULL DEFAULT 0;
+        """
+    )
+  }
 }

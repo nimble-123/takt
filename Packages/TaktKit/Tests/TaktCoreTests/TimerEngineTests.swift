@@ -101,6 +101,39 @@ struct TimerEngineTests {
   }
 
   @Test
+  func stopResumingEndsTheMeetingAndResumesTheWorkAtTheEnd() async throws {
+    let work = try await engine.start(EntryDraft(title: "Work"), mode: .switchTo).value
+    clock.advance(seconds: 600)
+    let meeting = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo).value
+    clock.advance(seconds: 900)
+    let end = clock.now()
+    clock.advance(seconds: 45)
+    let before = await store.tables
+
+    let result = try await engine.stop(meeting, resuming: [work], at: end)
+
+    let snapshot = await snapshot()
+    #expect(snapshot.entry(meeting) == nil)
+    #expect(snapshot.entry(work)?.entry.state == .running)
+    #expect(snapshot.entry(work)?.openSegment?.start == end)
+    try await engine.undo(result.undo)
+    #expect(await store.tables == before)
+  }
+
+  @Test
+  func stopResumingLeavesStoppedEntriesAlone() async throws {
+    let other = try await engine.start(EntryDraft(title: "Other"), mode: .switchTo).value
+    clock.advance(seconds: 60)
+    let meeting = try await engine.start(EntryDraft(title: "Daily"), mode: .switchTo).value
+    try await engine.stop(other)
+    clock.advance(seconds: 60)
+
+    try await engine.stop(meeting, resuming: [other], at: clock.now())
+
+    #expect(await snapshot().entries.isEmpty)
+  }
+
+  @Test
   func startParallelKeepsRunningEntries() async throws {
     let first = try await engine.start(EntryDraft(title: "Meeting"), mode: .switchTo).value
     clock.advance(seconds: 60)

@@ -29,14 +29,17 @@ public struct SeriesRuleStore: Sendable {
       }
       try db.execute(
         sql: """
-          INSERT OR REPLACE INTO series_rule (series_id, project_id, category_id, work_item_link_id, updated_at)
-          VALUES (?, ?, ?, ?, ?)
+          INSERT OR REPLACE INTO series_rule
+            (series_id, project_id, category_id, work_item_link_id, offers_timer_at_start, ends_with_event, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
           """,
         arguments: [
           rule.seriesID,
           rule.projectID?.uuidString,
           rule.categoryID?.uuidString,
           rule.workItemLinkID?.uuidString,
+          rule.offersTimerAtStart,
+          rule.endsWithEvent,
           now.milliseconds,
         ],
       )
@@ -57,6 +60,8 @@ extension SeriesRule {
       projectID: try row.optionalID("project_id"),
       categoryID: try row.optionalID("category_id"),
       workItemLinkID: try row.optionalID("work_item_link_id"),
+      offersTimerAtStart: row["offers_timer_at_start"],
+      endsWithEvent: row["ends_with_event"],
     )
   }
 }

@@ -59,6 +59,7 @@ public struct AppDatabase: Sendable {
     migrator.registerMigration("v10-segment-source-import", migrate: Schema.v10)
     migrator.registerMigration("v11-calendar-event", migrate: Schema.v11)
     migrator.registerMigration("v12-series-rule", migrate: Schema.v12)
+    migrator.registerMigration("v13-series-rule-start-end", migrate: Schema.v13)
     return migrator
   }
 }

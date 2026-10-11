@@ -99,6 +99,26 @@ public final class MenuBarModel {
 
     /// Reverts exactly this stop, whatever was done after it.
     var undo: TimerUndo
+    /// For a timer that ended with its event: the work that resumed (CA-22).
+    public var resumed: String?
+  }
+
+  /// A timer that stops when its event ends; the work it paused resumes then (CA-22).
+  public struct MeetingTimer: Hashable, Sendable {
+    public var title: String
+    public var end: Timestamp
+    /// The entries the start paused.
+    public var resumes: [EntryID]
+  }
+
+  /// A meeting timer that just ended, for the notification with "Extend".
+  public struct MeetingEnd: Hashable, Sendable {
+    public var id: EntryID
+    public var title: String
+    public var duration: TimeInterval
+    public var resumed: String?
+
+    var undo: TimerUndo
   }
 
   /// What a stop needs before it can stop at once (TM-11). A work item only counts with an
@@ -135,6 +155,8 @@ public final class MenuBarModel {
   /// Outlook events for the search; set by the app, nil without a Microsoft account.
   @ObservationIgnored public var calendarEvents: CalendarEvents?
 
+  /// Timers that end with their event, by entry (CA-22).
+  public private(set) var meetingTimers = [EntryID: MeetingTimer]()
   /// Assignments per Outlook series, by series ID (CA-20).
   public private(set) var seriesRules = [String: SeriesRule]()
   /// Opens the main window; set by the app.
@@ -496,14 +518,79 @@ public final class MenuBarModel {
     event: CalendarEvent? = nil,
   ) async {
     let earliest = event.flatMap { CalendarEvents.start(for: $0, at: clock.now()) }
+    let paused = parallel ? [] : snapshot.running.map(\.id)
+    var started: EntryID?
     await perform { [actions] _ in
-      try await actions.start(
+      let result = try await actions.start(
         draft,
         mode: parallel ? .parallel : .switchTo,
         tags: typed,
         from: earliest,
         source: event == nil ? .live : .calendar,
       )
+      started = result.value
+      return result.undo
+    }
+    if let started, let event, seriesRule(for: event)?.endsWithEvent == true {
+      meetingTimers[started] = MeetingTimer(title: draft.title, end: event.end, resumes: paused)
+    }
+  }
+
+  /// Stops meeting timers whose event is over and resumes the work they paused, each in one
+  /// command (CA-22). A timer the user paused or stopped meanwhile is left alone.
+  @discardableResult
+  public func endDueMeetings() async -> [MeetingEnd] {
+    let now = clock.now()
+    var ended = [MeetingEnd]()
+    for (id, meeting) in meetingTimers where meeting.end <= now {
+      meetingTimers[id] = nil
+      guard let active = snapshot.entry(id), active.entry.state == .running else { continue }
+      let duration = active.elapsed(at: max(meeting.end, active.openSegment?.start ?? meeting.end))
+      let resumed = meeting.resumes.compactMap { snapshot.entry($0)?.entry.title }.first
+      guard
+        let undo = await perform({ engine in
+          try await engine.stop(id, resuming: meeting.resumes, at: meeting.end).undo
+        })
+      else { continue }
+      showToast(Toast(id: id, title: meeting.title, duration: duration, undo: undo, resumed: resumed))
+      ended.append(MeetingEnd(id: id, title: meeting.title, duration: duration, resumed: resumed, undo: undo))
+    }
+    return ended
+  }
+
+  /// Events of series that offer a timer and just began, each once (CA-21); called about once
+  /// a minute.
+  public func dueEventStarts() async -> [CalendarEvent] {
+    guard let calendarEvents = enabledCalendar else { return [] }
+    let now = clock.now()
+    let events = (try? await calendarEvents.cache.events(from: now.adding(seconds: -120), to: now.adding(seconds: 60)))
+    return startCheck.check(events ?? [], rules: seriesRules, now: now)
+  }
+
+  /// Project and category names of the event's series, for the notification at its start.
+  public func assignmentNames(for event: CalendarEvent) -> [String] {
+    guard let rule = seriesRule(for: event) else { return [] }
+    return [catalog.catalog.project(rule.projectID)?.name, catalog.catalog.category(rule.categoryID)?.name]
+      .compactMap(\.self)
+  }
+
+  /// "Start timer" in the notification at an event's start: pauses the running work (CA-21).
+  public func startEvent(id: String) async {
+    guard let calendarEvents = enabledCalendar else { return }
+    let now = clock.now()
+    let events = try? await calendarEvents.cache.events(from: now.adding(seconds: -3600), to: now.adding(seconds: 3600))
+    guard let event = events?.first(where: { $0.id == id }) else { return }
+    await start(event: event, parallel: false)
+  }
+
+  /// "Extend" on a meeting that ended: reverts the automatic end, the timer runs on (CA-22).
+  public func extend(_ end: MeetingEnd) async {
+    do {
+      try await engine.undo(end.undo)
+      if let index = undoStack.lastIndex(of: end.undo) { undoStack.remove(at: index) }
+      if toast?.undo == end.undo { dismissToast() }
+    } catch {
+      show(error)
     }
   }
 
@@ -652,6 +739,15 @@ public final class MenuBarModel {
     isHoldingToast = false
   }
 
+  public func loadSeriesRules() async {
+    guard let calendarEvents else { return }
+    do {
+      seriesRules = Dictionary(uniqueKeysWithValues: try await calendarEvents.rules.all().map { ($0.seriesID, $0) })
+    } catch {
+      show(error)
+    }
+  }
+
   // MARK: Internal
 
   static let recentCount = 4
@@ -665,7 +761,6 @@ public final class MenuBarModel {
   /// The running work item search; tests await it.
   private(set) var searchTask: Task<Void, Never>?
   private(set) var calendarTask: Task<Void, Never>?
-
   let workItems: (any WorkItemSource)?
 
   /// The calendar, if the user turned it on (CA-01).
@@ -690,15 +785,6 @@ public final class MenuBarModel {
     return lists.flatMap { $0 }.filter { seen.insert("\($0.organization)#\($0.workItemID)").inserted }
   }
 
-  func loadSeriesRules() async {
-    guard let calendarEvents else { return }
-    do {
-      seriesRules = Dictionary(uniqueKeysWithValues: try await calendarEvents.rules.all().map { ($0.seriesID, $0) })
-    } catch {
-      show(error)
-    }
-  }
-
   func receive(_ snapshot: TimerSnapshot) async {
     self.snapshot = snapshot
     if let workItems {
@@ -710,6 +796,8 @@ public final class MenuBarModel {
   }
 
   // MARK: Private
+
+  @ObservationIgnored private var startCheck = EventStartCheck()
 
   private var completionsDismissed = false
   private var postponedIdle = Set<IdleEventID>()
