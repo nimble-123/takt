@@ -87,6 +87,7 @@ package.targets += [
   .testTarget(name: "TaktCLITests", dependencies: ["TaktCLI"]),
   .testTarget(name: "TaktSystemTests", dependencies: ["TaktSystem"]),
   .testTarget(name: "TaktADOTests", dependencies: ["TaktADO"], resources: [.copy("Fixtures")]),
+  .testTarget(name: "TaktCalendarTests", dependencies: ["TaktCalendar"]),
   .testTarget(name: "TaktUITests", dependencies: ["TaktUI"]),
 ]
 #endif

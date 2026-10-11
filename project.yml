@@ -39,6 +39,8 @@ targets:
         product: TaktAnalytics
       - package: TaktKit
         product: TaktADO
+      - package: TaktKit
+        product: TaktCalendar
       # The command line tool (#189), signed with the app and linked into the PATH from the settings.
       - target: takt-cli
         embed: true

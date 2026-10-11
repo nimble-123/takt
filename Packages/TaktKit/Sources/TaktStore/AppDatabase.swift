@@ -57,6 +57,7 @@ public struct AppDatabase: Sendable {
     migrator.registerMigration("v8-absence", migrate: Schema.v8)
     migrator.registerMigration("v9-overtime-payout", migrate: Schema.v9)
     migrator.registerMigration("v10-segment-source-import", migrate: Schema.v10)
+    migrator.registerMigration("v11-calendar-event", migrate: Schema.v11)
     return migrator
   }
 }

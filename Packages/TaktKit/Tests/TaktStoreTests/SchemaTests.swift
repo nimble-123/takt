@@ -27,6 +27,7 @@ struct SchemaTests {
     #expect(
       tables == [
         "absence",
+        "calendar_event",
         "category",
         "entry_tag",
         "global_pause",
@@ -60,6 +61,7 @@ struct SchemaTests {
       "v8-absence",
       "v9-overtime-payout",
       "v10-segment-source-import",
+      "v11-calendar-event",
     ])
   }
 

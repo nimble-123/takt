@@ -241,4 +241,24 @@ enum Schema {
         """
     )
   }
+
+  /// Outlook events of today ± 7 days for the start search (CA-05). Only a cache: each sync
+  /// replaces the window, nothing else refers to these rows.
+  static func v11(_ db: Database) throws {
+    try db.execute(
+      sql: """
+        CREATE TABLE calendar_event (
+          id TEXT PRIMARY KEY,
+          series_id TEXT,
+          title TEXT NOT NULL,
+          start_at INTEGER NOT NULL,
+          end_at INTEGER NOT NULL,
+          attendee_count INTEGER NOT NULL DEFAULT 0,
+          is_online_meeting INTEGER NOT NULL DEFAULT 0,
+          is_private INTEGER NOT NULL DEFAULT 0
+        );
+        CREATE INDEX calendar_event_time ON calendar_event(start_at, end_at);
+        """
+    )
+  }
 }
