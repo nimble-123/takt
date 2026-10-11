@@ -8,8 +8,9 @@ final class MainWindowController: NSObject, NSWindowDelegate {
 
   // MARK: Lifecycle
 
-  init(model: MainWindowModel) {
+  init(model: MainWindowModel, settings: AppSettings) {
     self.model = model
+    self.settings = settings
     super.init()
     // SwiftUI's `.searchable` cannot set the field's width. It adds an `NSSearchToolbarItem`
     // whenever the toolbar is rebuilt, so the width is set each time one is added.
@@ -57,6 +58,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
   private static let searchFieldWidth: CGFloat = 286
 
   private let model: MainWindowModel
+  private let settings: AppSettings
   private var window: NSWindow?
   private var searchItemObserver: (any NSObjectProtocol)?
 
@@ -73,7 +75,7 @@ final class MainWindowController: NSObject, NSWindowDelegate {
   }
 
   private func makeWindow() -> NSWindow {
-    let window = NSWindow(contentViewController: NSHostingController(rootView: MainWindowView(model: model)))
+    let window = NSWindow(contentViewController: NSHostingController(rootView: MainWindowView(model: model).themed(settings)))
     window.title = "Takt"
     window.styleMask.insert(.fullSizeContentView)
     window.setContentSize(NSSize(width: 1100, height: 720))

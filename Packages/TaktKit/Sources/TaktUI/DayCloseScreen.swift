@@ -188,7 +188,7 @@ struct DayCloseScreen: View {
         }
       }
       .buttonStyle(.borderedProminent)
-      .tint(Palette.accent)
+      .themeTint()
       .disabled(dayClose.selected.isEmpty || dayClose.isBooking)
       .keyboardShortcut(Self.bookAllShortcut)
       .help(Text("Book all open differences (⌘↩)", bundle: .module))

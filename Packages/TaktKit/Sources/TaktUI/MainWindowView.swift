@@ -19,9 +19,16 @@ public struct MainWindowView: View {
   public var body: some View {
     NavigationSplitView {
       List(model.sections, selection: sectionBinding) { section in
-        Label(section.title, systemImage: section.symbol)
+        // The icons in the theme's accent; the system would use the app's accent color (HW-07).
+        Label {
+          Text(section.title)
+        } icon: {
+          Image(systemName: section.symbol)
+            .foregroundStyle(Palette.accent)
+        }
       }
       .navigationSplitViewColumnWidth(min: 160, ideal: 180)
+      .background(Palette.sidebar)
       .safeAreaInset(edge: .bottom, alignment: .leading) {
         // The release tag, so a screenshot or a bug report shows which version it was.
         Text(verbatim: AppVersion.tag)

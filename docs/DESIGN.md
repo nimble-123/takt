@@ -24,7 +24,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 | Hauptfenster | Woche | Kalenderraster Mo–So mit Tagessummen und ggf. Abwesenheit (AZ-05) oder Feiertagsname (AZ-03) im Kopf, Kontextmenü „Abwesenheit“ am Kopf, heutiger Tag hervorgehoben; Doppelklick auf einen Tag öffnet ihn; Einträge per Drag auf andere Uhrzeit oder anderen Tag verschieben |
 | Hauptfenster | Einträge | Tabelle mit Inline-Titel, Projekt, Zeit, Dauer, Zählweise; Mehrfachauswahl mit Sammeländerung im Inspektor |
 | Hauptfenster | Projekte | Projekte mit Tasks, Kategorien, Tags und Regeln; Farbe und Symbol per Menü, Archivieren statt Löschen, ADO-Kennzeichnung; je Kategorie Häkchen „Arbeitszeit“ (AZ-01) |
-| Hauptfenster | Einstellungen | Allgemein (u. a. Arbeitszeitmodell, Startsaldo und Stichtag des Flexkontos, Übertragsgrenze ins Folgejahr, Quartalskontingent für vergütete Überstunden, Urlaubstage pro Jahr und Resturlaub aus dem Vorjahr, Feiertage nach Bundesland), Erfassung, Erinnerung (an/aus, Arbeitszeit von–bis, Abstand), Monatsabschluss (Archivordner, automatisch zum Monatsanfang, AZ-10), Kurzbefehle, Kommandozeile (`takt` mit Status „Installiert“ und „Installieren …“, das nach `/usr/local/bin` verlinkt; CL-01), Azure DevOps, Daten (Backup, Export, Import, „Auf Werkseinstellungen zurücksetzen …“ in Rot mit kritischem Hinweis, „Abbrechen“ als Standard), Über Takt (Version mit Build, Links zu Website, Quellcode, Versionshinweisen und „Problem melden“); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
+| Hauptfenster | Einstellungen | Farbschema (Theme-Karten und Darstellung System/Hell/Dunkel, HW-07), Allgemein (u. a. Arbeitszeitmodell, Startsaldo und Stichtag des Flexkontos, Übertragsgrenze ins Folgejahr, Quartalskontingent für vergütete Überstunden, Urlaubstage pro Jahr und Resturlaub aus dem Vorjahr, Feiertage nach Bundesland), Erfassung, Erinnerung (an/aus, Arbeitszeit von–bis, Abstand), Monatsabschluss (Archivordner, automatisch zum Monatsanfang, AZ-10), Kurzbefehle, Kommandozeile (`takt` mit Status „Installiert“ und „Installieren …“, das nach `/usr/local/bin` verlinkt; CL-01), Azure DevOps, Daten (Backup, Export, Import, „Auf Werkseinstellungen zurücksetzen …“ in Rot mit kritischem Hinweis, „Abbrechen“ als Standard), Über Takt (Version mit Build, Links zu Website, Quellcode, Versionshinweisen und „Problem melden“); von MDM vorgegebene Werte gesperrt mit Hinweis „Von deiner Organisation vorgegeben“ |
 | Hauptfenster | Suchergebnisse | Suchfeld in der Toolbar („Einträge, Projekte, Work Items“, 286 pt breit, damit es über der Inspektorspalte liegt und „+“ und der Inspektor-Button links davon) ersetzt den Bereich durch Treffer: Einträge, dann Work Items wie im Popover (Typ-Badge, Nummer, Titel mit Treffer fett, Status farbig, darunter Zuweisung · Projekt · Iteration · Parent; nach Status sortiert, Removed/Cancelled ausgeblendet; Klick öffnet Azure DevOps), dann Projekte, Tasks, Kategorien, Tags |
 | Hauptfenster | Befehlspalette ⌘K | Sheet mit unscharfer Suche über alle Aktionen, „Timer „…“ starten“, Einträge und gecachte Work Items |
 | Hauptfenster | Analysen | Zeitraum-Segmente, Gruppieren nach, Zählweise (Pro Eintrag, Voll, Geteilt); KPIs mit Vergleich zur Vorperiode als Differenz („+2:10 h ggü. KW 40“, Fokusblöcke und Wechsel pro Tag ebenso, Verbesserung im Akzent), Multitasking mit paralleler Zeit, Soll/Ist und Flexkonto (AZ-05, nicht bei Vertrauensarbeitszeit; Klick öffnet die Vergütungen mit „Überstunden vergüten …“, mit Kontingent darunter die Quartalszeile, AZ-07; ab 1.10. stattdessen „X verfallen zum Jahreswechsel“ über der Übertragsgrenze, AZ-08), Urlaub des laufenden Jahres mit Hinweis auf offenen Vorjahresurlaub bis 31.3. (AZ-06); Insight-Satz als Titel der Tagesbalken („Dienstag war der längste Tag, Entwicklung überwiegt“), gestapelte Balken je Tag; rechts Verteilung nach der Gruppierung, darunter „Nach Projekt“ mit Anteil in % und „Top Work Items“ (jeweils nicht, wenn schon danach gruppiert wird); Heatmap (Hover-Label je Zelle: Wochentag, Stunde, Zeit; wie die Labels der Diagramme über allen Säulen und Zellen gezeichnet) 06–22 Uhr; Export CSV, Excel (.xlsx, AN-08), JSON, PDF und Arbeitszeitnachweis als PDF, CSV oder Excel (AZ-09, im Speichern-Dialog „Namen weglassen“); Tooltips beim Überfahren: Balkenabschnitt (Tag, Gruppe, Dauer, Tagessumme), Donut (Gruppe, Dauer, Anteil in der Mitte), Heatmap-Zelle (Wochentag, Stunde, Minuten), KPI (Erklärung, Vorperiodenwert und Differenz) |
@@ -34,7 +34,7 @@ Eine schreibgeschützte Galerie aller Artboards liegt auf GitHub Pages: https://
 
 ## Farben
 
-Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorien. Alle Farben als Asset-Katalog mit Hell- und Dunkel-Variante.
+Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorien. Die Tokens unten sind das Standard-Theme „Takt“ mit Hell- und Dunkel-Variante.
 
 | Token | Hell | Dunkel | Verwendung |
 | --- | --- | --- | --- |
@@ -57,6 +57,27 @@ Systemschrift und Systemmaterialien; eigene Farben nur für Status und Kategorie
 | Meeting | `#C2410C` | `#FB923C` | `#FFEDD5` / `#41281A` |
 | Review | `#7C3AED` | `#A78BFA` | `#EDE9FE` / `#2E2650` |
 | Support | `#DB2777` | `#F472B6` | `#FCE7F3` / `#4A1D35` |
+
+**Themes** (HW-07, `TaktUI/Theme.swift`)
+
+- Einstellungen → Farbschema: Karten mit Mini-Vorschau (Seitenleiste, Akzentbalken, Textzeilen, Auswahl-, Warn- und Fehlerfarbe; bei zwei Varianten links hell, rechts dunkel), Name und „Hell · Dunkel“ bzw. „Dunkel“, Tooltip mit den Namen der Varianten; die gewählte Karte mit Akzentrahmen und Häkchen. Darunter „Darstellung“ als Segmente System, Hell, Dunkel; bei Themes mit nur einer Variante deaktiviert, mit Hinweis „Tokyo Night gibt es nur in Dunkel.“
+- Ein Theme liefert dieselben Tokens wie oben, dazu Fenster- und Seitenleistenhintergrund. Das Standard-Theme lässt Fensterhintergrund, Seitenleiste, Textfarbe und Tint beim System (Systemmaterialien); alle anderen malen Fenster, Popover und Seitenleiste in ihrer Hintergrundfarbe, Text in `textPrimary`, Bedienelemente im Akzent. Tabellen verzichten dann auf die System-Streifen.
+- Themes mit nur einer Variante legen Hell oder Dunkel für alle Fenster, Menüs und Dialoge fest. Ein Wechsel wirkt sofort, ohne Neustart.
+- Kategorie- und Projektfarben bleiben die gewählten (Hell-/Dunkel-Variante nach dem Erscheinungsbild). Die Menüleiste färbt nicht mit; die ausgewählte Zeile der Seitenleiste nutzt bei Fokus die Akzentfarbe der App (macOS).
+- Kontrast in jedem Theme und jeder Variante: Text, Sekundärtext, Akzenttext und Warnung 4,5:1 auf Hintergrund und Seitenleiste, Akzent als Bedienelement 3:1 (Test `ThemeTests`). Wo die Vorlage das verfehlt (z. B. gedämpfte Kommentarfarben), ist der Wert aufgehellt bzw. abgedunkelt.
+
+| Theme | Varianten | Hintergrund | Akzent |
+| --- | --- | --- | --- |
+| Takt (Standard) | Hell, Dunkel | Systemmaterial | `#0F766E` / `#2DD4BF` |
+| GitHub | Light, Dark | `#FFFFFF` / `#0D1117` | `#0969DA` / `#1F6FEB` |
+| SAP Fiori Horizon | Morning, Evening | `#F5F6F7` / `#12171C` | `#0070F2` / `#4DB1FF` |
+| Tokyo Night | Dunkel | `#1A1B26` | `#7AA2F7` |
+| Aura Dark | Dunkel | `#15141B` | `#A277FF` |
+| Panda | Dunkel | `#292A2B` | `#FF75B5` |
+| Dracula | Dunkel | `#282A36` | `#BD93F9` |
+| One Dark | Dunkel | `#282C34` | `#61AFEF` |
+| Nord | Dunkel | `#2E3440` | `#88C0D0` |
+| Catppuccin Mocha | Dunkel | `#1E1E2E` | `#CBA6F7` |
 
 **Work-Item-Typen** (Badge mit Buchstabe, Farben wie in Azure DevOps): Task `#A16207`, Bug `#B91C1C`, User Story/Product Backlog Item `#0369A1`, Feature `#7E22CE` (lila), Epic `#EA580C` (orange), andere `#475569`. Buchstabe (wie das Häkchen auf Farbmustern) weiß oder schwarz, je nachdem, was auf der Fläche mehr Kontrast hat – mindestens 4,5:1, auch mit den Dunkel-Varianten.
 
