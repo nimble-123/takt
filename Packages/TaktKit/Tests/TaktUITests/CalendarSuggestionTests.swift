@@ -132,6 +132,80 @@ struct CalendarSuggestionTests {
   }
 
   @Test
+  func meetingTimerEndsWithTheEventAndResumesTheWork() async throws {
+    await model.start(EntryDraft(title: "Work"), parallel: false)
+    try await sync()
+    let daily = event("daily", "Daily", minutes: 0, series: "series-1")
+    await model.save(SeriesRule(seriesID: "series-1", endsWithEvent: true))
+    await model.start(event: daily, parallel: false)
+    try await sync()
+    #expect(model.snapshot.running.map(\.entry.title) == ["Daily"])
+
+    clock.advance(seconds: 31 * 60)
+    let ended = await model.endDueMeetings()
+    try await sync()
+
+    #expect(ended.map(\.title) == ["Daily"])
+    #expect(ended.first?.resumed == "Work")
+    #expect(model.snapshot.running.map(\.entry.title) == ["Work"])
+    #expect(model.snapshot.running.first?.openSegment?.start == daily.end)
+    #expect(model.meetingTimers.isEmpty)
+  }
+
+  @Test
+  func extendRevertsTheAutomaticEnd() async throws {
+    let daily = event("daily", "Daily", minutes: 0, series: "series-1")
+    await model.save(SeriesRule(seriesID: "series-1", endsWithEvent: true))
+    await model.start(event: daily, parallel: false)
+    try await sync()
+    clock.advance(seconds: 31 * 60)
+    let end = try #require(await model.endDueMeetings().first)
+    try await sync()
+
+    await model.extend(end)
+    try await sync()
+
+    #expect(model.snapshot.running.map(\.entry.title) == ["Daily"])
+  }
+
+  @Test
+  func meetingTimerPausedByTheUserIsLeftAlone() async throws {
+    let daily = event("daily", "Daily", minutes: 0, series: "series-1")
+    await model.save(SeriesRule(seriesID: "series-1", endsWithEvent: true))
+    await model.start(event: daily, parallel: false)
+    try await sync()
+    let id = try #require(model.snapshot.running.first?.id)
+    await model.pause(id)
+    try await sync()
+    clock.advance(seconds: 31 * 60)
+
+    #expect(await model.endDueMeetings().isEmpty)
+    #expect(model.snapshot.paused.map(\.id) == [id])
+  }
+
+  @Test
+  func eventStartIsAnnouncedOnlyForOfferingSeries() async throws {
+    try await store([
+      event("daily", "Daily", minutes: 0, series: "series-1"),
+      event("review", "Review", minutes: 0, series: "series-2"),
+    ])
+    await model.save(SeriesRule(seriesID: "series-1", offersTimerAtStart: true))
+
+    #expect(await model.dueEventStarts().map(\.id) == ["daily"])
+    #expect(await model.dueEventStarts().isEmpty)
+  }
+
+  @Test
+  func startEventByIDStartsTheTimer() async throws {
+    try await store([event("daily", "Daily", minutes: 0, series: "series-1")])
+    await model.startEvent(id: "daily")
+    try await sync()
+
+    #expect(model.snapshot.running.first?.entry.title == "Daily")
+    #expect(model.snapshot.running.first?.openSegment?.source == .calendar)
+  }
+
+  @Test
   func badgeSaysHowLongTheEventRunsOrWhenItStarts() {
     let now = clock.now()
     #expect(CalendarEventText.badge(for: event("a", "A", minutes: -2), at: now)?.contains("2") == true)

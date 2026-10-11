@@ -138,6 +138,24 @@ public actor TimerEngine {
     }
   }
 
+  /// Stops `id` at `end` and resumes the paused `others` from the same moment, in one
+  /// transaction: a meeting timer ends with its event and the work it paused goes on (CA-22).
+  /// `end` is kept between the open segment's start and now.
+  @discardableResult
+  public func stop(_ id: EntryID, resuming others: [EntryID], at end: Timestamp) async throws -> CommandResult<Void> {
+    let now = clock.now()
+    return try await perform { snapshot in
+      let active = try Self.active(id, in: snapshot)
+      let time = max(min(end, now), active.openSegment?.start ?? end)
+      let paused = others.compactMap { snapshot.entry($0) }.filter { $0.entry.state == .paused }
+      return TimerUpdate(
+        changes: Self.closeChanges([active], state: .stopped, at: time, updatedAt: now)
+          + Self.resumeChanges(paused, at: time, updatedAt: now)
+          + Self.leaveGlobalPause([id] + paused.map(\.id), in: snapshot, at: now)
+      )
+    }
+  }
+
   /// Stops every running and paused entry in one transaction. Returns their IDs.
   @discardableResult
   public func stopAll() async throws -> CommandResult<[EntryID]> {

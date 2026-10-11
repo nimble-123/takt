@@ -164,6 +164,7 @@ final class Composition {
         tasks.append(Task { await runChores() })
         tasks.append(Task { await sendQueueRegularly() })
         tasks.append(Task { await syncCalendarRegularly() })
+        tasks.append(Task { await watchMeetings() })
         tasks.append(Task { await idleMonitor.run() })
         tasks.append(Task { await forwardIdleReturns() })
       }
@@ -174,6 +175,9 @@ final class Composition {
 
   private let backup: DatabaseBackup
   private let notifier = Notifier()
+  private let notificationResponder = NotificationResponder()
+  /// Meetings that ended automatically, for "Extend" in their notification (CA-22).
+  private var meetingEnds = [EntryID: MenuBarModel.MeetingEnd]()
   private var longRunners = LongRunnerCheck()
   private var noTimerReminder = NoTimerReminder()
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "app")
@@ -226,6 +230,57 @@ final class Composition {
 
   /// DO-26: once a minute, if bookings wait; the queue keeps its backoff. Network calls, so they
   /// run apart from the other chores.
+  /// CA-21, CA-22: asks at the start of events whose series offers a timer, and ends meeting
+  /// timers with their event. Each notification's button comes back through the responder.
+  private func watchMeetings() async {
+    guard calendarSync != nil else { return }
+    notificationResponder.register(MeetingNotifications.categories)
+    notificationResponder.onAction = { [weak self] action, info in
+      guard let self, let id = info[MeetingNotifications.idKey] else { return }
+      switch action {
+      case MeetingNotifications.startAction:
+        tasks.append(Task { await self.menuBar.startEvent(id: id) })
+
+      case MeetingNotifications.extendAction:
+        guard let entry = EntryID(uuidString: id), let end = meetingEnds[entry] else { return }
+        tasks.append(Task { await self.menuBar.extend(end) })
+
+      default:
+        break
+      }
+    }
+    await menuBar.loadSeriesRules()
+    while !Task.isCancelled {
+      for event in await menuBar.dueEventStarts() {
+        let text = MeetingNotifications.start(
+          of: event,
+          assignment: menuBar.assignmentNames(for: event),
+          pausing: menuBar.snapshot.running.first?.entry.title,
+          resumesAfterwards: menuBar.seriesRule(for: event)?.endsWithEvent == true,
+        )
+        await notifier.post(
+          id: "meeting-start-\(event.id)",
+          title: text.title,
+          body: text.body,
+          category: MeetingNotifications.startCategory,
+          info: [MeetingNotifications.idKey: event.id],
+        )
+      }
+      for end in await menuBar.endDueMeetings() {
+        meetingEnds[end.id] = end
+        let text = MeetingNotifications.end(end)
+        await notifier.post(
+          id: "meeting-end-\(end.id.uuidString)",
+          title: text.title,
+          body: text.body,
+          category: MeetingNotifications.endCategory,
+          info: [MeetingNotifications.idKey: end.id.uuidString],
+        )
+      }
+      try? await Task.sleep(for: .seconds(30))
+    }
+  }
+
   /// CA-05: Outlook events every five minutes while signed in, and right after signing in.
   private func syncCalendarRegularly() async {
     guard let microsoftAccount, let calendarSync else { return }

@@ -64,6 +64,7 @@ struct SchemaTests {
       "v10-segment-source-import",
       "v11-calendar-event",
       "v12-series-rule",
+      "v13-series-rule-start-end",
     ])
   }
 

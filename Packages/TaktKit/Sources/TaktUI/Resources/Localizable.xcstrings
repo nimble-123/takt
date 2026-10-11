@@ -6570,6 +6570,106 @@
           }
         }
       }
+    },
+    "Offer a timer when the event begins": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu Terminbeginn Timer anbieten"
+          }
+        }
+      }
+    },
+    "Timer ends with the event": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer endet mit dem Termin"
+          }
+        }
+      }
+    },
+    "ends %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "endet %@"
+          }
+        }
+      }
+    },
+    "%@ ended · %@ h": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ beendet · %@ h"
+          }
+        }
+      }
+    },
+    "“%@” continues.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ läuft weiter."
+          }
+        }
+      }
+    },
+    "Extend": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlängern"
+          }
+        }
+      }
+    },
+    "until %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bis %@"
+          }
+        }
+      }
+    },
+    "“%@” will be paused.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wird pausiert."
+          }
+        }
+      }
+    },
+    "%@ begins": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ beginnt"
+          }
+        }
+      }
+    },
+    "“%@” will be paused and resumes afterwards.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "„%@“ wird pausiert und läuft danach weiter."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
