@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/nimble-123/takt/compare/v0.9.0...v0.10.0) (2026-10-11)
+
+
+### Neue Funktionen
+
+* **calendar:** cache Outlook events from Microsoft Graph (CA-02, CA-04, CA-05) ([#233](https://github.com/nimble-123/takt/issues/233)) ([18d0c53](https://github.com/nimble-123/takt/commit/18d0c53d983164e33619624db65b6bae20adeec2))
+* **system:** sign in with Entra ID via OAuth and PKCE (DO-01, CA-02) ([#231](https://github.com/nimble-123/takt/issues/231)) ([35c0474](https://github.com/nimble-123/takt/commit/35c04741d7769ec6f860c1bc3aea2aa013a8c3f1))
+* **ui:** assign Outlook series to project and category (CA-12, CA-20) ([#235](https://github.com/nimble-123/takt/issues/235)) ([321b59c](https://github.com/nimble-123/takt/commit/321b59c599b141c0b41a9d8fa011a45b51818352))
+* **ui:** offer a timer at an event's start and end it with the event (CA-21, CA-22) ([#237](https://github.com/nimble-123/takt/issues/237)) ([12caa75](https://github.com/nimble-123/takt/commit/12caa758cc38407695d967b85502d79ebb4320f1))
+* **ui:** suggest Outlook events in the start search (CA-10, CA-11, CA-13, CA-14) ([#234](https://github.com/nimble-123/takt/issues/234)) ([e18d791](https://github.com/nimble-123/takt/commit/e18d7911febe0e142a3649a96f290b45b7338f25))
+* **ui:** suggest untracked Outlook events in the day view (CA-23) ([#238](https://github.com/nimble-123/takt/issues/238)) ([109a49a](https://github.com/nimble-123/takt/commit/109a49aed769b79e95a7cbaf2411a206142bec5e))
+* **ui:** turn the Outlook calendar on in the settings (CA-01) ([#236](https://github.com/nimble-123/takt/issues/236)) ([f373b4f](https://github.com/nimble-123/takt/commit/f373b4f458e4e9ed3543c20b08ee4e1edb451122))
+
 ## [0.9.0](https://github.com/nimble-123/takt/compare/v0.8.0...v0.9.0) (2026-10-11)
 
 
