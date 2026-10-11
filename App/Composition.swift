@@ -75,9 +75,11 @@ final class Composition {
       },
       actions: actions,
     )
+    let seriesRules = SeriesRuleStore(database: database)
     menuBar.calendarEvents = calendarSync.map { sync in
       CalendarEvents(
-        search: { text, now in try await calendarCache.search(text, at: now) },
+        cache: calendarCache,
+        rules: seriesRules,
         refresh: {
           do {
             try await sync.sync()

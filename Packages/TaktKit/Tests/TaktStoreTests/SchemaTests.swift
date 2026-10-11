@@ -37,6 +37,7 @@ struct SchemaTests {
         "project",
         "segment",
         "segment_change",
+        "series_rule",
         "setting",
         "sync_record",
         "tag",
@@ -62,6 +63,7 @@ struct SchemaTests {
       "v9-overtime-payout",
       "v10-segment-source-import",
       "v11-calendar-event",
+      "v12-series-rule",
     ])
   }
 

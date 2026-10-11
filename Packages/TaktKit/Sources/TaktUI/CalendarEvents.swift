@@ -1,4 +1,5 @@
 import TaktCore
+import TaktStore
 
 // MARK: - CalendarEvents
 
@@ -8,20 +9,20 @@ nonisolated public struct CalendarEvents: Sendable {
 
   // MARK: Lifecycle
 
-  public init(
-    search: @escaping @Sendable (String, Timestamp) async throws -> [CalendarEvent],
-    refresh: @escaping @Sendable () async -> Void,
-  ) {
-    self.search = search
+  public init(cache: CalendarEventCache, rules: SeriesRuleStore, refresh: @escaping @Sendable () async -> Void) {
+    self.cache = cache
+    self.rules = rules
     self.refresh = refresh
   }
 
   // MARK: Public
 
-  /// Cached events not yet over whose title contains the text (all of them for empty text).
-  public var search: @Sendable (String, Timestamp) async throws -> [CalendarEvent]
+  /// Cached events not yet over (CA-05).
+  public let cache: CalendarEventCache
+  /// Assignments per series (CA-20).
+  public let rules: SeriesRuleStore
   /// Fetches the calendar again, e.g. when the popover opens (CA-05).
-  public var refresh: @Sendable () async -> Void
+  public let refresh: @Sendable () async -> Void
 
   // MARK: Internal
 

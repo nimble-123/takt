@@ -6490,6 +6490,76 @@
           }
         }
       }
+    },
+    "Start from %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ab %@ starten"
+          }
+        }
+      }
+    },
+    "Assignment for the whole series": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zuordnung für die ganze Serie"
+          }
+        }
+      }
+    },
+    "No project": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Projekt"
+          }
+        }
+      }
+    },
+    "No category": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Kategorie"
+          }
+        }
+      }
+    },
+    "+ Link work item (optional)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ Work Item verknüpfen (optional)"
+          }
+        }
+      }
+    },
+    "(%lld min)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(%lld min)"
+          }
+        }
+      }
+    },
+    "Start timer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timer starten"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
