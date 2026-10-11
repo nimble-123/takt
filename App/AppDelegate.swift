@@ -17,9 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       return
     }
     self.composition = composition
-    panel = PopoverPanel(rootView: PopoverView(model: composition.menuBar))
+    panel = PopoverPanel(rootView: PopoverView(model: composition.menuBar).themed(composition.settings))
     statusItem = makeStatusItem()
-    mainWindow = MainWindowController(model: composition.mainWindow)
+    mainWindow = MainWindowController(model: composition.mainWindow, settings: composition.settings)
     composition.menuBar.openMainWindow = { [weak self] in self?.showMainWindow() }
     composition.menuBar.openSettings = { [weak self] in self?.openSettingsFromMenu() }
     composition.onIdleNeedsDecision = { [weak self] in self?.showPanel() }
@@ -37,6 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       Task { await composition.menuBar.togglePauseAll() }
     }
     observeStatus()
+    observeAppearance()
     scheduleTitleUpdates()
     if !composition.settings.onboardingCompleted {
       showOnboarding(composition.settings)
@@ -44,11 +45,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     #if DEBUG
     // For screenshots and UI tests: `-openPopover YES` / `-openMainWindow YES` show the popover or
-    // main window at launch (`-mainSection`, `-mainDay`), `-appearance dark|light` forces an appearance and
-    // `-onboardingCompleted YES` skips the onboarding.
-    if let appearance = UserDefaults.standard.string(forKey: "appearance") {
-      NSApp.appearance = NSAppearance(named: appearance == "dark" ? .darkAqua : .aqua)
-    }
+    // main window at launch (`-mainSection`, `-mainDay`) and `-onboardingCompleted YES` skips the
+    // onboarding. `-appearance dark|light` and `-theme <id>` override the settings.
     if UserDefaults.standard.bool(forKey: "openMainWindow") {
       if
         let section = UserDefaults.standard.string(forKey: "mainSection")
@@ -161,7 +159,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   private func showOnboarding(_ settings: AppSettings) {
     let controller = OnboardingWindowController(
-      model: OnboardingModel(settings: settings, azureDevOps: composition?.azureDevOps)
+      model: OnboardingModel(settings: settings, azureDevOps: composition?.azureDevOps),
+      settings: settings,
     )
     controller.model.onFinish = { [weak self] in
       self?.onboarding?.close()
@@ -202,6 +201,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       updateStatusItem()
     } onChange: {
       Task { @MainActor [weak self] in self?.observeStatus() }
+    }
+  }
+
+  /// Light, dark or the system's appearance for all windows, menus and dialogs (HW-07).
+  private func observeAppearance() {
+    guard let settings = composition?.settings else { return }
+    withObservationTracking {
+      NSApp.appearance =
+        switch Theme.named(settings.theme).appearance(settings.appearance) {
+        case .system: nil
+        case .light: NSAppearance(named: .aqua)
+        case .dark: NSAppearance(named: .darkAqua)
+        }
+    } onChange: {
+      Task { @MainActor [weak self] in self?.observeAppearance() }
     }
   }
 

@@ -69,6 +69,7 @@ Time tracking usually happens after the fact and from memory, because starting, 
 | **Parallel timers** | Run several timers at once and count overlapping time as *full* or *split* by weight (e.g. 70/30), globally or per entry. |
 | **Pauses and idle detection** | Per-timer and global pauses. When you come back from an idle period, keep, discard, count as pause or reassign the time, or decide later. |
 | **Stop panel** | Stopping is instant, with an undo toast. Make project, category or work item required, and Takt asks for them before it stops; `⌥`-click opens the panel any time. |
+| **Themes** | Pick a color scheme in the settings: Takt, GitHub, SAP Fiori Horizon, Tokyo Night, Aura Dark, Panda, Dracula, One Dark, Nord or Catppuccin Mocha, light, dark or following the system. Every theme keeps readable contrast. |
 | **Rules** | Assign category, project and tags automatically, for example "work item type Bug → category Support". |
 | **Azure DevOps** | Search work items with a compact preview (state, iteration, effort), current sprint first, get suggestions from your checked-out Git branch, and book time back as **differences** that stay correct when you edit entries later. The day close lists what to book; uncheck what should wait. |
 | **Analytics** | Stacked bars, distributions, top work items, heatmap, focus blocks and context switches, compared with the previous period and summed up in one sentence. Export CSV, Excel, JSON and a PDF report against your weekly target hours. |

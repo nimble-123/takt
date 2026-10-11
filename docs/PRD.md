@@ -145,6 +145,7 @@ Seitenleiste mit Heute, Kalender, Einträge, Analysen, Projekte, Einstellungen.
 | HW-04 | Eintragsliste mit Inline-Bearbeitung, Mehrfachauswahl und Sammelzuordnung | Must |
 | HW-05 | Command Palette (⌘K) für alle Aktionen | Should |
 | HW-06 | Volltextsuche über Notizen, Tasks und Work Items | Should |
+| HW-07 | Farbschema wählbar: Takt (Standard), GitHub, SAP Fiori Horizon, Tokyo Night, Aura Dark, Panda, Dracula, One Dark, Nord, Catppuccin Mocha; dazu Hell, Dunkel oder wie das System | Could |
 
 ### Analysen
 

@@ -70,7 +70,7 @@ struct IdleDialog: View {
             .padding(.horizontal, 6)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Palette.accent)
+        .themeTint()
         .keyboardShortcut(.defaultAction)
         .disabled(choice == .reassign && reassignTitle.trimmingCharacters(in: .whitespaces).isEmpty)
       }

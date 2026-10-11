@@ -109,7 +109,7 @@ public struct OnboardingView: View {
             .padding(.horizontal, 8)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Palette.accent)
+        .themeTint()
         .keyboardShortcut(.defaultAction)
       }
     }

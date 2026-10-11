@@ -106,7 +106,7 @@ struct StopPanel: View {
           Text("Finish ⌘↩", bundle: .module).padding(.horizontal, 6)
         }
         .buttonStyle(.borderedProminent)
-        .tint(Palette.accent)
+        .themeTint()
         .keyboardShortcut(.return, modifiers: .command)
         .disabled(!missing.isEmpty)
       }

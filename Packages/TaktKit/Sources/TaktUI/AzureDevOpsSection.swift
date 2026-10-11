@@ -52,7 +52,7 @@ struct ConnectForm: View {
           }
         }
         .buttonStyle(.borderedProminent)
-        .tint(Palette.accent)
+        .themeTint()
         .disabled(organization.trimmed.isEmpty || token.trimmed.isEmpty || model.isWorking)
       }
       if let message = model.errorMessage {

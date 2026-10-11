@@ -35,6 +35,8 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `stopRequiresProject` | Boolean | Default `false` | Projekt ist Pflicht: Beenden ohne Projekt öffnet das Beenden-Panel (TM-11) |
 | `stopRequiresWorkItem` | Boolean | Default `false` | Work Item ist Pflicht: Beenden ohne Work Item öffnet das Beenden-Panel; wirkt nur mit einer Azure-DevOps-Verbindung (TM-11) |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
+| `theme` | String | `standard`, `github`, `fioriHorizon`, `tokyoNight`, `auraDark`, `panda`, `dracula`, `oneDark`, `nord`, `catppuccinMocha` | Farbschema aller Fenster (HW-07) |
+| `appearance` | String | `system` (Default), `light`, `dark` | Hell, Dunkel oder wie das System; Themes mit nur einer Variante legen es selbst fest (HW-07) |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
 | `noTimerReminderMinutes` | Integer | 5–120, Default 15 | Nach wie vielen Minuten ohne Timer erinnert wird, danach im selben Abstand |
 | `workdayStartMinute` | Integer | Minuten nach Mitternacht, Default 540 (9:00) | Beginn der Arbeitszeit für die Erinnerung |

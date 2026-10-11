@@ -152,6 +152,14 @@
       "w": 760,
       "x": 4080,
       "y": 1060
+    },
+    "Themes.dc.html": {
+      "expand": "fill",
+      "h": 800,
+      "title": "Einstellungen · Farbschema (HW-07, Tokyo Night)",
+      "w": 1280,
+      "x": 1860,
+      "y": 4120
     }
   },
   "createdOnFiles": {
@@ -177,8 +185,8 @@
     },
     "row-dark": {
       "kind": "title1",
-      "maxW": 1780,
-      "text": "Dark Mode",
+      "maxW": 3140,
+      "text": "Dark Mode & Themes",
       "w": 240,
       "x": 0,
       "y": 3820
@@ -234,6 +242,7 @@
     "SearchResults.dc.html",
     "MainDark.dc.html",
     "TodayDark.dc.html",
+    "Themes.dc.html",
     "Onboarding.dc.html"
   ],
   "pages": [],

@@ -101,6 +101,16 @@
         }
       }
     },
+    "%@ has a dark variant only.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ gibt es nur in Dunkel."
+          }
+        }
+      }
+    },
     "%@ of %@ target": {
       "localizations": {
         "de": {
@@ -517,6 +527,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Analysen"
+          }
+        }
+      }
+    },
+    "Appearance": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Darstellung"
           }
         }
       }
@@ -1681,6 +1701,16 @@
         }
       }
     },
+    "Dark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dunkel"
+          }
+        }
+      }
+    },
     "Data": {
       "localizations": {
         "de": {
@@ -2707,6 +2737,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Rettungsring"
+          }
+        }
+      }
+    },
+    "Light": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hell"
+          }
+        }
+      }
+    },
+    "Light · Dark": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hell · Dunkel"
           }
         }
       }
@@ -4871,6 +4921,16 @@
         }
       }
     },
+    "System": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        }
+      }
+    },
     "Tag": {
       "localizations": {
         "de": {
@@ -5247,6 +5307,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Der Arbeitszeitnachweis für %@ ist noch nicht archiviert."
+          }
+        }
+      }
+    },
+    "Theme": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farbschema"
           }
         }
       }

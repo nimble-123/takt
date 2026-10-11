@@ -156,6 +156,8 @@ struct SettingsScreen: View {
         .managed(settings.isLocked(.showElapsedInMenuBar))
       }
 
+      ThemeSection(settings: settings)
+
       Section(String(localized: "Timer", bundle: .module)) {
         Picker(String(localized: "Starting a timer", bundle: .module), selection: $settings.startMode) {
           Text("Switch (pauses running timers)", bundle: .module).tag(TimerEngine.StartMode.switchTo)

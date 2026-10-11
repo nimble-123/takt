@@ -58,6 +58,8 @@ struct EntryListScreen: View {
       }
       .width(min: 70, ideal: 90)
     }
+    // The system's stripes would cover a theme's background (HW-07).
+    .alternatingRowBackgrounds(theme.isStandard ? .enabled : .disabled)
     // A click on a row shows the inspector, as in the timelines.
     .onChange(of: model.selection) { _, selection in
       if !selection.isEmpty { model.isInspectorShown = true }
@@ -77,6 +79,8 @@ struct EntryListScreen: View {
   }
 
   // MARK: Private
+
+  @Environment(\.theme) private var theme
 
   private func projectLabel(_ entry: TimeEntry) -> String {
     let catalog = model.catalog.catalog

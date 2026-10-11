@@ -59,6 +59,8 @@ public final class AppSettings {
     stopRequiresCategory = stored.stopRequiresCategory
     stopRequiresProject = stored.stopRequiresProject
     stopRequiresWorkItem = stored.stopRequiresWorkItem
+    theme = stored.theme
+    appearance = stored.appearance
   }
 
   // MARK: Public
@@ -96,6 +98,8 @@ public final class AppSettings {
     case stopRequiresCategory
     case stopRequiresProject
     case stopRequiresWorkItem
+    case theme
+    case appearance
   }
 
   /// AZ-05: flex time keeps a target and the flex account; trust-based working time hides both.
@@ -320,6 +324,16 @@ public final class AppSettings {
     didSet { write(.stopRequiresWorkItem, stopRequiresWorkItem) }
   }
 
+  /// HW-07: the color scheme of all windows.
+  public var theme: Theme.ID {
+    didSet { write(.theme, theme.rawValue) }
+  }
+
+  /// HW-07: light, dark or the system's appearance; a theme with one variant overrides it.
+  public var appearance: Theme.Appearance {
+    didSet { write(.appearance, appearance.rawValue) }
+  }
+
   /// Readable from any isolation, e.g. from the `@Sendable` closures of the services.
   public nonisolated var snapshot: Snapshot {
     snapshotLock.withLock { $0 }
@@ -501,6 +515,10 @@ public final class AppSettings {
     case .stopRequiresWorkItem: if
       stopRequiresWorkItem != stored
         .stopRequiresWorkItem { stopRequiresWorkItem = stored.stopRequiresWorkItem }
+
+    case .theme: if theme != stored.theme { theme = stored.theme }
+
+    case .appearance: if appearance != stored.appearance { appearance = stored.appearance }
     }
   }
 }
@@ -552,6 +570,9 @@ private struct Stored {
     stopRequiresCategory = defaults.bool(forKey: AppSettings.Key.stopRequiresCategory.rawValue)
     stopRequiresProject = defaults.bool(forKey: AppSettings.Key.stopRequiresProject.rawValue)
     stopRequiresWorkItem = defaults.bool(forKey: AppSettings.Key.stopRequiresWorkItem.rawValue)
+    theme = defaults.string(forKey: AppSettings.Key.theme.rawValue).flatMap(Theme.ID.init) ?? .standard
+    appearance = defaults.string(forKey: AppSettings.Key.appearance.rawValue)
+      .flatMap(Theme.Appearance.init) ?? .system
   }
 
   // MARK: Internal
@@ -588,6 +609,8 @@ private struct Stored {
   let stopRequiresCategory: Bool
   let stopRequiresProject: Bool
   let stopRequiresWorkItem: Bool
+  let theme: Theme.ID
+  let appearance: Theme.Appearance
 
   // MARK: Private
 

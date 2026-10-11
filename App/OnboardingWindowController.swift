@@ -8,20 +8,22 @@ final class OnboardingWindowController {
 
   // MARK: Lifecycle
 
-  init(model: OnboardingModel) {
+  init(model: OnboardingModel, settings: AppSettings) {
     self.model = model
+    self.settings = settings
   }
 
   // MARK: Internal
 
   let model: OnboardingModel
+  let settings: AppSettings
 
   var isVisible: Bool {
     window?.isVisible == true
   }
 
   func show() {
-    let window = NSWindow(contentViewController: NSHostingController(rootView: OnboardingView(model: model)))
+    let window = NSWindow(contentViewController: NSHostingController(rootView: OnboardingView(model: model).themed(settings)))
     window.title = String(localized: "Welcome to Takt")
     window.styleMask = [.titled, .closable]
     window.isReleasedWhenClosed = false

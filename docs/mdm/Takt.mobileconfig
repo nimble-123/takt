@@ -81,6 +81,10 @@
       <false/>
       <key>showElapsedInMenuBar</key>
       <true/>
+      <key>theme</key>
+      <string>standard</string>
+      <key>appearance</key>
+      <string>system</string>
       <key>remindWhenNoTimer</key>
       <true/>
       <key>noTimerReminderMinutes</key>
