@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/nimble-123/takt/compare/v0.10.0...v0.11.0) (2026-10-11)
+
+
+### Neue Funktionen
+
+* **ui:** enter client and tenant ID for the Microsoft sign-in (DO-01, CA-02) ([#243](https://github.com/nimble-123/takt/issues/243)) ([66f4ee4](https://github.com/nimble-123/takt/commit/66f4ee486678b3ef78c7fe667c4305dd9a16ed19))
+* **ui:** turn the Outlook calendar on in the onboarding (CA-01) ([#239](https://github.com/nimble-123/takt/issues/239)) ([245deaa](https://github.com/nimble-123/takt/commit/245deaa3baf1c9d26c2951d5f0cdcb987cd59688))
+
 ## [0.10.0](https://github.com/nimble-123/takt/compare/v0.9.0...v0.10.0) (2026-10-11)
 
 
