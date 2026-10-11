@@ -17,6 +17,35 @@ struct EntraSessionTests {
   }
 
   @Test
+  func sharedTenantsAreRejected() {
+    #expect(EntraConfiguration(tenantID: "common", clientID: "client") == nil)
+    #expect(EntraConfiguration(tenantID: "Organizations", clientID: "client") == nil)
+    #expect(EntraConfiguration(tenantID: "consumers", clientID: "client") == nil)
+    #expect(EntraConfiguration(tenantID: "contoso.onmicrosoft.com", clientID: "client") != nil)
+  }
+
+  @Test
+  func withoutConfigurationThereIsNoAccountAndNoSignIn() async throws {
+    try signedIn()
+    let session = try makeSession()
+    await session.configure(nil)
+    #expect(try await session.account() == nil)
+    await #expect(throws: EntraError.notConfigured) {
+      try await session.signIn(using: Self.approve)
+    }
+    #expect(requests.list.withLock { $0.isEmpty })
+  }
+
+  @Test
+  func configureSwitchesTheAppRegistration() async throws {
+    let session = try makeSession()
+    await session.configure(EntraConfiguration(tenantID: "other", clientID: "other-client"))
+    let url = try #require(await session.authorizationURL(verifier: "verifier", state: "state"))
+    #expect(url.path() == "/other/oauth2/v2.0/authorize")
+    #expect(url.query()?.contains("client_id=other-client") == true)
+  }
+
+  @Test
   func challengeIsUnpaddedBase64URLOfSHA256() {
     // python3: base64.urlsafe_b64encode(hashlib.sha256(verifier).digest()).rstrip(b"=")
     #expect(
@@ -28,7 +57,7 @@ struct EntraSessionTests {
   @Test
   func authorizationURLUsesTenantAndPKCE() async throws {
     let session = try makeSession()
-    let url = await session.authorizationURL(verifier: "verifier", state: "state")
+    let url = try #require(await session.authorizationURL(verifier: "verifier", state: "state"))
     let components = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
     let items = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value ?? "") })
     #expect(components.host == "login.microsoftonline.com")

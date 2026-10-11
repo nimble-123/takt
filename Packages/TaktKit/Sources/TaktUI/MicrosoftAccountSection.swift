@@ -2,10 +2,11 @@ import SwiftUI
 
 // MARK: - MicrosoftAccountSection
 
-/// Sign in or out with the work account (DO-01, CA-02).
+/// Sign in or out with the work account (DO-01, CA-02). While signed out, client and tenant ID
+/// of the app registration can be entered unless a configuration profile sets them (#242).
 struct MicrosoftAccountSection: View {
 
-  let model: MicrosoftAccountModel
+  @Bindable var model: MicrosoftAccountModel
   @Bindable var settings: AppSettings
 
   var body: some View {
@@ -29,6 +30,18 @@ struct MicrosoftAccountSection: View {
         Toggle(String(localized: "Show Outlook events in the search", bundle: .module), isOn: $settings.calendarEnabled)
           .managed(settings.isLocked(.calendarEnabled))
       } else {
+        TextField(
+          String(localized: "Client ID", bundle: .module),
+          text: $model.clientID,
+          prompt: Text(verbatim: "00000000-0000-0000-0000-000000000000"),
+        )
+        .managed(model.isClientIDLocked)
+        TextField(
+          String(localized: "Tenant ID", bundle: .module),
+          text: $model.tenantID,
+          prompt: Text(verbatim: "contoso.onmicrosoft.com"),
+        )
+        .managed(model.isTenantIDLocked)
         HStack {
           Text("Not signed in", bundle: .module)
             .foregroundStyle(Palette.textSecondary)
@@ -39,7 +52,7 @@ struct MicrosoftAccountSection: View {
           }
           .buttonStyle(.borderedProminent)
           .themeTint()
-          .disabled(model.isWorking)
+          .disabled(model.configuration == nil || model.isWorking)
         }
       }
       if let message = model.errorMessage {
@@ -50,10 +63,18 @@ struct MicrosoftAccountSection: View {
     } header: {
       Text("Microsoft Account", bundle: .module)
     } footer: {
-      Text(
-        "Your organization's work account. Takt reads your calendar with it; the sign-in stays in the keychain.",
-        bundle: .module,
-      )
+      VStack(alignment: .leading, spacing: 4) {
+        Text(
+          "Your organization's work account. Takt reads your calendar with it; the sign-in stays in the keychain.",
+          bundle: .module,
+        )
+        if model.account == nil {
+          Text(
+            "Client ID and tenant ID belong to the app registration for Takt in Microsoft Entra ID; your IT department provides them.",
+            bundle: .module,
+          )
+        }
+      }
       .font(.system(size: 11))
       .foregroundStyle(Palette.textSecondary)
     }

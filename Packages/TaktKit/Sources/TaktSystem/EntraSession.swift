@@ -6,19 +6,19 @@ import TaktCore
 // MARK: - EntraConfiguration
 
 /// The app registration Takt signs in with (DO-01, CA-02). Client and tenant ID come from the
-/// configuration profile (`entraClientID`, `entraTenantID`); without both the option stays hidden.
+/// configuration profile (`entraClientID`, `entraTenantID`) or are entered in the settings.
 public struct EntraConfiguration: Sendable, Equatable {
 
   // MARK: Lifecycle
 
-  /// Nil unless both IDs are set. The tenant is never `common`: an address that also exists as a
-  /// personal Microsoft account would otherwise end up there.
+  /// Nil unless both IDs are set. The tenant is never `common`, `organizations` or `consumers`:
+  /// an address that also exists as a personal Microsoft account would otherwise end up there.
   public init?(tenantID: String?, clientID: String?) {
     let tenantID = tenantID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let clientID = clientID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let base = "https://login.microsoftonline.com/\(tenantID)/oauth2/v2.0/"
     guard
-      !tenantID.isEmpty, !clientID.isEmpty,
+      !tenantID.isEmpty, !clientID.isEmpty, !Self.sharedTenants.contains(tenantID.lowercased()),
       let authorizeURL = URL(string: base + "authorize"), let tokenURL = URL(string: base + "token")
     else { return nil }
     self.tenantID = tenantID
@@ -40,6 +40,10 @@ public struct EntraConfiguration: Sendable, Equatable {
 
   let authorizeURL: URL
   let tokenURL: URL
+
+  // MARK: Private
+
+  private static let sharedTenants: Set = ["common", "organizations", "consumers"]
 }
 
 // MARK: - EntraScope
@@ -66,6 +70,8 @@ public struct EntraAccount: Sendable, Equatable, Codable {
 public enum EntraError: Error, Equatable {
   /// No account, or the refresh token is no longer accepted.
   case signInRequired
+  /// Client or tenant ID is missing.
+  case notConfigured
   case cancelled
   case invalidCallback
   /// `error` from the token endpoint, e.g. `invalid_grant`.
@@ -92,7 +98,7 @@ public actor EntraSession {
   // MARK: Lifecycle
 
   public init(
-    configuration: EntraConfiguration,
+    configuration: EntraConfiguration?,
     store: any EntraTokenStore,
     clock: any TaktClock,
     transport: @escaping Transport = { try await URLSession.shared.data(for: $0) },
@@ -113,7 +119,16 @@ public actor EntraSession {
 
   /// The signed-in account, or nil.
   public func account() throws -> EntraAccount? {
-    try storedCredential()?.account
+    guard configuration != nil else { return nil }
+    return try storedCredential()?.account
+  }
+
+  /// Switches to another app registration, e.g. one entered in the settings. Only called while
+  /// signed out; access tokens of the previous one are dropped.
+  public func configure(_ configuration: EntraConfiguration?) {
+    guard configuration != self.configuration else { return }
+    self.configuration = configuration
+    accessTokens.removeAll()
   }
 
   /// Signs in interactively and keeps the refresh token.
@@ -121,7 +136,8 @@ public actor EntraSession {
   public func signIn(using authorizer: Authorizer) async throws -> EntraAccount {
     let verifier = Self.randomURLSafe(bytes: 32)
     let state = Self.randomURLSafe(bytes: 16)
-    let callback = try await authorizer(authorizationURL(verifier: verifier, state: state))
+    guard let url = authorizationURL(verifier: verifier, state: state) else { throw EntraError.notConfigured }
+    let callback = try await authorizer(url)
     let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems ?? []
     if let error = items.first(where: { $0.name == "error" })?.value {
       throw error == "access_denied" ? EntraError.cancelled : EntraError.server(error)
@@ -199,7 +215,8 @@ public actor EntraSession {
   }
 
   /// The authorize URL for one attempt; `verifier` stays in memory until the code comes back.
-  func authorizationURL(verifier: String, state: String) -> URL {
+  func authorizationURL(verifier: String, state: String) -> URL? {
+    guard let configuration else { return nil }
     var components = URLComponents(url: configuration.authorizeURL, resolvingAgainstBaseURL: false)
     components?.queryItems = [
       URLQueryItem(name: "client_id", value: configuration.clientID),
@@ -256,7 +273,7 @@ public actor EntraSession {
     var preferredUsername: String?
   }
 
-  private let configuration: EntraConfiguration
+  private var configuration: EntraConfiguration?
   private let store: any EntraTokenStore
   private let clock: any TaktClock
   private let transport: Transport
@@ -276,6 +293,7 @@ public actor EntraSession {
   }
 
   private func requestToken(_ form: [String: String]) async throws -> TokenResponse {
+    guard let configuration else { throw EntraError.notConfigured }
     var request = URLRequest(url: configuration.tokenURL, timeoutInterval: 20)
     request.httpMethod = "POST"
     request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")

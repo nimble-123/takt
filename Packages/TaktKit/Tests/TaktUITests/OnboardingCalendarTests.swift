@@ -74,6 +74,9 @@ struct OnboardingCalendarTests {
 
   private func makeAccount(_ store: MemoryStore) throws -> MicrosoftAccountModel {
     let configuration = try #require(EntraConfiguration(tenantID: "tenant", clientID: "client"))
-    return MicrosoftAccountModel(session: EntraSession(configuration: configuration, store: store, clock: ManualClock()))
+    return MicrosoftAccountModel(
+      session: EntraSession(configuration: configuration, store: store, clock: ManualClock()),
+      defaults: testDefaults.defaults,
+    )
   }
 }

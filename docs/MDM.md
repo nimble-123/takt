@@ -35,7 +35,7 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `stopRequiresProject` | Boolean | Default `false` | Projekt ist Pflicht: Beenden ohne Projekt öffnet das Beenden-Panel (TM-11) |
 | `stopRequiresWorkItem` | Boolean | Default `false` | Work Item ist Pflicht: Beenden ohne Work Item öffnet das Beenden-Panel; wirkt nur mit einer Azure-DevOps-Verbindung (TM-11) |
 | `showElapsedInMenuBar` | Boolean | Default `true` | Laufzeit neben dem Symbol in der Menüleiste |
-| `calendarEnabled` | Boolean | Default `false` | Outlook-Termine in der Startsuche (CA-01); wirkt nur mit `entraClientID` und `entraTenantID` |
+| `calendarEnabled` | Boolean | Default `false` | Outlook-Termine in der Startsuche (CA-01); wirkt nur mit Client- und Tenant-ID und angemeldetem Konto |
 | `theme` | String | `standard`, `github`, `fioriHorizon`, `tokyoNight`, `auraDark`, `panda`, `dracula`, `oneDark`, `nord`, `catppuccinMocha` | Farbschema aller Fenster (HW-07) |
 | `appearance` | String | `system` (Default), `light`, `dark` | Hell, Dunkel oder wie das System; Themes mit nur einer Variante legen es selbst fest (HW-07) |
 | `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
@@ -44,8 +44,8 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `workdayEndMinute` | Integer | Minuten nach Mitternacht, Default 1020 (17:00) | Ende der Arbeitszeit für die Erinnerung |
 | `gitFolders` | Array of String | Pfade | Ordner mit Git-Repositories für Branch-Vorschläge |
 | `onboardingCompleted` | Boolean | `true` überspringt das Onboarding | Sinnvoll, wenn alles andere per Profil kommt |
-| `entraClientID` | String | Client-ID der App-Registrierung | Entra-ID-Anmeldung (DO-01, CA-02); ohne Client- und Tenant-ID ist „Microsoft-Konto“ ausgeblendet |
-| `entraTenantID` | String | Tenant-ID (GUID oder Domäne, nicht `common`) | Anmeldung immer am eigenen Tenant |
+| `entraClientID` | String | Client-ID der App-Registrierung | Entra-ID-Anmeldung (DO-01, CA-02); ohne Profil trägt man sie unter Einstellungen → Microsoft-Konto selbst ein |
+| `entraTenantID` | String | Tenant-ID (GUID oder Domäne, nicht `common`, `organizations` oder `consumers`) | Anmeldung immer am eigenen Tenant |
 
 Die App-Registrierung ist ein öffentlicher Client ohne Geheimnis mit Redirect `msauth.de.nilslutz.takt://auth` und den delegierten Rechten `User.Read` und `Calendars.Read` (Microsoft Graph) sowie `user_impersonation` (Azure DevOps), siehe `docs/TECHNICAL_CONCEPT.md`.
 
