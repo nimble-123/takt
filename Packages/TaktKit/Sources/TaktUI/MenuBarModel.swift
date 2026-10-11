@@ -739,6 +739,15 @@ public final class MenuBarModel {
     isHoldingToast = false
   }
 
+  public func loadSeriesRules() async {
+    guard let calendarEvents else { return }
+    do {
+      seriesRules = Dictionary(uniqueKeysWithValues: try await calendarEvents.rules.all().map { ($0.seriesID, $0) })
+    } catch {
+      show(error)
+    }
+  }
+
   // MARK: Internal
 
   static let recentCount = 4
@@ -774,15 +783,6 @@ public final class MenuBarModel {
   static func merge(_ lists: [WorkItemLink]...) -> [WorkItemLink] {
     var seen = Set<String>()
     return lists.flatMap { $0 }.filter { seen.insert("\($0.organization)#\($0.workItemID)").inserted }
-  }
-
-  public func loadSeriesRules() async {
-    guard let calendarEvents else { return }
-    do {
-      seriesRules = Dictionary(uniqueKeysWithValues: try await calendarEvents.rules.all().map { ($0.seriesID, $0) })
-    } catch {
-      show(error)
-    }
   }
 
   func receive(_ snapshot: TimerSnapshot) async {
