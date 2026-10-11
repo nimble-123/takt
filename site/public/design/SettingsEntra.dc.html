@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Takt – Microsoft-Konto abgemeldet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+a{color:#0F766E}a:hover{color:#115E59}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #0F766E;outline-offset:1px}
+.btn-p{height:26px;padding:0 12px;border:0;border-radius:6px;background:#0F766E;color:#FFFFFF;font-size:12px;font-weight:600;white-space:nowrap}
+.btn-p:disabled{opacity:.4;cursor:default}
+.ctl{height:26px;border:1px solid #D9D9DE;border-radius:6px;background:#FFFFFF;padding:0 6px;font:inherit;font-size:13px;color:#1C1C1E;min-width:0}
+.ctl::placeholder{color:#55555A}
+.grp-h{margin:0 0 6px 10px;font-size:13px;font-weight:600;color:#1C1C1E}
+.grp{background:#FFFFFF;border:1px solid #E5E5EA;border-radius:9px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;min-height:38px;padding:6px 12px;box-sizing:border-box;border-top:1px solid #F0F0F3}
+.row:first-child{border-top:0}
+.row>.lbl{flex:1;min-width:0}
+.cap{margin:6px 10px 0;font-size:11px;line-height:1.45;color:#55555A}
+.mono{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.var{margin:0 0 8px 10px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#55555A}
+</style>
+</helmet>
+<div style="width: 720px; height: 860px; box-sizing: border-box; padding: 28px; background: #F6F6F8; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif; color: #1C1C1E; font-size: 13px; display: flex; flex-direction: column; gap: 28px">
+<svg width="0" height="0" style="position: absolute" aria-hidden="true"><defs><symbol id="i-lock" viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></symbol></defs></svg>
+
+<div>
+<p class="var">Abgemeldet · IDs eingetragen</p>
+<section aria-labelledby="h-ms1"><h2 id="h-ms1" class="grp-h">Microsoft-Konto</h2><div class="grp" style="overflow: visible"><div class="row"><label class="lbl" for="cid1">Client-ID</label><input id="cid1" type="text" class="ctl mono" value="30a8ffed-97e2-48de-879b-8181717d4717" placeholder="00000000-0000-0000-0000-000000000000" spellcheck="false" style="width: 320px; text-align: right"></div><div class="row"><label class="lbl" for="tid1">Tenant-ID</label><input id="tid1" type="text" class="ctl mono" value="contoso.onmicrosoft.com" placeholder="contoso.onmicrosoft.com" spellcheck="false" style="width: 320px; text-align: right"></div><div class="row"><span class="lbl" style="color: #55555A">Nicht angemeldet</span><button type="button" class="btn-p">Mit Microsoft anmelden …</button></div></div><p class="cap">Das Arbeitskonto deiner Organisation. Takt liest damit deinen Kalender; die Anmeldung bleibt im Schlüsselbund.<br>Client-ID und Tenant-ID gehören zur App-Registrierung für Takt in Microsoft Entra ID; du bekommst sie von deiner IT.</p></section>
+</div>
+
+<div>
+<p class="var">Abgemeldet · leer, Anmelden deaktiviert</p>
+<section aria-labelledby="h-ms2"><h2 id="h-ms2" class="grp-h">Microsoft-Konto</h2><div class="grp" style="overflow: visible"><div class="row"><label class="lbl" for="cid2">Client-ID</label><input id="cid2" type="text" class="ctl mono" placeholder="00000000-0000-0000-0000-000000000000" spellcheck="false" style="width: 320px; text-align: right"></div><div class="row"><label class="lbl" for="tid2">Tenant-ID</label><input id="tid2" type="text" class="ctl mono" placeholder="contoso.onmicrosoft.com" spellcheck="false" style="width: 320px; text-align: right"></div><div class="row"><span class="lbl" style="color: #55555A">Nicht angemeldet</span><button type="button" class="btn-p" disabled>Mit Microsoft anmelden …</button></div></div><p class="cap">Das Arbeitskonto deiner Organisation. Takt liest damit deinen Kalender; die Anmeldung bleibt im Schlüsselbund.<br>Client-ID und Tenant-ID gehören zur App-Registrierung für Takt in Microsoft Entra ID; du bekommst sie von deiner IT.</p></section>
+</div>
+
+<div>
+<p class="var">Abgemeldet · per Konfigurationsprofil vorgegeben</p>
+<section aria-labelledby="h-ms3"><h2 id="h-ms3" class="grp-h">Microsoft-Konto</h2><div class="grp" style="overflow: visible"><div class="row"><span class="lbl" style="display: flex; flex-direction: column; gap: 1px">Client-ID<span style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #55555A"><svg class="i" width="11" height="11" aria-hidden="true"><use href="#i-lock"></use></svg>Von deiner Organisation vorgegeben</span></span><input type="text" class="ctl mono" aria-label="Client-ID" value="30a8ffed-97e2-48de-879b-8181717d4717" disabled style="width: 320px; text-align: right; opacity: 0.5"><span role="img" aria-label="Von deiner Organisation vorgegeben" title="Von deiner Organisation vorgegeben" style="position: relative; display: flex; color: #55555A"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-lock"></use></svg></span></div><div class="row"><span class="lbl" style="display: flex; flex-direction: column; gap: 1px">Tenant-ID<span style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #55555A"><svg class="i" width="11" height="11" aria-hidden="true"><use href="#i-lock"></use></svg>Von deiner Organisation vorgegeben</span></span><input type="text" class="ctl mono" aria-label="Tenant-ID" value="contoso.onmicrosoft.com" disabled style="width: 320px; text-align: right; opacity: 0.5"><span role="img" aria-label="Von deiner Organisation vorgegeben" title="Von deiner Organisation vorgegeben" style="position: relative; display: flex; color: #55555A"><svg class="i" width="14" height="14" aria-hidden="true"><use href="#i-lock"></use></svg></span></div><div class="row"><span class="lbl" style="color: #55555A">Nicht angemeldet</span><button type="button" class="btn-p">Mit Microsoft anmelden …</button></div></div><p class="cap">Das Arbeitskonto deiner Organisation. Takt liest damit deinen Kalender; die Anmeldung bleibt im Schlüsselbund.<br>Client-ID und Tenant-ID gehören zur App-Registrierung für Takt in Microsoft Entra ID; du bekommst sie von deiner IT.</p></section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":720,"height":860}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
