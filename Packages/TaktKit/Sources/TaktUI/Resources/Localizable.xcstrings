@@ -6560,6 +6560,16 @@
           }
         }
       }
+    },
+    "Show Outlook events in the search": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outlook-Termine in der Suche zeigen"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

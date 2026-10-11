@@ -22,7 +22,7 @@ struct SettingsScreen: View {
         AzureDevOpsSettings(model: azureDevOps)
       }
       if let microsoftAccount = model.microsoftAccount {
-        MicrosoftAccountSection(model: microsoftAccount)
+        MicrosoftAccountSection(model: microsoftAccount, settings: settings)
       }
       Section {
         ForEach(settings.gitFolders, id: \.self) { folder in

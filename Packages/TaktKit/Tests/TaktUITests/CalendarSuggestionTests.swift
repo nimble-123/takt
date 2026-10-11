@@ -24,12 +24,23 @@ struct CalendarSuggestionTests {
       clock: clock,
       settings: AppSettings(defaults: testDefaults.defaults),
     )
+    model.settings.calendarEnabled = true
     let cache = CalendarEventCache(database: database)
     self.cache = cache
     model.calendarEvents = CalendarEvents(cache: cache, rules: SeriesRuleStore(database: database), refresh: { })
   }
 
   // MARK: Internal
+
+  @Test
+  func calendarIsOffUntilTurnedOn() async throws {
+    try await store([event("daily", "Daily", minutes: 30)])
+    model.settings.calendarEnabled = false
+    model.query = "Daily"
+    await model.calendarTask?.value
+
+    #expect(!model.suggestions.contains { $0.group == .calendar })
+  }
 
   @Test
   func calendarHitsComeFirst() async throws {

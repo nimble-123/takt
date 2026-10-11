@@ -47,6 +47,7 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.stopRequiresProject.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.stopRequiresWorkItem.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.showElapsedInMenuBar.rawValue, type: .boolean, isRead: true),
+    Key(name: AppSettings.Key.calendarEnabled.rawValue, type: .boolean, isRead: true),
     Key(name: AppSettings.Key.theme.rawValue, type: .string, isRead: true),
     Key(name: AppSettings.Key.appearance.rawValue, type: .string, isRead: true),
     Key(name: AppSettings.Key.remindWhenNoTimer.rawValue, type: .boolean, isRead: true),
