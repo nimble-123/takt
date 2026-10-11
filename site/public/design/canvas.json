@@ -172,7 +172,7 @@
   },
   "notes": {
     "note-menubar": {
-      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen und Regeltermin gehören zu Phase 3 (#14) und sind noch nicht gebaut.",
+      "text": "Inaktivität: in der App im Popover eingebettet, kein eigenes Fenster.\nSuche mit Outlook-Terminen: Trefferliste gebaut (#14, CA-10–CA-14), die Vorschaukarte noch nicht. Regeltermin gehört zu Phase 3 (#14) und ist noch nicht gebaut.",
       "w": 340,
       "x": 3040,
       "y": 0
@@ -226,6 +226,21 @@
       "w": 360,
       "x": 4080,
       "y": 2900
+    },
+    "note-calendar-card": {
+      "x": 3460,
+      "y": 0,
+      "w": 360,
+      "maxH": 300,
+      "fill": "orange",
+      "text": "Suche mit Outlook-Terminen · Vorschaukarte (Zuordnung für die ganze Serie, „Timer endet mit dem Termin“, „Ab 09:45 starten“): geplant (CA-12, CA-20–CA-22), noch nicht gebaut.\nGebaut ist die Trefferliste: Gruppe „Kalender“ (rechts „Outlook“) vor Azure DevOps; Badge „läuft seit 2 min“ bzw. „in 5 min“; Unterzeile Zeit · Serie · Online-Meeting · N Teilnehmer (nur, was zutrifft; kein „Einzeltermin“)."
+    },
+    "note-calendar-empty": {
+      "x": 3880,
+      "y": 0,
+      "w": 360,
+      "maxH": 360,
+      "text": "Popover mit leerem Suchfeld (CA-11): über „Zuletzt“ ein Abschnitt „Kalender“ (rechts „Outlook“) mit bis zu zwei Terminen, die gerade laufen oder in den nächsten 15 min beginnen; Zeilen wie in der Suche (Tagesblatt, Titel, Badge „läuft seit 2 min“ / „in 5 min“, Unterzeile).\nKlick startet den Timer mit dem Termintitel. Begann der Termin vor höchstens 10 min, beginnt der Timer zum Terminbeginn (CA-13), sonst jetzt."
     }
   },
   "order": [
