@@ -6320,6 +6320,96 @@
           }
         }
       }
+    },
+    "Sign-in failed (%@).": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung fehlgeschlagen (%@)."
+          }
+        }
+      }
+    },
+    "Please sign in again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bitte erneut anmelden."
+          }
+        }
+      }
+    },
+    "Sign-in failed. Check the network connection and try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmeldung fehlgeschlagen. Netzwerkverbindung prüfen und erneut versuchen."
+          }
+        }
+      }
+    },
+    "Sign Out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abmelden"
+          }
+        }
+      }
+    },
+    "Not signed in": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht angemeldet"
+          }
+        }
+      }
+    },
+    "Sign In with Microsoft …": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Microsoft anmelden …"
+          }
+        }
+      }
+    },
+    "Microsoft Account": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft-Konto"
+          }
+        }
+      }
+    },
+    "Your organization's work account. Takt reads your calendar with it; the sign-in stays in the keychain.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Arbeitskonto deiner Organisation. Takt liest damit deinen Kalender; die Anmeldung bleibt im Schlüsselbund."
+          }
+        }
+      }
+    },
+    "Sign In with Microsoft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Microsoft anmelden"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

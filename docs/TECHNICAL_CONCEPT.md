@@ -18,10 +18,10 @@ Gespeichert werden nur rohe UTC-Zeitsegmente; alles Abgeleitete (Zählweise, Run
 | Zeitmodell | Segmente mit Start/Ende in UTC-Millisekunden; Tagesgrenzen in lokaler Zeitzone | Sommerzeit- und Reise-sicher |
 | Zählweise & Rundung | Zur Abfragezeit berechnet, nie gespeichert | Rückwirkend änderbar, keine Datenmigration |
 | Nebenläufigkeit | Timer-Engine und Sync als `actor`; UI auf `@MainActor` | Serialisierte Zustandswechsel ohne Locks |
-| ADO-Anmeldung | PAT ab Release 1; Entra ID über MSAL, sobald die App-Registrierung freigegeben ist; Tokens im Schlüsselbund | Registrierung ist beantragt und dauert; PAT ermöglicht den Start sofort |
+| ADO-Anmeldung | PAT ab Release 1; Entra ID über OAuth 2.0 mit PKCE (ohne MSAL), sobald Client- und Tenant-ID per MDM gesetzt sind; Tokens im Schlüsselbund | PAT ermöglicht den Start ohne App-Registrierung; MSAL braucht eine Keychain-Access-Group und damit eine Team-ID-Signatur (#16), PKCE läuft auch mit dem ad-hoc signierten Build |
 | Verteilung | Ziel: privater Developer-ID-Account, Bundle-ID `de.nilslutz.takt`; notarisiert, Hardened Runtime, ohne App Sandbox; Rollout per MDM. Aktuell unsignierte Builds (#16, #53), siehe „Signatur“ | Keine Sandbox-Hürden für Schlüsselbund, Login-Item und verwaltete Einstellungen |
 | Projektdatei | XcodeGen (`project.yml`), `.xcodeproj` nicht eingecheckt | Keine Merge-Konflikte in `project.pbxproj`, reproduzierbar in CI |
-| Abhängigkeiten | GRDB, KeyboardShortcuts, später MSAL; sonst nur Systemframeworks | Kleine Angriffsfläche, wenig Pflegeaufwand |
+| Abhängigkeiten | GRDB, KeyboardShortcuts, swift-argument-parser; sonst nur Systemframeworks (MSAL ggf. nach #16) | Kleine Angriffsfläche, wenig Pflegeaufwand |
 
 ## Module
 
@@ -361,7 +361,7 @@ Takt bucht nie absolute Werte, sondern immer die Differenz zwischen dem Soll aus
 - **PAT (ab Release 1):** Basic-Auth mit leerem Benutzernamen, Scope „Work Items: Read & Write“. Takt prüft beim Speichern die Gültigkeit (`_apis/connectionData`, eine anonyme Identität gilt als abgelehnt) und zeigt das Ablaufdatum; 14 Tage vorher erinnert es einmal täglich per Mitteilung an die Erneuerung. Das Ablaufdatum gibt der Nutzer beim Anlegen ein, wie Azure DevOps es anzeigt: Die PAT-Lifecycle-API akzeptiert nur Entra-Tokens, keine PATs.
 - **Mehrere Organisationen (DO-02):** Verbindungen liegen in `UserDefaults` (`adoConnections`, mit Default-Projekt), je Organisation ein Token im Schlüsselbund (Dienst `de.nilslutz.takt.azure-devops`, nur auf diesem Gerät). Ein MDM-Profil kann die Organisation über `adoOrganization` vorgeben.
 - **Projekte übernehmen (ST-03):** Projekte und Area Paths (zwei Ebenen) werden einzeln als Takt-Projekte mit Quelle `ado` angelegt; schon übernommene sind markiert.
-- **Entra ID (sobald registriert):** MSAL mit dem Scope `499b84ac-1321-427f-aa17-267ca6975798/.default` (Ressource Azure DevOps), Redirect-URI `msauth.de.nilslutz.takt://auth`. Client-ID und Tenant-ID kommen per MDM-Konfiguration; fehlen sie, blendet Takt die Option aus.
+- **Entra ID (DO-01, CA-02):** Authorization Code Flow mit PKCE (S256) als öffentlicher Client ohne Geheimnis, umgesetzt in `EntraSession` (TaktSystem). Die Anmeldeseite zeigt `WebAuthenticator` in einem eigenen kleinen Fenster mit `WKWebView` ohne gespeicherte Sitzung (wie MSAL auf macOS; `ASWebAuthenticationSession` öffnet ein großes Fenster und teilt Safaris Sitzung, was beim gleichnamigen privaten Microsoft-Konto das falsche Konto wählt), Redirect-URI `msauth.de.nilslutz.takt://auth`. Authority ist immer `login.microsoftonline.com/<tenantID>`, nie `common`, damit eine Adresse, die es auch als privates Microsoft-Konto gibt, nicht dort landet. Bei der Anmeldung werden `openid profile offline_access User.Read Calendars.Read` angefragt; aus dem Refresh-Token holt sich Takt je Ressource ein eigenes Access-Token (`https://graph.microsoft.com/Calendars.Read`, `499b84ac-1321-427f-aa17-267ca6975798/.default` für Azure DevOps) und hält es bis fünf Minuten vor Ablauf im Speicher. Ein rotiertes Refresh-Token wird übernommen; `invalid_grant` meldet ab und verlangt eine neue Anmeldung. Refresh-Token und angezeigter Name liegen im Schlüsselbund (Dienst `de.nilslutz.takt.entra`). Client-ID und Tenant-ID kommen per MDM-Konfiguration (`entraClientID`, `entraTenantID`); fehlen sie, blendet Takt den Abschnitt „Microsoft-Konto“ aus. MSAL kann `EntraSession` ersetzen, sobald Takt mit Team-ID signiert ist (#16).
 - Beide Wege liefern dem REST-Client nur einen `AuthorizationProvider`; der Rest des Codes kennt den Unterschied nicht.
 - Tokens und PAT liegen im Schlüsselbund.
 
@@ -560,12 +560,12 @@ Der Schwerpunkt liegt auf `TaktCore` und dem Buchungsablauf, weil Fehler dort fa
 
 | Frage | Entscheidung |
 | --- | --- |
-| Entra-App-Registrierung | Wird bei den Entra-ID-Admins beantragt; bis dahin PAT |
+| Entra-App-Registrierung | Öffentlicher Client, Single-Tenant, Redirect `msauth.de.nilslutz.takt://auth`, delegiert `User.Read`, `Calendars.Read`, Azure DevOps `user_impersonation`; im Testtenant angelegt, beim Arbeitgeber noch zu beantragen |
 | Felder für erledigte und offene Arbeit | Pro Work-Item-Typ zur Laufzeit aus ADO gelesen |
 | Work-Item-Suche | Zur Laufzeit erkannt, WIQL als Fallback |
 | Vorschläge bei mehreren Teams | Aktuelle Iteration aller eigenen Teams |
 | Bundle-ID und Logging-Präfix | `de.nilslutz.takt` |
 | Signatur | Privater Developer-ID-Account, vorerst lokal |
 
-- [ ] Client-ID und Tenant-ID nach Freigabe der Entra-Registrierung eintragen (MDM-Konfiguration)
+- [ ] Client-ID und Tenant-ID nach Freigabe der Entra-Registrierung beim Arbeitgeber eintragen (MDM-Konfiguration)
 - [ ] Mit Arbeitgeber und IT klären, dass eine privat entwickelte und signierte App per MDM verteilt werden darf, und wem die Rechte am Code gehören

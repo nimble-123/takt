@@ -21,6 +21,9 @@ struct SettingsScreen: View {
       if let azureDevOps = model.azureDevOps {
         AzureDevOpsSettings(model: azureDevOps)
       }
+      if let microsoftAccount = model.microsoftAccount {
+        MicrosoftAccountSection(model: microsoftAccount)
+      }
       Section {
         ForEach(settings.gitFolders, id: \.self) { folder in
           HStack {

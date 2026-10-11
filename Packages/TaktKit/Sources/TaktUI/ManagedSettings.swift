@@ -55,8 +55,7 @@ nonisolated public enum ManagedSettings {
     Key(name: AppSettings.Key.workdayEndMinute.rawValue, type: .integer, isRead: true),
     Key(name: AppSettings.Key.gitFolders.rawValue, type: .array, isRead: true),
     Key(name: AppSettings.Key.onboardingCompleted.rawValue, type: .boolean, isRead: true),
-    // Entra ID sign-in (#13) reads these once the app registration exists.
-    Key(name: "entraClientID", type: .string, isRead: false),
-    Key(name: "entraTenantID", type: .string, isRead: false),
+    Key(name: MicrosoftAccountModel.clientIDKey, type: .string, isRead: true),
+    Key(name: MicrosoftAccountModel.tenantIDKey, type: .string, isRead: true),
   ]
 }
