@@ -28,17 +28,15 @@ final class Composition {
     rules = RulesModel(store: RuleStore(database: database))
     let accounts = ADOAccounts()
     azureDevOps = AzureDevOpsModel(accounts: accounts, catalog: catalog, clock: clock)
-    microsoftAccount = MicrosoftAccountModel.configuration().map { [clock] configuration in
-      MicrosoftAccountModel(
-        session: EntraSession(configuration: configuration, store: KeychainEntraTokenStore(), clock: clock)
-      )
-    }
+    let session = EntraSession(
+      configuration: MicrosoftAccountModel.configuration(),
+      store: KeychainEntraTokenStore(),
+      clock: clock,
+    )
+    microsoftAccount = MicrosoftAccountModel(session: session)
     let calendarCache = CalendarEventCache(database: database)
-    calendarSync = microsoftAccount.map { [clock] account in
-      let session = account.session
-      let client = GraphCalendarClient { try await session.accessToken(scope: EntraScope.graphCalendars) }
-      return CalendarSync(client: client, cache: calendarCache, clock: clock)
-    }
+    let calendarClient = GraphCalendarClient { try await session.accessToken(scope: EntraScope.graphCalendars) }
+    calendarSync = CalendarSync(client: calendarClient, cache: calendarCache, clock: clock)
     let cache = WorkItemCache(database: database)
     let records = SyncRecordStore(database: database)
     let service = BookingService(
@@ -76,20 +74,18 @@ final class Composition {
       actions: actions,
     )
     let seriesRules = SeriesRuleStore(database: database)
-    menuBar.calendarEvents = calendarSync.map { sync in
-      CalendarEvents(
-        cache: calendarCache,
-        rules: seriesRules,
-        refresh: {
-          do {
-            try await sync.sync()
-          } catch {
-            Logger(subsystem: AppIdentity.logSubsystem, category: "calendar")
-              .error("Calendar sync failed: \(String(describing: error), privacy: .public)")
-          }
-        },
-      )
-    }
+    menuBar.calendarEvents = CalendarEvents(
+      cache: calendarCache,
+      rules: seriesRules,
+      refresh: { [calendarSync] in
+        do {
+          try await calendarSync.sync()
+        } catch {
+          Logger(subsystem: AppIdentity.logSubsystem, category: "calendar")
+            .error("Calendar sync failed: \(String(describing: error), privacy: .public)")
+        }
+      },
+    )
     menuBar.hasAzureDevOps = { [azureDevOps] in !azureDevOps.connections.isEmpty }
     menuBar.bookNow = { [booking] id in await booking.book(entry: id) }
     let analyticsSource = AnalyticsSource(database: database)
@@ -127,10 +123,9 @@ final class Composition {
   let catalog: CatalogModel
   let rules: RulesModel
   let azureDevOps: AzureDevOpsModel
-  /// Nil unless a configuration profile names the Entra app registration (DO-01).
-  let microsoftAccount: MicrosoftAccountModel?
-  /// Outlook events for the start search (CA-05); nil without a Microsoft account.
-  let calendarSync: CalendarSync?
+  let microsoftAccount: MicrosoftAccountModel
+  /// Outlook events for the start search (CA-05); syncs only while signed in.
+  let calendarSync: CalendarSync
   let booking: BookingCoordinator
   let actions: TimerActions
   let menuBar: MenuBarModel
@@ -234,7 +229,6 @@ final class Composition {
   /// CA-21, CA-22: asks at the start of events whose series offers a timer, and ends meeting
   /// timers with their event. Each notification's button comes back through the responder.
   private func watchMeetings() async {
-    guard calendarSync != nil else { return }
     notificationResponder.register(MeetingNotifications.categories)
     notificationResponder.onAction = { [weak self] action, info in
       guard let self, let id = info[MeetingNotifications.idKey] else { return }
@@ -284,7 +278,6 @@ final class Composition {
 
   /// CA-05: Outlook events every five minutes while signed in, and right after signing in.
   private func syncCalendarRegularly() async {
-    guard let microsoftAccount, let calendarSync else { return }
     microsoftAccount.onSignIn = { [weak self] in
       guard let self, settings.calendarEnabled else { return }
       tasks.append(Task { await self.syncCalendar() })
@@ -297,7 +290,7 @@ final class Composition {
 
   private func syncCalendar() async {
     do {
-      try await calendarSync?.sync()
+      try await calendarSync.sync()
       await mainWindow.reloadCalendarSuggestions()
     } catch {
       logger.error("Calendar sync failed: \(String(describing: error), privacy: .public)")

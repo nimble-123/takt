@@ -74,7 +74,7 @@ public final class OnboardingModel {
   let settings: AppSettings
   /// Step 1; `nil` shows only the explanation.
   let azureDevOps: AzureDevOpsModel?
-  /// Step 1, below Azure DevOps; `nil` (no app registration configured) hides the calendar.
+  /// Step 1, below Azure DevOps; the calendar is hidden without an app registration.
   let microsoftAccount: MicrosoftAccountModel?
 
 }
@@ -153,7 +153,7 @@ public struct OnboardingView: View {
       if let azureDevOps = model.azureDevOps {
         AzureDevOpsOnboarding(model: azureDevOps)
       }
-      if let account = model.microsoftAccount {
+      if let account = model.microsoftAccount, account.configuration != nil {
         calendar(account)
       }
     }

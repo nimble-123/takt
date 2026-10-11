@@ -6710,6 +6710,46 @@
           }
         }
       }
+    },
+    "Client ID": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Client-ID"
+          }
+        }
+      }
+    },
+    "Tenant ID": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tenant-ID"
+          }
+        }
+      }
+    },
+    "Client ID and tenant ID belong to the app registration for Takt in Microsoft Entra ID; your IT department provides them.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Client-ID und Tenant-ID gehören zur App-Registrierung für Takt in Microsoft Entra ID; du bekommst sie von deiner IT."
+          }
+        }
+      }
+    },
+    "Enter the client ID and tenant ID of the app registration.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trage Client-ID und Tenant-ID der App-Registrierung ein."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
