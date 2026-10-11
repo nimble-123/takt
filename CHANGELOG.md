@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/nimble-123/takt/compare/v0.8.0...v0.9.0) (2026-10-11)
+
+
+### Neue Funktionen
+
+* **ui:** choose a theme in the settings (HW-07) ([#228](https://github.com/nimble-123/takt/issues/228)) ([9ac4ac8](https://github.com/nimble-123/takt/commit/9ac4ac8e1870a93a56f3bb73884da2986ab58a13))
+
 ## [0.8.0](https://github.com/nimble-123/takt/compare/v0.7.0...v0.8.0) (2026-10-10)
 
 
