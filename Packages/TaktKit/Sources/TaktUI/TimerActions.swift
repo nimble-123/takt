@@ -27,12 +27,16 @@ public final class TimerActions {
 
   /// Starts `draft` with the rules applied; `tags` come from typed tokens (MB-09) and are merged
   /// with tags from rules.
-  public func start(_ draft: EntryDraft, mode: TimerEngine.StartMode, tags typed: [String] = []) async throws
-    -> TimerUndo
-  {
+  public func start(
+    _ draft: EntryDraft,
+    mode: TimerEngine.StartMode,
+    tags typed: [String] = [],
+    from earliest: Timestamp? = nil,
+    source: SegmentSource = .live,
+  ) async throws -> TimerUndo {
     let workItem = await linkedWorkItem(of: draft)
     let (ruled, ruleTags) = Rules.apply(rules?.rules ?? [], to: draft, workItem: workItem)
-    let result = try await engine.start(ruled, mode: mode)
+    let result = try await engine.start(ruled, mode: mode, from: earliest, source: source)
     let tags = StartTokens.merged(typed, ruleTags)
     // The entry is new, so it has no tags yet.
     if !tags.isEmpty { await catalog.setTags(named: tags, on: [result.value]) }

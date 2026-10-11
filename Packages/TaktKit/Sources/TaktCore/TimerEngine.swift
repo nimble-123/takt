@@ -82,14 +82,23 @@ public actor TimerEngine {
     case parallel
   }
 
+  /// Starts a new entry. `earliest` backdates the start, e.g. to an event's beginning (CA-13);
+  /// it never goes before the open segments that `switchTo` pauses, nor after now.
   @discardableResult
-  public func start(_ draft: EntryDraft, mode: StartMode) async throws -> CommandResult<EntryID> {
+  public func start(
+    _ draft: EntryDraft,
+    mode: StartMode,
+    from earliest: Timestamp? = nil,
+    source: SegmentSource = .live,
+  ) async throws -> CommandResult<EntryID> {
     let now = clock.now()
     return try await perform { snapshot in
-      var changes = mode == .switchTo ? Self.pauseChanges(snapshot.running, at: now) : []
+      let paused = mode == .switchTo ? snapshot.running : []
+      let start = ([earliest ?? now] + paused.compactMap(\.openSegment?.start)).max().map { min($0, now) } ?? now
+      var changes = Self.pauseChanges(paused, at: start)
       let entry = TimeEntry(draft: draft, state: .running, at: now)
       changes.append(.entry(before: nil, after: entry))
-      changes.append(.segment(before: nil, after: Segment(entryID: entry.id, start: now)))
+      changes.append(.segment(before: nil, after: Segment(entryID: entry.id, start: start, source: source)))
       return TimerUpdate(changes: changes, result: entry.id)
     }
   }

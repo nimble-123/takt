@@ -33,10 +33,11 @@ final class Composition {
         session: EntraSession(configuration: configuration, store: KeychainEntraTokenStore(), clock: clock)
       )
     }
-    calendarSync = microsoftAccount.map { [database, clock] account in
+    let calendarCache = CalendarEventCache(database: database)
+    calendarSync = microsoftAccount.map { [clock] account in
       let session = account.session
       let client = GraphCalendarClient { try await session.accessToken(scope: EntraScope.graphCalendars) }
-      return CalendarSync(client: client, cache: CalendarEventCache(database: database), clock: clock)
+      return CalendarSync(client: client, cache: calendarCache, clock: clock)
     }
     let cache = WorkItemCache(database: database)
     let records = SyncRecordStore(database: database)
@@ -74,6 +75,19 @@ final class Composition {
       },
       actions: actions,
     )
+    menuBar.calendarEvents = calendarSync.map { sync in
+      CalendarEvents(
+        search: { text, now in try await calendarCache.search(text, at: now) },
+        refresh: {
+          do {
+            try await sync.sync()
+          } catch {
+            Logger(subsystem: AppIdentity.logSubsystem, category: "calendar")
+              .error("Calendar sync failed: \(String(describing: error), privacy: .public)")
+          }
+        },
+      )
+    }
     menuBar.hasAzureDevOps = { [azureDevOps] in !azureDevOps.connections.isEmpty }
     menuBar.bookNow = { [booking] id in await booking.book(entry: id) }
     let analyticsSource = AnalyticsSource(database: database)

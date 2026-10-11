@@ -62,6 +62,9 @@ public struct PopoverView: View {
         if !model.snapshot.entries.isEmpty {
           TimerList(model: model)
         }
+        if model.query.isEmpty, !model.currentEvents.isEmpty {
+          CurrentEvents(model: model)
+        }
         if model.query.isEmpty, !model.suggestedWorkItems.isEmpty {
           SuggestedWorkItems(model: model)
         }
@@ -265,6 +268,11 @@ struct SuggestionList: View {
           HStack {
             SectionTitle(text: suggestion.group.title)
             Spacer()
+            if suggestion.group == .calendar {
+              Text(verbatim: "Outlook")
+                .font(.system(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+            }
             if suggestion.group == .azureDevOps, let iteration = currentIteration(suggestions) {
               Text("\(iteration) first", bundle: .module)
                 .font(.system(size: 11))
@@ -277,7 +285,9 @@ struct SuggestionList: View {
         Button {
           Task { await model.start(suggestion: suggestion, parallel: model.settings.startMode == .parallel) }
         } label: {
-          if let item = suggestion.workItem {
+          if let event = suggestion.event {
+            CalendarEventRow(event: event, now: model.now, selected: model.selection == suggestion.id)
+          } else if let item = suggestion.workItem {
             WorkItemRow(item: item, query: model.query, selected: model.selection == suggestion.id, showsProgress: false)
           } else {
             textRow(suggestion, selected: model.selection == suggestion.id)
@@ -500,6 +510,7 @@ struct SuggestedWorkItems: View {
 extension MenuBarModel.Suggestion.Group {
   var title: String {
     switch self {
+    case .calendar: String(localized: "Calendar", bundle: .module)
     case .azureDevOps: String(localized: "Azure DevOps", bundle: .module)
     case .recent: String(localized: "Recent", bundle: .module)
     case .localTask: String(localized: "Local tasks", bundle: .module)
@@ -632,6 +643,34 @@ struct TimerRow: View {
     }
     .buttonStyle(.borderless)
     .accessibilityLabel(label)
+  }
+}
+
+// MARK: - CurrentEvents
+
+/// The event running now or starting soon, on top when the search is empty (CA-11).
+struct CurrentEvents: View {
+  let model: MenuBarModel
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack {
+        SectionTitle(text: String(localized: "Calendar", bundle: .module))
+        Spacer()
+        Text(verbatim: "Outlook")
+          .font(.system(size: 11))
+          .foregroundStyle(Palette.textSecondary)
+      }
+      ForEach(model.currentEvents) { event in
+        Button {
+          Task { await model.start(event: event, parallel: model.settings.startMode == .parallel) }
+        } label: {
+          CalendarEventRow(event: event, now: model.now, selected: false)
+            .padding(.horizontal, -8)
+        }
+        .buttonStyle(.plain)
+      }
+    }
   }
 }
 
