@@ -86,9 +86,9 @@ Die Menüleiste ist das Cockpit für das Erfassen, das Hauptfenster der Ort für
 | MB-02 | Popover per Klick oder globalem Shortcut (Default ⌥⇧T, konfigurierbar) | Must |
 | MB-03 | Suchfeld hat sofort Fokus; Vorschläge aus zuletzt genutzten Tasks, Projekten und ADO-Items; Enter startet | Must |
 | MB-04 | Liste laufender Timer mit Pause, Fortsetzen, Stopp pro Timer und Live-Zeit | Must |
-| MB-05 | Bis zu 5 Favoriten bzw. zuletzt genutzte Tasks als One-Click-Start | Must |
+| MB-05 | Die vier zuletzt genutzten Aktivitäten als One-Click-Start (⌘1–⌘4) | Must |
 | MB-06 | Alle pausieren / alle fortsetzen / alle stoppen | Must |
-| MB-07 | Notiz zum laufenden Eintrag inline ergänzen | Should |
+| MB-07 | Notiz zum Eintrag beim Beenden ergänzen (Toast „Notiz“ oder Beenden-Panel) | Should |
 | MB-08 | Tagessumme und Fortschritt zum Tagesziel | Should |
 | MB-09 | Kürzel im Suchfeld beim Start: `@Kategorie`, `/Projekt` bzw. `/Projekt/Task`, `#Tag`, mit Vervollständigung und Chips; `#` nur mit Ziffern bleibt Work-Item-Suche | Should |
 
@@ -288,7 +288,7 @@ Die App folgt der aktuellen macOS-Designsprache und ist vollständig per Tastatu
 | Popover öffnen (global) | ⌥⇧T |
 | Alle pausieren / fortsetzen (global) | ⌥⇧P |
 | Command Palette | ⌘K |
-| Fokussierten Timer pausieren / fortsetzen | Leertaste |
+| Vorschau des Work Items (Popover) bzw. Inspektor (Timeline) | Leertaste |
 | Parallel starten | ⌥↩ |
 | Neuer Eintrag | ⌘N |
 | Work Item im Browser öffnen | ⌘↩ |
