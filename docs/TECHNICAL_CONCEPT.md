@@ -231,7 +231,23 @@ CREATE TABLE overtime_payout (
 CREATE INDEX overtime_payout_day ON overtime_payout(day);
 ```
 
-Für Phase 3 kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
+**Outlook-Termine (Migration `v11-calendar-event`).** `calendar_event` ist nur ein Cache für die Startsuche (CA-05): Jeder Abruf ersetzt die Tabelle mit den Terminen von heute ± 7 Tagen; nichts verweist auf ihre Zeilen.
+
+```sql
+CREATE TABLE calendar_event (
+  id TEXT PRIMARY KEY,                  -- Graph-ID des Vorkommens
+  series_id TEXT,                       -- seriesMasterId, NULL bei Einzelterminen
+  title TEXT NOT NULL,                  -- leer bei privaten Terminen
+  start_at INTEGER NOT NULL,
+  end_at INTEGER NOT NULL,
+  attendee_count INTEGER NOT NULL DEFAULT 0,
+  is_online_meeting INTEGER NOT NULL DEFAULT 0,
+  is_private INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX calendar_event_time ON calendar_event(start_at, end_at);
+```
+
+Für die Zuordnung pro Serie (CA-20) kommen `calendar_link` und `series_rule` hinzu; sie hängen nur an `time_entry` und ändern den Kern nicht.
 
 **Segment-Indizes (Migration `v4-segment-indexes`).** `segment_open` ist seit v4 eindeutig: Ein Eintrag hat höchstens ein offenes Segment; beide Stores melden einen Verstoß als `TimerStoreError.invalidValue`. Die Migration repariert vorher Altdaten: Hat ein Eintrag mehrere offene Segmente, endet jedes bis auf das jüngste beim Beginn des nächsten; eines mit gleichem Beginn wie das nächste entfällt. `segment_entry` beschleunigt das Laden der Segmente eines Eintrags und das Löschen per Cascade.
 
@@ -427,6 +443,15 @@ flowchart LR
     F -- "offline, 5xx, unklar" --> Q["Warteschlange<br/>Kennung suchen, ggf. erneut"]
     F -- "abgelehnt (4xx)" --> X["Fehler<br/>im Tagesabschluss"]
 ```
+
+## Outlook-Kalender
+
+Phase 3, Anforderungen CA-01 bis CA-23. Anmeldung über dasselbe Entra-Konto wie unter „Azure DevOps → Anmeldung“ beschrieben; `CalendarSync` (TaktCalendar) holt sich ein Access-Token für `https://graph.microsoft.com/Calendars.Read`.
+
+- **Abruf (CA-02, CA-04):** `GET /v1.0/me/calendarView?startDateTime=…&endDateTime=…` mit `Prefer: outlook.timezone="UTC"`, Folgeseiten über `@odata.nextLink`. `$select` nennt nur `subject,start,end,isAllDay,seriesMasterId,attendees,isOnlineMeeting,sensitivity,isCancelled,responseStatus`; Teilnehmer werden nur gezählt und nicht gespeichert. Private und vertrauliche Termine (`sensitivity`) verlieren ihren Titel schon beim Lesen.
+- **Filter (CA-14):** Abgesagte (`isCancelled`), abgelehnte (`responseStatus.response = declined`) und ganztägige Termine kommen nicht in den Cache.
+- **Takt (CA-05):** Fenster von Mitternacht vor sieben Tagen bis Mitternacht in acht Tagen (Zeitzone des Nutzers). Abruf beim Start, alle fünf Minuten und direkt nach der Anmeldung; gleichzeitige Aufrufe teilen sich eine Anfrage. Fehler (offline, abgelaufene Anmeldung) lassen den letzten Stand im Cache stehen.
+- **Rechte:** Single-Tenant-App-Registrierung, delegiert `Calendars.Read`, kein Schreibzugriff.
 
 ## Analysen
 

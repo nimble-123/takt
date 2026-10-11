@@ -28,6 +28,9 @@ public final class MicrosoftAccountModel {
 
   public let session: EntraSession
 
+  /// Called after a successful sign-in, e.g. to fetch the calendar at once.
+  public var onSignIn: (() -> Void)?
+
   /// The app registration from the configuration profile (or `defaults write`), if complete.
   public nonisolated static func configuration(from defaults: UserDefaults = .standard) -> EntraConfiguration? {
     EntraConfiguration(tenantID: defaults.string(forKey: tenantIDKey), clientID: defaults.string(forKey: clientIDKey))
@@ -53,6 +56,7 @@ public final class MicrosoftAccountModel {
         )
       }
       errorMessage = nil
+      onSignIn?()
     } catch EntraError.cancelled {
       errorMessage = nil
     } catch {

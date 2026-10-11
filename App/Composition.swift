@@ -2,6 +2,7 @@ import Foundation
 import os
 import TaktADO
 import TaktAnalytics
+import TaktCalendar
 import TaktCore
 import TaktStore
 import TaktSystem
@@ -31,6 +32,11 @@ final class Composition {
       MicrosoftAccountModel(
         session: EntraSession(configuration: configuration, store: KeychainEntraTokenStore(), clock: clock)
       )
+    }
+    calendarSync = microsoftAccount.map { [database, clock] account in
+      let session = account.session
+      let client = GraphCalendarClient { try await session.accessToken(scope: EntraScope.graphCalendars) }
+      return CalendarSync(client: client, cache: CalendarEventCache(database: database), clock: clock)
     }
     let cache = WorkItemCache(database: database)
     let records = SyncRecordStore(database: database)
@@ -106,6 +112,8 @@ final class Composition {
   let azureDevOps: AzureDevOpsModel
   /// Nil unless a configuration profile names the Entra app registration (DO-01).
   let microsoftAccount: MicrosoftAccountModel?
+  /// Outlook events for the start search (CA-05); nil without a Microsoft account.
+  let calendarSync: CalendarSync?
   let booking: BookingCoordinator
   let actions: TimerActions
   let menuBar: MenuBarModel
@@ -139,6 +147,7 @@ final class Composition {
         tasks.append(Task { await writeHeartbeats() })
         tasks.append(Task { await runChores() })
         tasks.append(Task { await sendQueueRegularly() })
+        tasks.append(Task { await syncCalendarRegularly() })
         tasks.append(Task { await idleMonitor.run() })
         tasks.append(Task { await forwardIdleReturns() })
       }
@@ -201,6 +210,26 @@ final class Composition {
 
   /// DO-26: once a minute, if bookings wait; the queue keeps its backoff. Network calls, so they
   /// run apart from the other chores.
+  /// CA-05: Outlook events every five minutes while signed in, and right after signing in.
+  private func syncCalendarRegularly() async {
+    guard let microsoftAccount, let calendarSync else { return }
+    microsoftAccount.onSignIn = { [weak self] in
+      self?.tasks.append(Task { await self?.syncCalendar() })
+    }
+    while !Task.isCancelled {
+      if (try? await microsoftAccount.session.account()) != nil { await syncCalendar() }
+      try? await Task.sleep(for: .seconds(300))
+    }
+  }
+
+  private func syncCalendar() async {
+    do {
+      try await calendarSync?.sync()
+    } catch {
+      logger.error("Calendar sync failed: \(String(describing: error), privacy: .public)")
+    }
+  }
+
   private func sendQueueRegularly() async {
     while !Task.isCancelled {
       try? await Task.sleep(for: .seconds(60))
