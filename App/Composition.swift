@@ -27,6 +27,11 @@ final class Composition {
     rules = RulesModel(store: RuleStore(database: database))
     let accounts = ADOAccounts()
     azureDevOps = AzureDevOpsModel(accounts: accounts, catalog: catalog, clock: clock)
+    microsoftAccount = MicrosoftAccountModel.configuration().map { [clock] configuration in
+      MicrosoftAccountModel(
+        session: EntraSession(configuration: configuration, store: KeychainEntraTokenStore(), clock: clock)
+      )
+    }
     let cache = WorkItemCache(database: database)
     let records = SyncRecordStore(database: database)
     let service = BookingService(
@@ -75,6 +80,7 @@ final class Composition {
       analytics: analytics,
       settings: settings,
       azureDevOps: azureDevOps,
+      microsoftAccount: microsoftAccount,
       booking: booking,
       workItems: workItems,
       search: SearchIndex(database: database),
@@ -98,6 +104,8 @@ final class Composition {
   let catalog: CatalogModel
   let rules: RulesModel
   let azureDevOps: AzureDevOpsModel
+  /// Nil unless a configuration profile names the Entra app registration (DO-01).
+  let microsoftAccount: MicrosoftAccountModel?
   let booking: BookingCoordinator
   let actions: TimerActions
   let menuBar: MenuBarModel

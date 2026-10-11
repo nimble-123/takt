@@ -18,6 +18,7 @@ public final class MainWindowModel {
     analytics: AnalyticsModel? = nil,
     settings: AppSettings? = nil,
     azureDevOps: AzureDevOpsModel? = nil,
+    microsoftAccount: MicrosoftAccountModel? = nil,
     booking: BookingCoordinator? = nil,
     workItems: (any WorkItemSource)? = nil,
     search: SearchIndex? = nil,
@@ -36,6 +37,7 @@ public final class MainWindowModel {
     self.monthClose = monthClose
     self.settings = settings
     self.azureDevOps = azureDevOps
+    self.microsoftAccount = microsoftAccount
     self.booking = booking
     self.workItems = workItems
     self.search = search
@@ -119,6 +121,8 @@ public final class MainWindowModel {
   public let settings: AppSettings?
   /// Azure DevOps connections in the settings; `nil` hides them.
   public let azureDevOps: AzureDevOpsModel?
+  /// Entra ID sign-in in the settings; `nil` (no app registration configured) hides it.
+  public let microsoftAccount: MicrosoftAccountModel?
   /// Day close and booking; `nil` hides them.
   public let booking: BookingCoordinator?
   /// Work item search for linking entries.

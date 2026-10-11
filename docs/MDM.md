@@ -43,8 +43,10 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `workdayEndMinute` | Integer | Minuten nach Mitternacht, Default 1020 (17:00) | Ende der Arbeitszeit für die Erinnerung |
 | `gitFolders` | Array of String | Pfade | Ordner mit Git-Repositories für Branch-Vorschläge |
 | `onboardingCompleted` | Boolean | `true` überspringt das Onboarding | Sinnvoll, wenn alles andere per Profil kommt |
-| `entraClientID` | String | Client-ID der App-Registrierung | Reserviert für die Entra-ID-Anmeldung (#13), noch nicht gelesen |
-| `entraTenantID` | String | Tenant-ID | Reserviert für die Entra-ID-Anmeldung (#13), noch nicht gelesen |
+| `entraClientID` | String | Client-ID der App-Registrierung | Entra-ID-Anmeldung (DO-01, CA-02); ohne Client- und Tenant-ID ist „Microsoft-Konto“ ausgeblendet |
+| `entraTenantID` | String | Tenant-ID (GUID oder Domäne, nicht `common`) | Anmeldung immer am eigenen Tenant |
+
+Die App-Registrierung ist ein öffentlicher Client ohne Geheimnis mit Redirect `msauth.de.nilslutz.takt://auth` und den delegierten Rechten `User.Read` und `Calendars.Read` (Microsoft Graph) sowie `user_impersonation` (Azure DevOps), siehe `docs/TECHNICAL_CONCEPT.md`.
 
 Nicht per Profil: Tokens und PAT. Sie liegen ausschließlich im Schlüsselbund des Nutzers.
 
