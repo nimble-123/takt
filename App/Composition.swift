@@ -230,10 +230,11 @@ final class Composition {
   private func syncCalendarRegularly() async {
     guard let microsoftAccount, let calendarSync else { return }
     microsoftAccount.onSignIn = { [weak self] in
-      self?.tasks.append(Task { await self?.syncCalendar() })
+      guard let self, settings.calendarEnabled else { return }
+      tasks.append(Task { await self.syncCalendar() })
     }
     while !Task.isCancelled {
-      if (try? await microsoftAccount.session.account()) != nil { await syncCalendar() }
+      if settings.calendarEnabled, (try? await microsoftAccount.session.account()) != nil { await syncCalendar() }
       try? await Task.sleep(for: .seconds(300))
     }
   }

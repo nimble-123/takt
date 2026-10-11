@@ -6,6 +6,7 @@ import SwiftUI
 struct MicrosoftAccountSection: View {
 
   let model: MicrosoftAccountModel
+  @Bindable var settings: AppSettings
 
   var body: some View {
     Section {
@@ -25,6 +26,8 @@ struct MicrosoftAccountSection: View {
             Task { await model.signOut() }
           }
         }
+        Toggle(String(localized: "Show Outlook events in the search", bundle: .module), isOn: $settings.calendarEnabled)
+          .managed(settings.isLocked(.calendarEnabled))
       } else {
         HStack {
           Text("Not signed in", bundle: .module)

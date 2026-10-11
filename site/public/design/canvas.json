@@ -222,7 +222,7 @@
       "y": 1980
     },
     "note-entra": {
-      "text": "Einstellungen · Microsoft-Konto (#13, DO-01, CA-02): nur sichtbar, wenn entraClientID und entraTenantID per MDM gesetzt sind; steht direkt nach Azure DevOps.\nAngemeldet (im Artboard): Name 13 pt halbfett, darunter die Adresse 11 pt sekundär, rechts „Abmelden“ in Rot.\nAbgemeldet: links „Nicht angemeldet“ sekundär, rechts „Mit Microsoft anmelden …“ als Akzent-Button, während der Anmeldung ein Spinner links davon.\nFehler: eine Zeile 12 pt in Rot, z. B. „Anmeldung fehlgeschlagen (invalid_grant).“",
+      "text": "Einstellungen · Microsoft-Konto (#13, DO-01, CA-02): nur sichtbar, wenn entraClientID und entraTenantID per MDM gesetzt sind; steht direkt nach Azure DevOps.\nAngemeldet (im Artboard): Name 13 pt halbfett, darunter die Adresse 11 pt sekundär, rechts „Abmelden“ in Rot.\nAbgemeldet: links „Nicht angemeldet“ sekundär, rechts „Mit Microsoft anmelden …“ als Akzent-Button, während der Anmeldung ein Spinner links davon.\nFehler: eine Zeile 12 pt in Rot, z. B. „Anmeldung fehlgeschlagen (invalid_grant).“\nDarunter, nur angemeldet: Schalter „Outlook-Termine in der Suche zeigen“ (CA-01), standardmäßig aus, per MDM sperrbar (calendarEnabled).",
       "w": 360,
       "x": 4080,
       "y": 2900

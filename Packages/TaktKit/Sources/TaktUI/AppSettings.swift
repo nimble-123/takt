@@ -35,6 +35,7 @@ public final class AppSettings {
     bookingMode = stored.bookingMode
     dailyGoalHours = stored.dailyGoalHours
     showElapsedInMenuBar = stored.showElapsedInMenuBar
+    calendarEnabled = stored.calendarEnabled
     onboardingCompleted = stored.onboardingCompleted
     reduceRemainingWork = stored.reduceRemainingWork
     bookingIncludesNote = stored.bookingIncludesNote
@@ -74,6 +75,7 @@ public final class AppSettings {
     case bookingMode
     case dailyGoalHours
     case showElapsedInMenuBar
+    case calendarEnabled
     case onboardingCompleted
     case reduceRemainingWork
     case bookingIncludesNote
@@ -187,6 +189,11 @@ public final class AppSettings {
 
   public var showElapsedInMenuBar: Bool {
     didSet { write(.showElapsedInMenuBar, showElapsedInMenuBar) }
+  }
+
+  /// Outlook events in the start search; off until the user turns it on (CA-01).
+  public var calendarEnabled: Bool {
+    didSet { write(.calendarEnabled, calendarEnabled) }
   }
 
   public var onboardingCompleted: Bool {
@@ -442,6 +449,9 @@ public final class AppSettings {
     case .showElapsedInMenuBar:
       if showElapsedInMenuBar != stored.showElapsedInMenuBar { showElapsedInMenuBar = stored.showElapsedInMenuBar }
 
+    case .calendarEnabled:
+      if calendarEnabled != stored.calendarEnabled { calendarEnabled = stored.calendarEnabled }
+
     case .onboardingCompleted:
       if onboardingCompleted != stored.onboardingCompleted { onboardingCompleted = stored.onboardingCompleted }
 
@@ -540,6 +550,7 @@ private struct Stored {
       .flatMap(AppSettings.BookingMode.init) ?? .review
     dailyGoalHours = defaults.object(forKey: AppSettings.Key.dailyGoalHours.rawValue) as? Double ?? 8
     showElapsedInMenuBar = defaults.object(forKey: AppSettings.Key.showElapsedInMenuBar.rawValue) as? Bool ?? true
+    calendarEnabled = defaults.bool(forKey: AppSettings.Key.calendarEnabled.rawValue)
     onboardingCompleted = defaults.bool(forKey: AppSettings.Key.onboardingCompleted.rawValue)
     reduceRemainingWork = defaults.object(forKey: AppSettings.Key.reduceRemainingWork.rawValue) as? Bool ?? true
     bookingIncludesNote = defaults.object(forKey: AppSettings.Key.bookingIncludesNote.rawValue) as? Bool ?? true
@@ -585,6 +596,7 @@ private struct Stored {
   let bookingMode: AppSettings.BookingMode
   let dailyGoalHours: Double
   let showElapsedInMenuBar: Bool
+  let calendarEnabled: Bool
   let onboardingCompleted: Bool
   let reduceRemainingWork: Bool
   let bookingIncludesNote: Bool

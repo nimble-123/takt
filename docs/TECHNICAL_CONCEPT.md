@@ -456,7 +456,7 @@ flowchart LR
 
 ## Outlook-Kalender
 
-Phase 3, Anforderungen CA-01 bis CA-23. Anmeldung über dasselbe Entra-Konto wie unter „Azure DevOps → Anmeldung“ beschrieben; `CalendarSync` (TaktCalendar) holt sich ein Access-Token für `https://graph.microsoft.com/Calendars.Read`.
+Phase 3, Anforderungen CA-01 bis CA-23. Der Kalender ist standardmäßig aus; der Schalter „Outlook-Termine in der Suche zeigen“ (`calendarEnabled`, per MDM vorgebbar) schaltet Abruf und Suche ein (CA-01). Anmeldung über dasselbe Entra-Konto wie unter „Azure DevOps → Anmeldung“ beschrieben; `CalendarSync` (TaktCalendar) holt sich ein Access-Token für `https://graph.microsoft.com/Calendars.Read`.
 
 - **Abruf (CA-02, CA-04):** `GET /v1.0/me/calendarView?startDateTime=…&endDateTime=…` mit `Prefer: outlook.timezone="UTC"`, Folgeseiten über `@odata.nextLink`. `$select` nennt nur `subject,start,end,isAllDay,seriesMasterId,attendees,isOnlineMeeting,sensitivity,isCancelled,responseStatus`; Teilnehmer werden nur gezählt und nicht gespeichert. Private und vertrauliche Termine (`sensitivity`) verlieren ihren Titel schon beim Lesen.
 - **Filter (CA-14):** Abgesagte (`isCancelled`), abgelehnte (`responseStatus.response = declined`) und ganztägige Termine kommen nicht in den Cache.

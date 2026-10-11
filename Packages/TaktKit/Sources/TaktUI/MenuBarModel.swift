@@ -134,6 +134,7 @@ public final class MenuBarModel {
   public private(set) var calendarResults = [CalendarEvent]()
   /// Outlook events for the search; set by the app, nil without a Microsoft account.
   @ObservationIgnored public var calendarEvents: CalendarEvents?
+
   /// Assignments per Outlook series, by series ID (CA-20).
   public private(set) var seriesRules = [String: SeriesRule]()
   /// Opens the main window; set by the app.
@@ -340,7 +341,7 @@ public final class MenuBarModel {
       await refresh()
       await loadSuggestedWorkItems()
     }
-    if let calendarEvents {
+    if let calendarEvents = enabledCalendar {
       Task { await loadSeriesRules() }
       Task {
         await calendarEvents.refresh()
@@ -667,6 +668,11 @@ public final class MenuBarModel {
 
   let workItems: (any WorkItemSource)?
 
+  /// The calendar, if the user turned it on (CA-01).
+  var enabledCalendar: CalendarEvents? {
+    settings.calendarEnabled ? calendarEvents : nil
+  }
+
   /// The input's tokens matched against the catalog; shown as chips below the search field.
   var tokens: StartTokens {
     StartTokens(input, catalog: catalog)
@@ -752,7 +758,10 @@ public final class MenuBarModel {
   /// Local and fast, so no typing pause; a newer search replaces an older one's results.
   private func searchCalendar() {
     calendarTask?.cancel()
-    guard let calendarEvents else { return }
+    guard let calendarEvents = enabledCalendar else {
+      calendarResults = []
+      return
+    }
     let text = input.title
     let now = clock.now()
     calendarTask = Task {

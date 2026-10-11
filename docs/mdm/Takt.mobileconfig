@@ -81,6 +81,8 @@
       <false/>
       <key>showElapsedInMenuBar</key>
       <true/>
+      <key>calendarEnabled</key>
+      <false/>
       <key>theme</key>
       <string>standard</string>
       <key>appearance</key>
