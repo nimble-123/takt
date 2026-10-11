@@ -6400,6 +6400,16 @@
           }
         }
       }
+    },
+    "Sign In with Microsoft": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Microsoft anmelden"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

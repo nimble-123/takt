@@ -46,7 +46,11 @@ public final class MicrosoftAccountModel {
     defer { isWorking = false }
     do {
       account = try await session.signIn { [authenticator] url in
-        try await authenticator.authenticate(url: url, callbackScheme: EntraConfiguration.callbackScheme)
+        try await authenticator.authenticate(
+          url: url,
+          callbackScheme: EntraConfiguration.callbackScheme,
+          title: String(localized: "Sign In with Microsoft", bundle: .module),
+        )
       }
       errorMessage = nil
     } catch EntraError.cancelled {
