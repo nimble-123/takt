@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/nimble-123/takt/compare/v0.11.0...v0.12.0) (2026-10-13)
+
+
+### Neue Funktionen
+
+* **ui:** open today, day close and week on the current date (HW-01, HW-03) ([#247](https://github.com/nimble-123/takt/issues/247)) ([90adc46](https://github.com/nimble-123/takt/commit/90adc467be586d7bfd123787821641f515e95746))
+* **ui:** shade time outside the core hours in Today and Week (HW-08) ([#248](https://github.com/nimble-123/takt/issues/248)) ([914e255](https://github.com/nimble-123/takt/commit/914e25511c3e4fcf92263e3109823ce369bc11ac))
+* **ui:** zoom the timeline in Today and Week (HW-01, HW-03) ([#250](https://github.com/nimble-123/takt/issues/250)) ([5475e5b](https://github.com/nimble-123/takt/commit/5475e5bc2a47434a4599f4428857c16f65b1ede4))
+
+
+### Fehlerbehebungen
+
+* **ui:** make the toolbar's Today and arrows work in Analytics (AN-01) ([#252](https://github.com/nimble-123/takt/issues/252)) ([c68b3f6](https://github.com/nimble-123/takt/commit/c68b3f6e625d43fa4d55e82ce35742dfb24cee69))
+
 ## [0.11.0](https://github.com/nimble-123/takt/compare/v0.10.0...v0.11.0) (2026-10-11)
 
 
