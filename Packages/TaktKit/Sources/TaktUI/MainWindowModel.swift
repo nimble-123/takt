@@ -26,6 +26,7 @@ public final class MainWindowModel {
     database: AppDatabase? = nil,
     actions: TimerActions? = nil,
     monthClose: MonthCloseModel? = nil,
+    zoomDefaults: UserDefaults? = nil,
     clock: any TaktClock,
     calendar: Calendar = .current,
   ) {
@@ -46,7 +47,13 @@ public final class MainWindowModel {
     self.clock = clock
     self.calendar = calendar
     day = clock.now()
+    self.zoomDefaults = zoomDefaults
     loadTimeline = { [queries] range, now in try await queries.timeline(in: range, now: now) }
+    for section in [Section.today, .week] {
+      if let stored = zoomDefaults?.object(forKey: Self.zoomKey(section)) as? Double {
+        hourHeights[section] = TimelineZoom.clamped(stored)
+      }
+    }
   }
 
   // MARK: Public
@@ -154,6 +161,11 @@ public final class MainWindowModel {
 
   public var section = Section.today {
     didSet { Task { await reload() } }
+  }
+
+  /// Whether the shown screen has a timeline to zoom (#245).
+  public var canZoom: Bool {
+    searchText.isEmpty && [.today, .week].contains(section)
   }
 
   /// Any time on the shown day; the week is the one containing it.
@@ -330,6 +342,29 @@ public final class MainWindowModel {
 
   public func showToday() {
     day = clock.now()
+  }
+
+  /// Points per hour of the timeline in Today or Week (#245).
+  public func hourHeight(in section: Section) -> Double {
+    hourHeights[section] ?? TimelineZoom.standard(for: section)
+  }
+
+  /// Sets the hour height of the shown timeline, e.g. while pinching; kept per screen.
+  public func setHourHeight(_ height: Double) {
+    guard canZoom else { return }
+    let height = TimelineZoom.clamped(height)
+    hourHeights[section] = height
+    zoomDefaults?.set(height, forKey: Self.zoomKey(section))
+  }
+
+  /// ⌘+ and ⌘−: the next zoom step of the shown timeline.
+  public func zoom(by steps: Int) {
+    setHourHeight(TimelineZoom.step(hourHeight(in: section), by: steps))
+  }
+
+  /// ⌘0: back to the standard hour height.
+  public func resetZoom() {
+    setHourHeight(TimelineZoom.standard(for: section))
   }
 
   /// Switches the screen from the sidebar or ⌘K; the dated screens open on today (#244). Jumps to a
@@ -741,6 +776,9 @@ public final class MainWindowModel {
 
   /// `data.entries` by ID, for lookups per timeline block and selected entry.
   private var entriesByID = [EntryID: EntryWithSegments]()
+  /// Zoomed hour heights; a screen without one uses its standard (#245).
+  private var hourHeights = [Section: Double]()
+  @ObservationIgnored private let zoomDefaults: UserDefaults?
   @ObservationIgnored private var layoutCache = [Range<Timestamp>: (now: Timestamp, layout: TimelineLayout)]()
   @ObservationIgnored private var hasOpenSegment = false
   /// Counts reloads; see `reload()`.
@@ -749,6 +787,10 @@ public final class MainWindowModel {
   @ObservationIgnored private var lastEdit: Task<Void, Never>?
   @ObservationIgnored private lazy var undo = EngineUndo(engine: engine) { [weak self] in self?.show($0) }
   private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "main-window")
+
+  private static func zoomKey(_ section: Section) -> String {
+    "\(section.rawValue)HourHeight"
+  }
 
   private func focus(_ item: TimelineLayout.Item, in day: Range<Timestamp>, extend: Bool) {
     timelineFocus = TimelineFocus(item: item.id, day: day)

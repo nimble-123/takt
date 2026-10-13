@@ -106,6 +106,7 @@ final class Composition {
       database: database,
       actions: actions,
       monthClose: monthClose,
+      zoomDefaults: .standard,
       clock: clock,
     )
     mainWindow.calendarEvents = menuBar.calendarEvents

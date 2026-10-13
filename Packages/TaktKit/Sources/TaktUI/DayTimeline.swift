@@ -13,6 +13,7 @@ struct DayTimeline: View {
   // MARK: Internal
 
   static let snap: TimeInterval = 5 * 60
+  static let quarterLinesFrom: CGFloat = 120
 
   let model: MainWindowModel
   let day: Range<Timestamp>
@@ -188,6 +189,17 @@ struct DayTimeline: View {
             .frame(height: 1)
         }
         .frame(width: width, height: hourHeight, alignment: .topLeading)
+        .background(alignment: .topLeading) {
+          // Zoomed in far enough, quarter hours get faint lines (#245).
+          if hourHeight >= Self.quarterLinesFrom {
+            ForEach(1..<4, id: \.self) { quarter in
+              Rectangle()
+                .fill(Palette.separator.opacity(0.5))
+                .frame(height: 1)
+                .offset(x: gutter, y: hourHeight * CGFloat(quarter) / 4)
+            }
+          }
+        }
         .id(hour)
       }
     }

@@ -50,7 +50,7 @@ struct WeekScreen: View {
       ScrollViewReader { proxy in
         ScrollView {
           HStack(alignment: .top, spacing: 0) {
-            HourLabels(hourHeight: 40, hours: 24)
+            HourLabels(hourHeight: model.hourHeight(in: .week), hours: 24)
               .frame(width: 52)
             let days = model.weekDays
             ForEach(Array(days.enumerated()), id: \.element.lowerBound) { index, day in
@@ -58,7 +58,7 @@ struct WeekScreen: View {
                 model: model,
                 day: day,
                 interactive: false,
-                hourHeight: 40,
+                hourHeight: model.hourHeight(in: .week),
                 gutter: 0,
                 movableDays: -index...(days.count - 1 - index),
               )
@@ -72,6 +72,7 @@ struct WeekScreen: View {
           .padding(.trailing, 8)
         }
         .modifier(TimelineKeyboard(model: model, days: model.weekDays, proxy: proxy))
+        .modifier(ZoomableTimeline(model: model))
         // Runs again whenever the week changes. When the window opens, the task starts before the
         // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
         .task(id: model.weekRange) {

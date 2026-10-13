@@ -37,11 +37,12 @@ struct DayScreen: View {
       Divider()
       ScrollViewReader { proxy in
         ScrollView {
-          DayTimeline(model: model, day: model.dayRange)
+          DayTimeline(model: model, day: model.dayRange, hourHeight: model.hourHeight(in: .today))
             .padding(.vertical, 12)
             .padding(.trailing, 12)
         }
         .modifier(TimelineKeyboard(model: model, days: [model.dayRange], proxy: proxy))
+        .modifier(ZoomableTimeline(model: model))
         // Runs again whenever the day changes. When the window opens, the task starts before the
         // rows have a position and the scroll went nowhere; yielding once lets the layout run first.
         .task(id: model.dayRange) {

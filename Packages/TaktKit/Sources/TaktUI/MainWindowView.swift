@@ -89,6 +89,19 @@ public struct MainWindowView: View {
       Button("") { palette.isPresented.toggle() }
         .keyboardShortcut("k", modifiers: .command)
         .hidden()
+      // Zoom of the timeline in Today and Week (#245); "=" for keyboards with "+" on a shifted key.
+      Group {
+        Button("") { model.zoom(by: 1) }
+          .keyboardShortcut("+", modifiers: .command)
+        Button("") { model.zoom(by: 1) }
+          .keyboardShortcut("=", modifiers: .command)
+        Button("") { model.zoom(by: -1) }
+          .keyboardShortcut("-", modifiers: .command)
+        Button("") { model.resetZoom() }
+          .keyboardShortcut("0", modifiers: .command)
+      }
+      .disabled(!model.canZoom)
+      .hidden()
     }
     .onAppear {
       #if DEBUG

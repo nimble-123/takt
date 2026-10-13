@@ -179,6 +179,33 @@ public final class CommandPaletteModel {
         ) { [window] in window.open(section) }
       )
     }
+    if window.canZoom {
+      // Also for VoiceOver, which has no pinch (#245).
+      items.append(
+        PaletteItem(
+          id: "zoom-in",
+          title: String(localized: "Zoom In", bundle: .module),
+          symbol: "plus.magnifyingglass",
+          keywords: ["zoom", "vergrößern", "timeline"],
+        ) { [window] in window.zoom(by: 1) }
+      )
+      items.append(
+        PaletteItem(
+          id: "zoom-out",
+          title: String(localized: "Zoom Out", bundle: .module),
+          symbol: "minus.magnifyingglass",
+          keywords: ["zoom", "verkleinern", "timeline"],
+        ) { [window] in window.zoom(by: -1) }
+      )
+      items.append(
+        PaletteItem(
+          id: "zoom-reset",
+          title: String(localized: "Actual Size", bundle: .module),
+          symbol: "1.magnifyingglass",
+          keywords: ["zoom", "originalgröße", "timeline"],
+        ) { [window] in window.resetZoom() }
+      )
+    }
     if window.analytics != nil {
       items.append(
         PaletteItem(
