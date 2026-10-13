@@ -298,6 +298,32 @@ struct MainWindowModelTests {
     #expect(model.dayRange == shown)
   }
 
+  @Test
+  func toolbarMovesTheAnalyticsPeriodInAnalytics() throws {
+    let testDefaults = try TestDefaults("takt-main-analytics")
+    let analytics = AnalyticsModel(
+      source: AnalyticsSource(database: database),
+      settings: AppSettings(defaults: testDefaults.defaults),
+      clock: clock,
+    )
+    let model = MainWindowModel(
+      engine: engine,
+      queries: EntryQueries(database: database),
+      catalog: CatalogModel(store: CatalogStore(database: database), clock: clock),
+      analytics: analytics,
+      clock: clock,
+    )
+    let shownDay = model.dayRange
+    model.section = .analytics
+
+    model.step(by: -1)
+    #expect(!analytics.range.contains(clock.now()))
+    model.showToday()
+
+    #expect(analytics.range.contains(clock.now()))
+    #expect(model.dayRange == shownDay)
+  }
+
   @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
   func deleteKeyLeavesEntriesAloneOnScreensWithoutThem(section: MainWindowModel.Section) async throws {
     let id = try #require(await model.createEntry(from: at(7), to: at(8)))

@@ -269,6 +269,25 @@ public final class AnalyticsModel {
     }
   }
 
+  /// The toolbar's Today: the day, week or month of today; a custom range keeps its length and
+  /// ends today (#251).
+  public func showToday() {
+    let now = clock.now()
+    guard period == .custom else {
+      anchor = now
+      return
+    }
+    let days = calendar.dateComponents(
+      [.day],
+      from: calendar.startOfDay(for: customStart),
+      to: calendar.startOfDay(for: customEnd),
+    ).day ?? 0
+    customEnd = now.date
+    customStart = calendar.date(byAdding: .day, value: -days, to: now.date) ?? now.date
+    // Picked custom dates apply on reload only.
+    reloadSoon()
+  }
+
   public func reload() async {
     // Reloads overlap when the period changes quickly; a result for a range no longer shown is
     // dropped, the reload for the new range sets the data.

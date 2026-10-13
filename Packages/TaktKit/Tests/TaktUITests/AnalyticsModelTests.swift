@@ -42,6 +42,31 @@ struct AnalyticsModelTests {
     #expect(model.range.upperBound.seconds(since: model.range.lowerBound) == 31 * 86_400 + 3600)
   }
 
+  @Test(arguments: [AnalyticsModel.Period.day, .week, .month])
+  func todayShowsThePeriodOfToday(period: AnalyticsModel.Period) {
+    model.period = period
+    model.step(by: -2)
+    #expect(!model.range.contains(clock.now()))
+
+    model.showToday()
+
+    #expect(model.range.contains(clock.now()))
+  }
+
+  @Test
+  func todayMovesACustomRangeToEndToday() async throws {
+    model.period = .custom
+    model.customStart = try day(2026, 9, 1).date
+    model.customEnd = try day(2026, 9, 10).date
+
+    model.showToday()
+    await model.reload()
+
+    #expect(Exporter.dayString(model.reportRange.lowerBound, calendar: calendar) == "2026-09-28")
+    #expect(model.reportRange.contains(clock.now()))
+    #expect(model.reportRange.upperBound == clock.now().localDay(in: calendar).upperBound)
+  }
+
   @Test
   func previousMonthIsTheCalendarMonthBefore() async {
     model.period = .month

@@ -332,7 +332,12 @@ public final class MainWindowModel {
     catalog.catalog.category(entry.categoryID)?.color ?? catalog.catalog.project(entry.projectID)?.color
   }
 
+  /// The toolbar's arrows; in Analytics they page its period (#251).
   public func step(by days: Int) {
+    if section == .analytics, let analytics {
+      analytics.step(by: days)
+      return
+    }
     // A day for the screens that show one day, otherwise a week.
     let unit = shownRange == dayRange ? days : days * 7
     if let date = calendar.date(byAdding: .day, value: unit, to: day.date) {
@@ -340,7 +345,12 @@ public final class MainWindowModel {
     }
   }
 
+  /// The toolbar's Today; in Analytics it shows the period of today (#251).
   public func showToday() {
+    if section == .analytics, let analytics {
+      analytics.showToday()
+      return
+    }
     day = clock.now()
   }
 
@@ -371,7 +381,7 @@ public final class MainWindowModel {
   /// given day (week to day, search results) set `day` and `section` themselves.
   public func open(_ section: Section) {
     if [.today, .dayClose, .week].contains(section) {
-      showToday()
+      day = clock.now()
     }
     self.section = section
   }
