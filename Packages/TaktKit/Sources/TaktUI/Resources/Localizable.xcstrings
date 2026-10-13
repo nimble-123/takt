@@ -1491,6 +1491,16 @@
         }
       }
     },
+    "Core hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rahmenarbeitszeit"
+          }
+        }
+      }
+    },
     "Corpus Christi": {
       "localizations": {
         "de": {
@@ -2601,22 +2611,12 @@
         }
       }
     },
-    "Zoom In": {
+    "Only within the core hours on working days and while you use the Mac; repeats at the same interval.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vergrößern"
-          }
-        }
-      }
-    },
-    "Zoom Out": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verkleinern"
+            "value": "Nur in der Rahmenarbeitszeit an Arbeitstagen und während du den Mac benutzt; wiederholt sich im selben Abstand."
           }
         }
       }
@@ -3307,16 +3307,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gilt nur für das erste Jahr, das Takt zählt; Folgejahre übernehmen den Rest."
-          }
-        }
-      }
-    },
-    "Only on working days and while you use the Mac; repeats at the same interval.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nur an Arbeitstagen und während du den Mac benutzt; wiederholt sich im selben Abstand."
           }
         }
       }
@@ -6061,16 +6051,6 @@
         }
       }
     },
-    "Working hours": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arbeitszeit"
-          }
-        }
-      }
-    },
     "Working time": {
       "localizations": {
         "de": {
@@ -6267,6 +6247,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "läuft"
+          }
+        }
+      }
+    },
+    "Zoom In": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vergrößern"
+          }
+        }
+      }
+    },
+    "Zoom Out": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verkleinern"
           }
         }
       }

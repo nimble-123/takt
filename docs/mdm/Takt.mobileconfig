@@ -92,9 +92,9 @@
       <key>noTimerReminderMinutes</key>
       <integer>15</integer>
       <key>workdayStartMinute</key>
-      <integer>540</integer>
+      <integer>360</integer>
       <key>workdayEndMinute</key>
-      <integer>1020</integer>
+      <integer>1140</integer>
       <key>gitFolders</key>
       <array/>
       <key>onboardingCompleted</key>

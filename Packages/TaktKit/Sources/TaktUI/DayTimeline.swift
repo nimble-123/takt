@@ -30,6 +30,7 @@ struct DayTimeline: View {
       GeometryReader { proxy in
         let width = max(0, proxy.size.width - gutter)
         ZStack(alignment: .topLeading) {
+          offHoursBands(width: width)
           hourGrid(width: proxy.size.width)
           idleBands(width: width)
           if interactive {
@@ -204,6 +205,17 @@ struct DayTimeline: View {
       }
     }
     .frame(height: height(dayLength), alignment: .top)
+  }
+
+  /// Time outside the core working hours, a shade darker like in Outlook (#246).
+  private func offHoursBands(width: CGFloat) -> some View {
+    ForEach(model.offHours(in: day), id: \.lowerBound) { range in
+      Rectangle()
+        .fill(Palette.offHours)
+        .frame(width: width, height: height(range.upperBound.seconds(since: range.lowerBound)))
+        .offset(x: gutter, y: y(range.lowerBound))
+        .accessibilityHidden(true)
+    }
   }
 
   private func idleBands(width: CGFloat) -> some View {

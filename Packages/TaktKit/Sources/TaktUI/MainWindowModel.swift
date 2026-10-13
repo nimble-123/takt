@@ -376,6 +376,13 @@ public final class MainWindowModel {
     self.section = section
   }
 
+  /// Parts of a shown day outside the core working hours, shaded in the timelines (#246); none
+  /// without settings.
+  public func offHours(in day: Range<Timestamp>) -> [Range<Timestamp>] {
+    guard let settings else { return [] }
+    return settings.coreHours.offHours(in: day, isHoliday: holiday(on: day.lowerBound) != nil, calendar: calendar)
+  }
+
   /// The public holiday on the local day of `day` in the chosen federal state (AZ-03).
   public func holiday(on day: Timestamp) -> PublicHoliday? {
     guard let state = settings?.federalState else { return nil }
