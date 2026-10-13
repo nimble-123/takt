@@ -214,7 +214,7 @@ public struct MainWindowView: View {
   }
 
   private var sectionBinding: Binding<MainWindowModel.Section?> {
-    Binding(get: { model.section }, set: { if let section = $0 { model.section = section } })
+    Binding(get: { model.section }, set: { if let section = $0 { model.open(section) } })
   }
 
   private var title: String {
