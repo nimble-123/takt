@@ -332,6 +332,15 @@ public final class MainWindowModel {
     day = clock.now()
   }
 
+  /// Switches the screen from the sidebar or ⌘K; the dated screens open on today (#244). Jumps to a
+  /// given day (week to day, search results) set `day` and `section` themselves.
+  public func open(_ section: Section) {
+    if [.today, .dayClose, .week].contains(section) {
+      showToday()
+    }
+    self.section = section
+  }
+
   /// The public holiday on the local day of `day` in the chosen federal state (AZ-03).
   public func holiday(on day: Timestamp) -> PublicHoliday? {
     guard let state = settings?.federalState else { return nil }

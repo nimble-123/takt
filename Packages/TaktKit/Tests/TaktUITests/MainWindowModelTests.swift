@@ -277,6 +277,27 @@ struct MainWindowModelTests {
     #expect(model.selection.isEmpty)
   }
 
+  @Test(arguments: [MainWindowModel.Section.today, .dayClose, .week])
+  func openingADatedScreenShowsToday(section: MainWindowModel.Section) {
+    model.section = .week
+    model.step(by: -2)
+
+    model.open(section)
+
+    #expect(model.section == section)
+    #expect(model.dayRange.contains(clock.now()))
+  }
+
+  @Test
+  func openingOtherScreensKeepsTheShownDay() {
+    model.step(by: -1)
+    let shown = model.dayRange
+
+    model.open(.entries)
+
+    #expect(model.dayRange == shown)
+  }
+
   @Test(arguments: [MainWindowModel.Section.analytics, .projects, .settings])
   func deleteKeyLeavesEntriesAloneOnScreensWithoutThem(section: MainWindowModel.Section) async throws {
     let id = try #require(await model.createEntry(from: at(7), to: at(8)))
