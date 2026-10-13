@@ -97,6 +97,9 @@ input.sw:disabled{opacity:.55;cursor:default}
 </div>
 <sc-for list="{{days}}" as="d" hint-placeholder-count="7">
 <div style="flex: 1; min-width: 0; position: relative; height: 960px; border-left: 1px solid #E5E5EA; background: {{d.bg}}">
+<sc-for list="{{d.off}}" as="o" hint-placeholder-count="2">
+<div aria-hidden="true" title="Außerhalb der Rahmenarbeitszeit" style="position: absolute; left: 0; right: 0; top: {{o.top}}px; height: {{o.h}}px; background: rgba(0,0,0,0.045)"></div>
+</sc-for>
 <sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
 <div style="position: absolute; left: 0; right: 0; top: {{h.top}}px; border-top: 1px solid #F0F0F3"></div>
 </sc-for>
@@ -144,8 +147,11 @@ class Component extends DCLogic {
       outline: focused ? '2.5px solid #0F766E' : 'none',
       top: t(from) * H / 60, h: (t(to) - t(from)) * H / 60, title: title, time: from + '–' + to, left: left || '0', right: right || '0'
     });
+    // Core hours Mo–Fr 6–19 (HW-08): shaded before and after, days off completely.
+    const work = [{ top: 0, h: 6 * H }, { top: 19 * H, h: 5 * H }];
+    const free = [{ top: 0, h: 24 * H }];
     const day = (label, total, blocks, opts) => Object.assign({
-      label: label, total: total, blocks: blocks, weight: '400', ink: '#1C1C1E', bg: 'transparent', isToday: false, holiday: ''
+      label: label, total: total, blocks: blocks, weight: '400', ink: '#1C1C1E', bg: 'transparent', isToday: false, holiday: '', off: work
     }, opts || {});
     return {
       setScroll: this.setScroll || (this.setScroll = (el) => { if (el && !el.dataset.init) { el.scrollTop = 280; el.dataset.init = '1'; } }),
@@ -172,9 +178,9 @@ class Component extends DCLogic {
           b('dev', '08:45', '09:45', '#4821 Login-Flow'), b('meet', '09:45', '10:00', 'Daily'),
           b('dev', '10:00', '12:00', '#4821 Login-Flow'), b('run', '12:45', '14:30', '#4655 Session-Timeout')
         ], { weight: '700', ink: '#0F766E', bg: 'rgba(15,118,110,0.035)', isToday: true }),
-        day('Fr., 9.', '0:00', [], { holiday: 'Urlaub', bg: '#FAFAFB' }),
-        day('Sa., 10.', '0:00', [], { bg: '#FAFAFB' }),
-        day('So., 11.', '0:00', [], { bg: '#FAFAFB' })
+        day('Fr., 9.', '0:00', [], { holiday: 'Urlaub' }),
+        day('Sa., 10.', '0:00', [], { off: free }),
+        day('So., 11.', '0:00', [], { off: free })
       ]
     };
   }

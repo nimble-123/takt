@@ -1481,6 +1481,16 @@
         }
       }
     },
+    "Core hours": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rahmenarbeitszeit"
+          }
+        }
+      }
+    },
     "Corpus Christi": {
       "localizations": {
         "de": {
@@ -2591,6 +2601,16 @@
         }
       }
     },
+    "Only within the core hours on working days and while you use the Mac; repeats at the same interval.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nur in der Rahmenarbeitszeit an Arbeitstagen und während du den Mac benutzt; wiederholt sich im selben Abstand."
+          }
+        }
+      }
+    },
     "imported": {
       "localizations": {
         "de": {
@@ -3277,16 +3297,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Gilt nur für das erste Jahr, das Takt zählt; Folgejahre übernehmen den Rest."
-          }
-        }
-      }
-    },
-    "Only on working days and while you use the Mac; repeats at the same interval.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nur an Arbeitstagen und während du den Mac benutzt; wiederholt sich im selben Abstand."
           }
         }
       }
@@ -6027,16 +6037,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Arbeitstage"
-          }
-        }
-      }
-    },
-    "Working hours": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arbeitszeit"
           }
         }
       }

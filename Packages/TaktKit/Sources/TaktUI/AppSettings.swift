@@ -224,7 +224,8 @@ public final class AppSettings {
     didSet { write(.noTimerReminderMinutes, noTimerReminderMinutes) }
   }
 
-  /// TM-09: working hours as minutes after local midnight, e.g. 540 for 9:00.
+  /// Core working hours as minutes after local midnight, e.g. 360 for 6:00: shaded around in the
+  /// timelines (#246) and the window of the reminder (TM-09).
   public var workdayStartMinute: Int {
     didSet { write(.workdayStartMinute, workdayStartMinute) }
   }
@@ -354,6 +355,10 @@ public final class AppSettings {
   /// AN-07: the weekly hours spread over the working days.
   public var targetPlan: TargetPlan {
     TargetPlan(weeklyHours: weeklyHours, workDays: workDays, federalState: federalState)
+  }
+
+  public var coreHours: CoreHours {
+    CoreHours(startMinute: workdayStartMinute, endMinute: workdayEndMinute, workDays: workDays)
   }
 
   public var noTimerReminder: NoTimerReminderSettings {
@@ -560,8 +565,8 @@ private struct Stored {
     remindWhenNoTimer = defaults.object(forKey: AppSettings.Key.remindWhenNoTimer.rawValue) as? Bool ?? true
     let reminderMinutes = defaults.object(forKey: AppSettings.Key.noTimerReminderMinutes.rawValue) as? Int ?? 15
     noTimerReminderMinutes = max(1, reminderMinutes)
-    workdayStartMinute = Self.minuteOfDay(defaults, .workdayStartMinute) ?? 9 * 60
-    workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 17 * 60
+    workdayStartMinute = Self.minuteOfDay(defaults, .workdayStartMinute) ?? 6 * 60
+    workdayEndMinute = Self.minuteOfDay(defaults, .workdayEndMinute) ?? 19 * 60
     federalState = defaults.string(forKey: AppSettings.Key.federalState.rawValue).flatMap(FederalState.init)
     askCorrectionReason = defaults.bool(forKey: AppSettings.Key.askCorrectionReason.rawValue)
     workTimeModel = defaults.string(forKey: AppSettings.Key.workTimeModel.rawValue)

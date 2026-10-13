@@ -20,7 +20,7 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `bookingIncludesNote` | Boolean | Default `true` | Notiz des Eintrags in den Kommentar am Work Item (DO-23) |
 | `dailyGoalHours` | Real | Default 8, 1–12 | Tagesziel im Popover; Nachkommastellen erlaubt (z. B. 7.6 bei 38 Wochenstunden) |
 | `weeklyHours` | Real | Default 40, 0–60 | Wochenstunden für Soll/Ist (AN-07); Nachkommastellen erlaubt |
-| `workDays` | Array of Integer | 1 = Montag … 7 = Sonntag, Default 1–5 | Arbeitstage für Soll/Ist |
+| `workDays` | Array of Integer | 1 = Montag … 7 = Sonntag, Default 1–5 | Arbeitstage für Soll/Ist, Rahmenarbeitszeit und Erinnerung |
 | `workTimeModel` | String | `flexTime` (Default), `trust` | Gleitzeit mit Soll und Flexkonto oder Vertrauensarbeitszeit ohne beides (AZ-05) |
 | `flexStartBalanceHours` | Real | Default 0, −999–999 | Stand des Flexkontos vor dem Stichtag, z. B. Übertrag aus dem Vorjahr |
 | `flexStartDay` | String | `YYYY-MM-DD`; leer = erster erfasster Tag (Default) | Stichtag, ab dem das Flexkonto zählt |
@@ -38,10 +38,10 @@ Beispielprofil: [`docs/mdm/Takt.mobileconfig`](mdm/Takt.mobileconfig). Ein Test 
 | `calendarEnabled` | Boolean | Default `false` | Outlook-Termine in der Startsuche (CA-01); wirkt nur mit Client- und Tenant-ID und angemeldetem Konto |
 | `theme` | String | `standard`, `github`, `fioriHorizon`, `tokyoNight`, `auraDark`, `panda`, `dracula`, `oneDark`, `nord`, `catppuccinMocha` | Farbschema aller Fenster (HW-07) |
 | `appearance` | String | `system` (Default), `light`, `dark` | Hell, Dunkel oder wie das System; Themes mit nur einer Variante legen es selbst fest (HW-07) |
-| `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Arbeitszeit kein Timer läuft (TM-09) |
+| `remindWhenNoTimer` | Boolean | Default `true` | Erinnern, wenn in der Rahmenarbeitszeit kein Timer läuft (TM-09) |
 | `noTimerReminderMinutes` | Integer | 5–120, Default 15 | Nach wie vielen Minuten ohne Timer erinnert wird, danach im selben Abstand |
-| `workdayStartMinute` | Integer | Minuten nach Mitternacht, Default 540 (9:00) | Beginn der Arbeitszeit für die Erinnerung |
-| `workdayEndMinute` | Integer | Minuten nach Mitternacht, Default 1020 (17:00) | Ende der Arbeitszeit für die Erinnerung |
+| `workdayStartMinute` | Integer | Minuten nach Mitternacht, Default 360 (6:00) | Beginn der Rahmenarbeitszeit: in Heute und Woche hinterlegt und Fenster der Erinnerung (HW-08) |
+| `workdayEndMinute` | Integer | Minuten nach Mitternacht, Default 1140 (19:00) | Ende der Rahmenarbeitszeit |
 | `gitFolders` | Array of String | Pfade | Ordner mit Git-Repositories für Branch-Vorschläge |
 | `onboardingCompleted` | Boolean | `true` überspringt das Onboarding | Sinnvoll, wenn alles andere per Profil kommt |
 | `entraClientID` | String | Client-ID der App-Registrierung | Entra-ID-Anmeldung (DO-01, CA-02); ohne Profil trägt man sie unter Einstellungen → Microsoft-Konto selbst ein |
