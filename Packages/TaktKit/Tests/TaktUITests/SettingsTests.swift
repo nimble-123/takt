@@ -29,8 +29,28 @@ struct SettingsTests {
     #expect(settings.dailyGoal == 8 * 3600)
     #expect(settings.showElapsedInMenuBar)
     #expect(!settings.onboardingCompleted)
-    #expect(settings.noTimerReminder == NoTimerReminderSettings())
+    #expect(settings.noTimerReminder == NoTimerReminderSettings(startMinute: 6 * 60, endMinute: 19 * 60))
     #expect(settings.federalState == nil)
+  }
+
+  @Test
+  func coreHoursDefaultToSixToSevenOnWeekdays() {
+    let settings = AppSettings(defaults: defaults())
+
+    #expect(settings.coreHours == CoreHours(startMinute: 6 * 60, endMinute: 19 * 60, workDays: [1, 2, 3, 4, 5]))
+    #expect(settings.noTimerReminder.startMinute == 6 * 60)
+  }
+
+  @Test
+  func coreHoursSetByTheUserAreKept() {
+    let store = defaults()
+    store.set(9 * 60, forKey: "workdayStartMinute")
+    store.set(17 * 60, forKey: "workdayEndMinute")
+
+    let settings = AppSettings(defaults: store)
+
+    #expect(settings.coreHours.startMinute == 9 * 60)
+    #expect(settings.coreHours.endMinute == 17 * 60)
   }
 
   @Test

@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - Palette
+
 /// Color tokens from docs/DESIGN.md, resolved from the active theme (HW-07) and its light or dark
 /// variant.
 public enum Palette {
@@ -17,4 +19,16 @@ public enum Palette {
   public static let background = Color(ThemeColor(token: .background))
   /// Sidebar background; clear in the standard theme.
   public static let sidebar = Color(ThemeColor(token: .sidebar))
+  /// Time outside the core working hours in the timelines (#246): a shade darker than the
+  /// background in every theme.
+  public static let offHours = Color(OffHoursShade())
+}
+
+// MARK: - OffHoursShade
+
+/// Black over the background: just visible on light themes, a little stronger on dark ones.
+nonisolated struct OffHoursShade: ShapeStyle, Hashable {
+  func resolve(in environment: EnvironmentValues) -> Color.Resolved {
+    Color.black.opacity(environment.colorScheme == .dark ? 0.22 : 0.045).resolve(in: environment)
+  }
 }

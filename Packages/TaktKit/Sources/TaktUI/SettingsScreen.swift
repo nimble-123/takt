@@ -95,6 +95,24 @@ struct SettingsScreen: View {
           }
         }
         .managed(settings.isLocked(.workDays))
+        // Shaded around in Today and Week and the window of the reminder (#246).
+        LabeledContent(String(localized: "Core hours", bundle: .module)) {
+          HStack(spacing: 4) {
+            DatePicker(
+              String(localized: "From", bundle: .module),
+              selection: timeOfDay($settings.workdayStartMinute),
+              displayedComponents: .hourAndMinute,
+            )
+            Text(verbatim: "–")
+            DatePicker(
+              String(localized: "To", bundle: .module),
+              selection: timeOfDay($settings.workdayEndMinute),
+              displayedComponents: .hourAndMinute,
+            )
+          }
+          .labelsHidden()
+        }
+        .managed(settings.isLocked(.workdayStartMinute) || settings.isLocked(.workdayEndMinute))
         Picker(String(localized: "Working time model", bundle: .module), selection: $settings.workTimeModel) {
           Text("Flex time", bundle: .module).tag(AppSettings.WorkTimeModel.flexTime)
           Text("Trust-based working time", bundle: .module).tag(AppSettings.WorkTimeModel.trust)
@@ -214,24 +232,6 @@ struct SettingsScreen: View {
       Section {
         Toggle(String(localized: "Remind me when no timer runs", bundle: .module), isOn: $settings.remindWhenNoTimer)
           .managed(settings.isLocked(.remindWhenNoTimer))
-        LabeledContent(String(localized: "Working hours", bundle: .module)) {
-          HStack(spacing: 4) {
-            DatePicker(
-              String(localized: "From", bundle: .module),
-              selection: timeOfDay($settings.workdayStartMinute),
-              displayedComponents: .hourAndMinute,
-            )
-            Text(verbatim: "–")
-            DatePicker(
-              String(localized: "To", bundle: .module),
-              selection: timeOfDay($settings.workdayEndMinute),
-              displayedComponents: .hourAndMinute,
-            )
-          }
-          .labelsHidden()
-        }
-        .managed(settings.isLocked(.workdayStartMinute) || settings.isLocked(.workdayEndMinute))
-        .disabled(!settings.remindWhenNoTimer)
         StepperField(
           title: String(localized: "Remind after", bundle: .module),
           value: $settings.noTimerReminderMinutes,
@@ -245,9 +245,12 @@ struct SettingsScreen: View {
       } header: {
         Text("Reminder", bundle: .module)
       } footer: {
-        Text("Only on working days and while you use the Mac; repeats at the same interval.", bundle: .module)
-          .font(.system(size: 11))
-          .foregroundStyle(Palette.textSecondary)
+        Text(
+          "Only within the core hours on working days and while you use the Mac; repeats at the same interval.",
+          bundle: .module,
+        )
+        .font(.system(size: 11))
+        .foregroundStyle(Palette.textSecondary)
       }
 
       if model.monthClose != nil {

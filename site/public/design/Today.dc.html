@@ -98,6 +98,8 @@ input.sw:disabled{opacity:.55;cursor:default}
 </sc-for>
 </div>
 <div style="flex: 1; position: relative; height: 1440px; border-left: 1px solid #ECECF0">
+<div aria-hidden="true" title="Außerhalb der Rahmenarbeitszeit" style="position: absolute; left: 0; right: 0; top: 0; height: 360px; background: rgba(0,0,0,0.045)"></div>
+<div aria-hidden="true" title="Außerhalb der Rahmenarbeitszeit" style="position: absolute; left: 0; right: 0; top: 1140px; height: 300px; background: rgba(0,0,0,0.045)"></div>
 <sc-for list="{{hours}}" as="h" hint-placeholder-count="24">
 <div style="position: absolute; left: 0; right: 0; top: {{h.top}}px; border-top: 1px solid #F0F0F3"></div>
 </sc-for>
