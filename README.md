@@ -27,8 +27,8 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/week-dark.png">
-  <img alt="Takt main window: the week view with entries as colored blocks, pauses hatched, and the inspector of the selected entry on the right" src="docs/assets/screenshots/week-light.png" width="860">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/showcase-dark.gif">
+  <img alt="Animated tour of Takt: the menu bar popover with a running timer and a search for earlier tasks, then the main window with today's timeline and the inspector, zooming into the timeline, the week with core hours shaded, and the analytics of the month with bars per day, a project donut and a weekday by hour heatmap" src="docs/assets/showcase-light.gif" width="860">
 </picture>
 
 <table>
