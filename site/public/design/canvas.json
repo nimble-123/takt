@@ -266,6 +266,14 @@
       "maxH": 420,
       "fill": "orange",
       "text": "Onboarding · Outlook (CA-01), gebaut: Schritt 1 zeigt unter Azure DevOps nach einer Trennlinie den Schalter „Outlook-Termine in der Suche zeigen“ (14 pt mittel, standardmäßig aus), darunter 12 pt sekundär „Beim Einschalten meldest du dich mit deinem Arbeitskonto an. Takt liest nur deinen Kalender.“\nNur sichtbar, wenn entraClientID und entraTenantID per MDM gesetzt sind.\nEinschalten meldet zuerst an (kleines Microsoft-Fenster); wird die Anmeldung abgebrochen, bleibt der Schalter aus. Angemeldet lautet die Unterzeile „Angemeldet als info@nilslutz.de.“\nSchritt 3: Die Karten „Wechseln“ und „Parallel“ sind nur so hoch wie ihr Text (Innenabstand 10), beide gleich hoch."
+    },
+    "note-zoom-core": {
+      "x": 5880,
+      "y": 1980,
+      "w": 360,
+      "maxH": 480,
+      "fill": "teal",
+      "text": "Heute und Woche · Zoom (#245): Trackpad-Pinch stufenlos, ⌘+ / ⌘− in Stufen 24 · 32 · 40 · 56 · 80 · 120 · 160 pt pro Stunde, ⌘0 zurück (Heute 56, Woche 40); dieselben Befehle in ⌘K („Vergrößern“, „Verkleinern“, „Originalgröße“). Die Zeit unter den Fingern bzw. in der Mitte bleibt stehen; ab 120 pt dünne Viertelstundenlinien (Trennlinie 50 %). Je Sicht gemerkt, kein eigenes Bedienelement.\nRahmenarbeitszeit (#246, HW-08): außerhalb Mo–Fr 6–19 Uhr, am Wochenende und an Feiertagen hinter dem Raster Schwarz 4,5 % (dunkel 22 %), wie in Heute und Woche gezeigt."
     }
   },
   "order": [
