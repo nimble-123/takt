@@ -31,23 +31,6 @@ A native macOS time tracker that lives in your menu bar, keeps every byte on you
   <img alt="Animated tour of Takt: the menu bar popover with a running timer and a search for earlier tasks, then the main window with today's timeline and the inspector, zooming into the timeline, the week with core hours shaded, and the analytics of the month with bars per day, a project donut and a weekday by hour heatmap" src="docs/assets/showcase-light.gif" width="860">
 </picture>
 
-<table>
-  <tr>
-    <td align="center" valign="top">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/popover-dark.png">
-  <img alt="Takt menu bar popover with search field, a running and a paused timer with work item, project and category, suggested work items, recent tasks and a daily progress bar" src="docs/assets/screenshots/popover-light.png" width="280">
-</picture>
-    </td>
-    <td align="center" valign="top">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/screenshots/analytics-dark.png">
-  <img alt="Takt analytics view with key figures compared to the previous week, flex and vacation accounts, a one-line insight, stacked bars per day, a project donut, top work items and a weekday by hour heatmap" src="docs/assets/screenshots/analytics-light.png" width="560">
-</picture>
-    </td>
-  </tr>
-</table>
-
 </div>
 
 ## Why Takt
