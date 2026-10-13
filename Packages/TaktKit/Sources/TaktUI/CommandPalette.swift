@@ -176,7 +176,7 @@ public final class CommandPaletteModel {
           id: "section-\(section.rawValue)",
           title: String(localized: "Show \(section.title)", bundle: .module),
           symbol: section.symbol,
-        ) { [window] in window.section = section }
+        ) { [window] in window.open(section) }
       )
     }
     if window.analytics != nil {
