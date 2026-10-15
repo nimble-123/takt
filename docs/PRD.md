@@ -104,7 +104,7 @@ Die Menüleiste ist das Cockpit für das Erfassen, das Hauptfenster der Ort für
 | TM-06 | Inaktivitätserkennung (Default 10 min): bei Rückkehr wählen zwischen behalten, verwerfen, als Pause werten, anderem Task zuordnen | Must |
 | TM-07 | Ruhezustand, Bildschirmsperre und Neustart wie Inaktivität behandeln; laufende Timer überstehen Absturz und Neustart | Must |
 | TM-08 | Warnung bei Timer, der länger als 10 h läuft | Should |
-| TM-09 | Erinnerung, wenn während der Rahmenarbeitszeit (HW-08) kein Timer läuft | Should |
+| TM-09 | Erinnerung, wenn während der Rahmenarbeitszeit (HW-08) kein Timer läuft; nicht an Abwesenheitstagen (AZ-05) und Feiertagen | Should |
 | TM-10 | Rundung (z. B. auf 15 min) nur für Export und ADO; Rohdaten bleiben sekundengenau | Should |
 | TM-11 | Stopp beendet sofort und zeigt einen Toast mit „Notiz“ und „Rückgängig ⌘Z“; ein Beenden-Panel (Notiz, Projekt, Kategorie, Work Item, Tags, Buchungswahl) erscheint nur, wenn Pflichtangaben fehlen oder es bewusst geöffnet wird (⌥-Klick); Pflicht sind per Einstellung Projekt, Kategorie und, mit Azure-DevOps-Verbindung, Work Item | Must |
 

@@ -92,15 +92,17 @@ public struct NoTimerReminder: Sendable {
   /// Input within this many seconds counts as the user being at the Mac.
   public var presenceLimit: TimeInterval
 
-  /// Whether to remind now. Called about once a minute.
+  /// Whether to remind now. Called about once a minute. `isDayOff`: today is a vacation, sick or
+  /// off day or a public holiday (#256).
   public mutating func check(
     isRunning: Bool,
     secondsSinceLastInput: TimeInterval,
     now: Timestamp,
     settings: NoTimerReminderSettings,
+    isDayOff: Bool = false,
     calendar: Calendar = .current,
   ) -> Bool {
-    guard settings.isEnabled, !isRunning, settings.isWorkingTime(now, in: calendar) else {
+    guard settings.isEnabled, !isRunning, !isDayOff, settings.isWorkingTime(now, in: calendar) else {
       quietSince = nil
       return false
     }
