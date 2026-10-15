@@ -66,6 +66,19 @@ struct NoTimerReminderTests {
     #expect(!check(&reminder, at: monday(10, 0), settings: off))
   }
 
+  @Test
+  func staysQuietOnADayOffAndWaitsAgainAfterwards() {
+    var reminder = NoTimerReminder()
+
+    #expect(!check(&reminder, at: monday(9, 0)))
+    #expect(!check(&reminder, at: monday(9, 15), isDayOff: true))
+    #expect(!check(&reminder, at: monday(10, 0), isDayOff: true))
+    // The absence was removed: the wait starts over.
+    #expect(!check(&reminder, at: monday(10, 1)))
+    #expect(!check(&reminder, at: monday(10, 15)))
+    #expect(check(&reminder, at: monday(10, 16)))
+  }
+
   // MARK: Private
 
   private let calendar: Calendar = {
@@ -86,7 +99,15 @@ struct NoTimerReminderTests {
     isRunning: Bool = false,
     idle: TimeInterval = 0,
     settings: NoTimerReminderSettings = NoTimerReminderSettings(),
+    isDayOff: Bool = false,
   ) -> Bool {
-    reminder.check(isRunning: isRunning, secondsSinceLastInput: idle, now: now, settings: settings, calendar: calendar)
+    reminder.check(
+      isRunning: isRunning,
+      secondsSinceLastInput: idle,
+      now: now,
+      settings: settings,
+      isDayOff: isDayOff,
+      calendar: calendar,
+    )
   }
 }

@@ -360,14 +360,18 @@ final class Composition {
     }
   }
 
-  /// TM-09: during working hours, while the user is at the Mac, but no timer runs.
+  /// TM-09: during working hours, while the user is at the Mac, but no timer runs; not on
+  /// absences and public holidays (#256).
   private func remindWhenNoTimerRuns(_ snapshot: TimerSnapshot) async {
     let idle = await MacActivitySignals().secondsSinceLastInput()
+    let now = clock.now()
+    let dayOff = await isDayOff(now)
     let due = noTimerReminder.check(
       isRunning: !snapshot.running.isEmpty,
       secondsSinceLastInput: idle,
-      now: clock.now(),
+      now: now,
       settings: settings.noTimerReminder,
+      isDayOff: dayOff,
     )
     guard due else { return }
     await notifier.post(
@@ -375,6 +379,16 @@ final class Composition {
       title: String(localized: "No timer running"),
       body: String(localized: "It's working time, but Takt isn't recording. Start a timer from the menu bar."),
     )
+  }
+
+  /// An absence (vacation, sick, off) or a public holiday of the chosen federal state on `now`'s day.
+  private func isDayOff(_ now: Timestamp) async -> Bool {
+    if let state = settings.federalState, PublicHoliday.on(now, state: state, calendar: .current) != nil {
+      return true
+    }
+    let day = now.localDayString()
+    let absences = try? await AbsenceStore(database: database).absences(from: day, through: day)
+    return absences?[day] != nil
   }
 
   /// TM-08: a timer running for more than 10 hours was probably forgotten.
