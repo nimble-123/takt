@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/nimble-123/takt/compare/v0.12.0...v0.13.0) (2026-10-15)
+
+
+### Neue Funktionen
+
+* **app:** no reminder without a timer on absence days and holidays (TM-09) ([#257](https://github.com/nimble-123/takt/issues/257)) ([428afcf](https://github.com/nimble-123/takt/commit/428afcf947bec52ea26464c82a0cfabc675a7d0a))
+
 ## [0.12.0](https://github.com/nimble-123/takt/compare/v0.11.0...v0.12.0) (2026-10-13)
 
 
